@@ -46,6 +46,9 @@ jobs:
         env:
           DATABASE_URL: postgresql://build:build@127.0.0.1:5432/darb_build
         run: |
+          if [ ! -f package-lock.json ]; then
+            npm install --package-lock-only --ignore-scripts
+          fi
           npm ci
           npx prisma validate
           npm run db:generate
