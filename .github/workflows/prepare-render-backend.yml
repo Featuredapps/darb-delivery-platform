@@ -2,6 +2,8 @@ name: Prepare DARB backend source
 
 on:
   workflow_dispatch:
+  push:
+    branches: [render-deploy]
 
 permissions:
   contents: write
