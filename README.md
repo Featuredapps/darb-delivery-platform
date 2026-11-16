@@ -6,7 +6,7 @@
 
 ## حالة التحقق
 
-تم التحقق من بناء Backend packages وبناء تطبيق Flutter Android بنجاح في GitHub Actions بتاريخ 2026-11-16.
+تم التحقق سابقاً من بناء Backend packages وبناء تطبيق Flutter Android بنجاح في GitHub Actions بتاريخ 2026-11-16.
 
 - Workflow run: [43817595520](https://github.com/Featuredapps/darb-delivery-platform/actions/runs/43817595520)
 - النتيجة: نجاح جميع خطوات البناء.
@@ -14,9 +14,17 @@
 - تم إصلاح Android platform scaffold الناقص أثناء CI وإنتاج أرشيف مصدر مصحح كـ artifact منفصل.
 - لم يتم استبدال `DARB-source.zip` الأصلي في المستودع بهذا التشغيل.
 
+## آخر تحديث تقني
+
+- أضيفت مسارات فحص صحة Backend: `/api/v1/healthz` و`/api/v1/readyz`.
+- فحص الجاهزية يتحقق من اتصال Redis ووجود جدول المستخدمين في PostgreSQL، ولا يعطي نجاحاً زائفاً إذا لم تُهيأ قاعدة البيانات.
+- أضيف GitHub Actions workflow مستقل لبناء Backend وتشغيل اختباراته عند تعديل ملفات Backend أو إعدادات النشر.
+- إعداد Render يستخدم فحص liveness، لكن إنشاء موارد الاستضافة لم يتم بعد.
+- لا توجد حتى الآن Prisma migration أولية معتمدة؛ لذلك لا تعتبر قاعدة البيانات جاهزة لتشغيل الطلبات الفعلية.
+
 ## تنزيل المخرجات
 
-تتوفر مخرجات البناء من صفحة [GitHub Actions run](https://github.com/Featuredapps/darb-delivery-platform/actions/runs/43817595520):
+تتوفر مخرجات البناء السابقة من صفحة [GitHub Actions run](https://github.com/Featuredapps/darb-delivery-platform/actions/runs/43817595520):
 
 - `darb-debug-apk`: تطبيق Android Debug للاختبار.
 - `darb-source-fixed`: أرشيف المصدر بعد إصلاح Android scaffold وتحديث اعتماد Flutter في بيئة البناء.
@@ -26,6 +34,8 @@ Artifacts مؤقتة وتنتهي صلاحيتها وفق مدة الاحتفا�
 ## Backend
 
 NestJS + Prisma + PostgreSQL/PostGIS + Redis.
+
+تفاصيل النشر والقيود الحالية: [backend/DEPLOYMENT.md](backend/DEPLOYMENT.md).
 
 ## Mobile
 
@@ -41,6 +51,7 @@ Flutter، واجهة عربية RTL.
 
 ## متطلبات ما قبل الإنتاج
 
+- إنشاء Prisma migration أولية ومراجعتها واختبارها.
 - اختبار تدفق الطلب كاملاً بين العميل والبائع والسائق والإدارة.
 - اختبار صلاحيات الأدوار وعزل البيانات والأمان.
 - إعداد HTTPS وإيقاف cleartext traffic.
@@ -50,8 +61,3 @@ Flutter، واجهة عربية RTL.
 ## إعدادات الأمان
 
 لا تضع أسرار الإنتاج في المستودع. استخدم ملفات البيئة المحلية أو GitHub Actions Secrets، وراجع إعدادات HTTPS وسياسات الوصول قبل النشر.
-
-
-## تحديث التقوية
-
-أُضيف دليل إعداد ونشر Backend الآمن في [`backend/DEPLOYMENT.md`](backend/DEPLOYMENT.md). يتضمن إعداد الأسرار، عزل منافذ PostgreSQL وRedis، ترحيل Prisma كخطوة مستقلة، فحص الصحة، ومتطلبات بناء Android مع `API_BASE_URL` عبر HTTPS. هذا الدليل لا يعني أن خادماً عاماً أو مزود SMS قد تم تفعيله.
