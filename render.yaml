@@ -1,5 +1,5 @@
 # Render Blueprint for DARB backend.
-# Free plans are for validation only; Render free Postgres expires after its trial period.
+# Free plans are for validation only; they are not production-safe.
 databases:
   - name: darb-postgres
     plan: free
@@ -20,9 +20,11 @@ services:
     runtime: node
     plan: free
     region: frankfurt
+    healthCheckPath: /api/v1/healthz
     buildCommand: >-
       mkdir -p .render-build &&
       unzip -q DARB-source.zip -d .render-build &&
+      cp -R backend/src/. .render-build/darb-project/backend/src/ &&
       cd .render-build/darb-project/backend &&
       npm ci &&
       npx prisma generate &&
