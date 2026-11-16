@@ -2,13 +2,13 @@
 
 ## Repository layout
 
-The original backend and Android sources remain in `DARB-source.zip`. Versioned backend patches, health checks, and Prisma migrations live in the repository under `backend/`. The Render build extracts the archive, then overlays the current backend source patches and migration history before compiling.
+The original backend and Android sources remain in `DARB-source.zip`. Versioned backend patches, health checks, and Prisma migrations live in the repository under `backend/`. The deployment build extracts the archive, then overlays the current backend source patches and migration history before compiling.
 
 ## Database migrations
 
-The repository now contains the reviewed initial Prisma migration at `backend/prisma/migrations/20261116162000_initial/`. It creates the application schema, enables PostGIS, adds spatial GiST indexes, and enforces the Syrian mobile-number format.
+The repository contains the reviewed initial Prisma migration at `backend/prisma/migrations/20261116162000_initial/`. It creates the application schema, enables PostGIS, adds spatial GiST indexes, and enforces the Syrian mobile-number format.
 
-The initial migration was applied successfully in CI to a disposable PostgreSQL 16/PostGIS database using `prisma migrate deploy`. The normal Backend CI now applies the committed migration to a fresh PostGIS service before building and running tests.
+The initial migration was applied successfully in CI to a disposable PostgreSQL 16/PostGIS database using `prisma migrate deploy`. Backend CI applies the committed migration to a fresh PostGIS service before building and running tests.
 
 For local development, extract `DARB-source.zip`, copy the repository's `backend/prisma/migrations/` directory into the extracted backend, set `DATABASE_URL`, then run:
 
@@ -34,24 +34,22 @@ Extract `DARB-source.zip`, then run Docker Compose from the extracted `darb-proj
 
 A passing liveness check does not mean the database schema is ready.
 
-## Render test deployment
+## Zero-cost preview deployment
 
-The root `render.yaml` defines a test deployment in Frankfurt:
-- Node API service, PostgreSQL 16, and Redis-compatible Key Value.
-- Randomly generated JWT access, JWT refresh, and OTP secrets.
-- Render prompts for the SMS endpoint and API key.
-- Render health checks use `/api/v1/healthz`.
-- The build overlays the committed migration history, and the start command runs `prisma migrate deploy` before starting the API.
+The root `render.yaml` now creates only the Render Free API service. PostgreSQL and Redis are external services to avoid relying on Render Free Postgres (30-day expiry) and ephemeral Render Key Value storage.
 
-To start it, sign in to Render, create a new Blueprint from the GitHub repository `Featuredapps/darb-delivery-platform`, review the resources and any charges, and confirm creation. The Blueprint does not create a Render account or deploy anything until an account owner confirms it.
+See [FREE-DEPLOYMENT.md](../FREE-DEPLOYMENT.md) for the exact setup using:
+- Render Free Web Service for the NestJS API (Frankfurt).
+- Supabase Free PostgreSQL (500 MB); enable PostGIS and verify extension schema/search path compatibility before applying migrations.
+- Upstash Redis Free (256 MB / 500K commands per month).
 
-**Free-plan warning:** this Blueprint currently selects free resources for validation only. Render's free web service sleeps after inactivity; free Postgres expires after 30 days and has no backups; free Key Value is in-memory and loses data on restart. This is not a production configuration. See Render's current limits: https://render.com/docs/free
+The API Blueprint asks for `DATABASE_URL` and `REDIS_URL` connection strings. It generates separate JWT access, JWT refresh, and OTP secrets. It also asks for `SMS_API_URL` and `SMS_API_KEY`; leaving those unset permits build/health-check validation only, not actual OTP delivery.
 
-The migration enables PostGIS as part of schema creation. Readiness must still be checked after deployment; a liveness response alone is not proof that the API can serve real requests.
+The free tiers can sleep, pause, or enforce quotas. They are not suitable for real customer data, live orders, payments, or driver dispatch. Do not deploy real users until backups, restore procedures, availability, resource limits, and security have been reviewed.
 
 ## Production requirements
 
-- Select paid resources with persistent Redis-compatible storage and managed database backups; review current pricing before confirming.
+- Select durable paid resources with managed database backups and persistent Redis-compatible storage; review pricing before confirming.
 - Set `NODE_ENV=production` and use strong, distinct JWT and OTP secrets.
 - Configure a real SMS provider that supports delivery to Syrian numbers. The current HTTP adapter sends a generic JSON body `{ "to": "+963...", "message": "..." }`; adapt it to the provider's documented API. This is not a verified Syrian SMS integration.
 - Keep the SMS API URL and key in the hosting provider's secret manager. Console SMS is not suitable for production.
