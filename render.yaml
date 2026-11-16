@@ -26,7 +26,7 @@ services:
       unzip -q DARB-source.zip -d .render-build &&
       cp -R backend/src/. .render-build/darb-project/backend/src/ &&
       cd .render-build/darb-project/backend &&
-      npm ci &&
+      npm install --no-audit --no-fund &&
       npx prisma generate &&
       npm run build
     startCommand: cd .render-build/darb-project/backend && npm start
