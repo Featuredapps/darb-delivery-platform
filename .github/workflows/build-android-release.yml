@@ -2,6 +2,11 @@ name: Build signed DARB Android release
 
 on:
   workflow_dispatch:
+    inputs:
+      api_base_url:
+        description: "Production HTTPS API base URL, including /api/v1"
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -173,11 +178,17 @@ jobs:
 
       - name: Analyze and build signed APK and AAB
         working-directory: extracted/darb-project/mobile
+        env:
+          DARB_API_BASE_URL: ${{ inputs.api_base_url }}
         run: |
           set -euo pipefail
+          if [[ "$DARB_API_BASE_URL" != https://* ]]; then
+            echo "::error::A production HTTPS API URL is required; refusing to package the emulator fallback URL."
+            exit 1
+          fi
           flutter analyze lib --no-pub --no-fatal-infos --no-fatal-warnings
-          flutter build apk --release
-          flutter build appbundle --release
+          flutter build apk --release --dart-define=API_BASE_URL="$DARB_API_BASE_URL"
+          flutter build appbundle --release --dart-define=API_BASE_URL="$DARB_API_BASE_URL"
 
       - name: Verify release outputs
         working-directory: extracted/darb-project/mobile
