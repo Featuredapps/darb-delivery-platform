@@ -1,0 +1,77 @@
+name: Validate DARB source archive
+
+on:
+  push:
+    paths:
+      - "DARB-source.zip"
+      - ".github/workflows/validate-source.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract source archive
+        run: |
+          test -s DARB-source.zip
+          unzip -q DARB-source.zip -d extracted
+          echo "Extracted files:"
+          find extracted -maxdepth 4 -type f | sort | head -250
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: ""
+
+      - name: Build every Node package
+        shell: bash
+        run: |
+          mapfile -t manifests < <(find extracted -name package.json -not -path '*/node_modules/*' -not -path '*/.dart_tool/*' | sort)
+          if [ "${#manifests[@]}" -eq 0 ]; then
+            echo "::error::No package.json found in source archive"
+            exit 1
+          fi
+          for manifest in "${manifests[@]}"; do
+            dir="$(dirname "$manifest")"
+            echo "::group::Node package: $dir"
+            cd "$GITHUB_WORKSPACE/$dir"
+            npm install --no-audit --no-fund
+            if node -e "process.exit(require('./package.json').scripts?.build ? 0 : 1)"; then
+              npm run build
+            else
+              echo "No build script; checking package metadata only."
+            fi
+            echo "::endgroup::"
+          done
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Analyze and build Flutter app
+        shell: bash
+        run: |
+          mapfile -t manifests < <(find extracted -name pubspec.yaml | sort)
+          if [ "${#manifests[@]}" -eq 0 ]; then
+            echo "::error::No pubspec.yaml found in source archive"
+            exit 1
+          fi
+          for manifest in "${manifests[@]}"; do
+            dir="$(dirname "$manifest")"
+            echo "::group::Flutter app: $dir"
+            cd "$GITHUB_WORKSPACE/$dir"
+            flutter pub get
+            flutter analyze
+            flutter build apk --debug
+            echo "::endgroup::"
+          done
