@@ -1,0 +1,63 @@
+name: Prepare DARB backend source
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  extract-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout deployment branch
+        uses: actions/checkout@v4
+        with:
+          ref: render-deploy
+          fetch-depth: 0
+
+      - name: Extract backend from reviewed source archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f DARB-source.zip
+          mkdir -p /tmp/darb-source
+          unzip -q DARB-source.zip -d /tmp/darb-source
+          SOURCE="/tmp/darb-source/darb-project/backend"
+          test -f "$SOURCE/package.json"
+          test -f "$SOURCE/prisma/schema.prisma"
+          mkdir -p backend
+          rsync -a --delete \
+            --exclude '.env' \
+            --exclude 'node_modules' \
+            --exclude 'dist' \
+            --exclude '.gradle' \
+            --exclude '.idea' \
+            --exclude '.kotlin' \
+            "$SOURCE/" backend/
+          test -f backend/package-lock.json
+          test ! -e backend/.env
+
+      - name: Install, generate Prisma client, and compile NestJS
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://build:build@127.0.0.1:5432/darb_build
+        run: |
+          npm ci
+          npx prisma validate
+          npm run db:generate
+          npm run build
+
+      - name: Commit extracted backend only after successful build
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend
+          if git diff --cached --quiet; then
+            echo "Backend source is already up to date."
+            exit 0
+          fi
+          git commit -m "chore: extract and validate backend source"
+          git push origin HEAD:render-deploy
