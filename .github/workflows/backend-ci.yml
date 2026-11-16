@@ -47,6 +47,24 @@ jobs:
         working-directory: extracted/darb-project/backend
         run: npx prisma generate
 
+      - name: Generate initial Prisma migration for review
+        working-directory: extracted/darb-project/backend
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ../../migration-review
+          npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script > ../../migration-review/001_initial_schema.sql
+          cp prisma/schema.prisma ../../migration-review/schema.prisma
+          cp prisma/sql/002_postgis_indexes.sql ../../migration-review/002_postgis_indexes.sql
+
+      - name: Upload migration review artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: darb-prisma-migration-review
+          path: extracted/migration-review/
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Build backend
         working-directory: extracted/darb-project/backend
         run: npm run build
