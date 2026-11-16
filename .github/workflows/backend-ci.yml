@@ -23,6 +23,22 @@ jobs:
   backend:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      DATABASE_URL: postgresql://darb:darb_ci_password@localhost:5432/darb?schema=public
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: darb
+          POSTGRES_PASSWORD: darb_ci_password
+          POSTGRES_DB: darb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U darb -d darb"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -38,6 +54,8 @@ jobs:
           set -euo pipefail
           unzip -q DARB-source.zip -d extracted
           cp -R backend/src/. extracted/darb-project/backend/src/
+          mkdir -p extracted/darb-project/backend/prisma/migrations
+          cp -R backend/prisma/migrations/. extracted/darb-project/backend/prisma/migrations/
 
       - name: Install dependencies
         working-directory: extracted/darb-project/backend
@@ -47,7 +65,13 @@ jobs:
         working-directory: extracted/darb-project/backend
         run: npx prisma generate
 
-      - name: Generate initial Prisma migration for review
+      - name: Apply committed migrations to PostGIS
+        working-directory: extracted/darb-project/backend
+        run: |
+          npx prisma migrate deploy
+          npx prisma migrate status
+
+      - name: Generate Prisma schema review artifact
         working-directory: extracted/darb-project/backend
         shell: bash
         run: |
@@ -56,6 +80,7 @@ jobs:
           npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script > ../../migration-review/001_initial_schema.sql
           cp prisma/schema.prisma ../../migration-review/schema.prisma
           cp prisma/sql/002_postgis_indexes.sql ../../migration-review/002_postgis_indexes.sql
+          cp prisma/migrations/20261116162000_initial/migration.sql ../../migration-review/committed_initial_migration.sql
 
       - name: Upload migration review artifact
         uses: actions/upload-artifact@v4
