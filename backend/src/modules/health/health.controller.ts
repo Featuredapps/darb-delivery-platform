@@ -23,15 +23,16 @@ export class HealthController {
   @Get('readyz')
   async readiness() {
     const checks = await Promise.allSettled([
-      this.prisma.$queryRaw<Array<{ users_table: string | null }>>`SELECT to_regclass('public."User"')::text AS users_table`,
-      this.redis.ping(),
+      this.prisma
+        .$queryRaw<Array<{ users_table: string | null }>>`SELECT to_regclass('public."User"')::text AS users_table`
+        .then((rows) => Boolean(rows[0]?.users_table)),
+      this.redis.ping().then((response) => response === 'PONG'),
     ]);
 
     const databaseReady =
-      checks[0].status === 'fulfilled' &&
-      Boolean(checks[0].value[0]?.users_table);
+      checks[0].status === 'fulfilled' && checks[0].value;
     const redisReady =
-      checks[1].status === 'fulfilled' && checks[1].value === 'PONG';
+      checks[1].status === 'fulfilled' && checks[1].value;
     const ready = databaseReady && redisReady;
     const result = {
       status: ready ? 'ok' : 'error',
