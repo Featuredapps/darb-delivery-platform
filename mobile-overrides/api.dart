@@ -107,7 +107,7 @@ class Api {
     if (response.statusCode < 200 || response.statusCode >= 300) {
       final message = data is Map
           ? (data['message'] is List
-              ? (data['message'] as List).join('\\n')
+              ? (data['message'] as List).join('\n')
               : data['message'])
           : null;
       throw ApiException(
