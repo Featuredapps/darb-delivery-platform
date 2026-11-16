@@ -28,15 +28,11 @@ jobs:
           SOURCE="/tmp/darb-source/darb-project/backend"
           test -f "$SOURCE/package.json"
           test -f "$SOURCE/prisma/schema.prisma"
+          rm -rf backend
           mkdir -p backend
-          rsync -a --delete \
-            --exclude '.env' \
-            --exclude 'node_modules' \
-            --exclude 'dist' \
-            --exclude '.gradle' \
-            --exclude '.idea' \
-            --exclude '.kotlin' \
-            "$SOURCE/" backend/
+          cp -a "$SOURCE/." backend/
+          rm -rf backend/node_modules backend/dist backend/.gradle backend/.idea backend/.kotlin
+          rm -f backend/.env
           test -f backend/package-lock.json
           test ! -e backend/.env
 
