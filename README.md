@@ -6,11 +6,11 @@
 
 ## حالة التحقق
 
-- Backend CI: تثبيت الحزم، توليد Prisma Client، تطبيق Migration على PostgreSQL 16 مع PostGIS، بناء NestJS، وتشغيل الاختبارات.
-- أضيفت اختبارات لوحدة فحص صحة الخادم وتغطي حالات النجاح وتعطل قاعدة البيانات أو Redis.
+- Backend CI: تثبيت الحزم، توليد Prisma Client، تطبيق Migration على PostgreSQL 16 مع PostGIS، بناء NestJS، وتشغيل الاختبارات. آخر تشغيل ناجح: [Backend CI](https://github.com/Featuredapps/darb-delivery-platform/actions/runs/43911047605).
+- اختبارات وحدة فحص صحة الخادم تغطي حالات النجاح وتعطل قاعدة البيانات أو Redis.
 - تم تطبيق Migration الأولية بنجاح على قاعدة بيانات PostGIS مؤقتة في GitHub Actions.
-- تطبيق Android الذي بُني سابقاً كان APK من نوع Debug، وليس إصدار Release موقعاً للنشر.
-- لا يوجد حتى الآن نشر فعلي لخدمات Backend على Render أو عنوان API إنتاجي.
+- نجح بناء APK وAAB موقعين في تشغيل سابق، لكن ذلك البناء استخدم عنوان API افتراضياً للمحاكي، ولذلك لا يصلح لتسجيل دخول فعلي من هاتف المستخدم.
+- لا يوجد حتى الآن نشر فعلي لخدمات Backend أو عنوان API عام تم التحقق منه.
 
 ## آخر تحديث تقني
 
@@ -19,15 +19,22 @@
 - أضيفت Migration أولية معتمدة في `backend/prisma/migrations/20261116162000_initial/`.
 - Migration تنشئ الجداول والعلاقات والفهارس، وتفعّل PostGIS، وتضيف فهارس مكانية وقيود رقم الهاتف السوري.
 - Backend CI يختبر تطبيق Migration على PostgreSQL/PostGIS نظيف قبل البناء والاختبارات.
-- إعداد Render ينسخ ملفات Migration ويشغّل `prisma migrate deploy` قبل تشغيل API.
-- إعداد Render Blueprint لا ينشئ الاستضافة تلقائياً؛ يتطلب حساب Render وموافقة مالك الحساب على إنشاء الموارد.
+- Render Blueprint ينشئ API المجاني فقط ويعتمد على PostgreSQL وRedis خارجيين لتجنب انتهاء قاعدة Render المجانية وفقدان بيانات Redis عند إعادة التشغيل.
+- إعداد Blueprint لا ينشئ الاستضافة تلقائياً؛ يتطلب ربط حسابات الخدمات وإدخال عناوين الاتصال.
+
+## النشر المجاني التجريبي
+
+راجع [FREE-DEPLOYMENT.md](FREE-DEPLOYMENT.md) لإعداد Render Free + Supabase Free PostgreSQL/PostGIS + Upstash Redis Free.
+
+هذا المسار مخصص للمعاينة واختبار التكامل فقط. حدود الخطط المجانية والنوم والتوقف المؤقت والحصص تمنع اعتباره استضافة إنتاجية. لا تستخدمه لبيانات عملاء حقيقية أو طلبات مباشرة.
 
 ## تنزيل المخرجات
 
-تتوفر مخرجات البناء السابقة من صفحة [GitHub Actions run](https://github.com/Featuredapps/darb-delivery-platform/actions/runs/43817595520):
+تتوفر مخرجات البناء السابقة من صفحة [GitHub Actions](https://github.com/Featuredapps/darb-delivery-platform/actions):
 
 - `darb-debug-apk`: تطبيق Android Debug للاختبار.
 - `darb-source-fixed`: أرشيف المصدر بعد إصلاح Android scaffold وتحديث اعتماد Flutter في بيئة البناء.
+- `darb-android-release`: مخرجات APK وAAB موقعة من تشغيل سابق؛ راجع ملاحظات عنوان API أعلاه قبل استخدامها.
 
 Artifacts مؤقتة وتنتهي صلاحيتها وفق مدة الاحتفاظ المضبوطة في GitHub Actions.
 
@@ -57,7 +64,7 @@ Flutter، واجهة عربية RTL.
 - اختبار صلاحيات الأدوار وعزل البيانات والأمان.
 - إعداد HTTPS وإيقاف cleartext traffic.
 - حفظ أسرار الخدمات ومفاتيح توقيع Android خارج المستودع.
-- بناء APK Release موقع واختباره على أجهزة Android فعلية.
+- بناء APK Release بعنوان API حقيقي، ثم اختباره على أجهزة Android فعلية.
 
 ## إعدادات الأمان
 
