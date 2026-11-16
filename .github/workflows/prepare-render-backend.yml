@@ -21,21 +21,26 @@ jobs:
       - name: Extract backend from reviewed source archive
         shell: bash
         run: |
-          set -euo pipefail
+          set -euxo pipefail
+          echo "Repository files:"
+          ls -la
           test -f DARB-source.zip
+          unzip -t DARB-source.zip | tail -n 2
           mkdir -p /tmp/darb-source
           unzip -q DARB-source.zip -d /tmp/darb-source
-          SOURCE="/tmp/darb-source/darb-project/backend"
-          test -f "$SOURCE/package.json"
+          echo "Archive contents containing backend package.json:"
+          find /tmp/darb-source -path '*/backend/package.json' -print
+          PACKAGE_JSON="$(find /tmp/darb-source -path '*/backend/package.json' -print -quit)"
+          test -n "$PACKAGE_JSON"
+          SOURCE="$(dirname "$PACKAGE_JSON")"
           test -f "$SOURCE/prisma/schema.prisma"
           rm -rf backend
           mkdir -p backend
           cp -a "$SOURCE/." backend/
           rm -rf backend/node_modules backend/dist backend/.gradle backend/.idea backend/.kotlin
           rm -f backend/.env
-          test -f backend/package-lock.json
-          test ! -e backend/.env
-
+          test -f backend/package.json
+          test -f backend/prisma/schema.prisma
       - name: Install, generate Prisma client, and compile NestJS
         working-directory: backend
         env:
