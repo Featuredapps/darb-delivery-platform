@@ -51,6 +51,7 @@ jobs:
           fi
           # Apply the reviewed login UI and launcher artwork overrides.
           cp mobile-overrides/login_screen.dart extracted/darb-project/mobile/lib/screens/login_screen.dart
+          cp mobile-overrides/api.dart extracted/darb-project/mobile/lib/core/api.dart
           mkdir -p extracted/darb-project/mobile/android/app/src/main/res/drawable
           cp mobile-overrides/ic_launcher.xml extracted/darb-project/mobile/android/app/src/main/res/drawable/ic_launcher.xml
           sed -i 's|android:icon="@mipmap/ic_launcher"|android:icon="@drawable/ic_launcher"|' extracted/darb-project/mobile/android/app/src/main/AndroidManifest.xml
