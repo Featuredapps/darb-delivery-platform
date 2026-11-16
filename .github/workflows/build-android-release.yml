@@ -89,18 +89,20 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           import re
-          p = Path("android/app/build.gradle")
-          if not p.exists():
-              raise SystemExit("Expected generated Groovy android/app/build.gradle")
-          s = p.read_text()
-          if "signingConfigs {" not in s:
-              s = s.replace("android {", """def keystoreProperties = new Properties()
+
+          groovy = Path("android/app/build.gradle")
+          kotlin = Path("android/app/build.gradle.kts")
+          props = """def keystoreProperties = new Properties()
           def keystorePropertiesFile = rootProject.file('key.properties')
           if (keystorePropertiesFile.exists()) {
               keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
           }
 
-          android {
+          """
+          if groovy.exists():
+              s = groovy.read_text()
+              if "signingConfigs {" not in s:
+                  s = s.replace("android {", props + """android {
               signingConfigs {
                   release {
                       keyAlias keystoreProperties['keyAlias']
@@ -110,21 +112,56 @@ jobs:
                   }
               }
           """, 1)
-          if "signingConfig signingConfigs.release" not in s:
-              m = re.search(r"buildTypes\s*\{", s)
-              if not m:
-                  raise SystemExit("Could not locate buildTypes block in app/build.gradle")
-              start = m.end()
-              rel = re.search(r"release\s*\{", s[start:])
-              if not rel:
-                  s = s[:start] + "\n        release { signingConfig signingConfigs.release }\n" + s[start:]
-              else:
-                  pos = start + rel.end()
-                  s = s[:pos] + "\n            signingConfig signingConfigs.release" + s[pos:]
-          p.write_text(s)
+              if "signingConfig signingConfigs.release" not in s:
+                  m = re.search(r"buildTypes\\s*\\{", s)
+                  if not m:
+                      raise SystemExit("Could not locate buildTypes block in Groovy Gradle file")
+                  start = m.end()
+                  rel = re.search(r"release\\s*\\{", s[start:])
+                  if not rel:
+                      s = s[:start] + "\\n        release { signingConfig signingConfigs.release }\\n" + s[start:]
+                  else:
+                      pos = start + rel.end()
+                      s = s[:pos] + "\\n            signingConfig signingConfigs.release" + s[pos:]
+              groovy.write_text(s)
+          elif kotlin.exists():
+              s = kotlin.read_text()
+              imports = "import java.util.Properties\\nimport java.io.FileInputStream\\n\\n"
+              if "import java.util.Properties" not in s:
+                  s = imports + s
+              if "signingConfigs.create(\\\"release\\\")" not in s:
+                  s = s.replace("android {", """val keystoreProperties = Properties()
+          val keystorePropertiesFile = rootProject.file("key.properties")
+          if (keystorePropertiesFile.exists()) {
+              keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+          }
+
+          android {
+              signingConfigs {
+                  create("release") {
+                      keyAlias = keystoreProperties["keyAlias"] as String
+                      keyPassword = keystoreProperties["keyPassword"] as String
+                      storeFile = file(keystoreProperties["storeFile"] as String)
+                      storePassword = keystoreProperties["storePassword"] as String
+                  }
+              }
+          """, 1)
+              if "signingConfig = signingConfigs.getByName(\\\"release\\\")" not in s:
+                  m = re.search(r"buildTypes\\s*\\{\\s*release\\s*\\{", s)
+                  if not m:
+                      raise SystemExit("Could not locate release buildType in Kotlin Gradle file")
+                  pos = m.end()
+                  s = s[:pos] + "\\n            signingConfig = signingConfigs.getByName(\\\"release\\\")" + s[pos:]
+              kotlin.write_text(s)
+          else:
+              raise SystemExit("No Android app Gradle build file found")
           PY
           test -s android/app/darb-release.jks
-          grep -q "signingConfig signingConfigs.release" android/app/build.gradle
+          if [ -f android/app/build.gradle.kts ]; then
+            grep -q 'signingConfig = signingConfigs.getByName("release")' android/app/build.gradle.kts
+          else
+            grep -q "signingConfig signingConfigs.release" android/app/build.gradle
+          fi
           flutter pub get
 
       - name: Analyze and build signed APK and AAB
