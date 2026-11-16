@@ -75,7 +75,19 @@ jobs:
               sed -i 's/^  intl: *\^0\.19\.0/  intl: ^0.20.3/' pubspec.yaml
             fi
             flutter pub get
-            flutter analyze
+            if ! flutter analyze --no-pub; then
+              echo "::group::Dart syntax context: app_shell.dart lines 25-33"
+              python3 - <<'PY'
+from pathlib import Path
+p = Path("lib/screens/app_shell.dart")
+lines = p.read_text().splitlines()
+for n in range(25, min(33, len(lines)) + 1):
+    if n <= len(lines):
+        print(f"LINE {n}: {lines[n-1]}")
+PY
+              echo "::endgroup::"
+              exit 1
+            fi
             flutter build apk --debug
             echo "::endgroup::"
           done
