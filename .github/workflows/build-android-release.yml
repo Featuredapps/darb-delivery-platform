@@ -2,6 +2,11 @@ name: Build signed DARB Android release
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'mobile-overrides/**'
+      - '.github/workflows/build-android-release.yml'
 
 permissions:
   contents: read
