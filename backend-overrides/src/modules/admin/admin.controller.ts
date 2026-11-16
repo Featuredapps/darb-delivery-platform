@@ -3,6 +3,7 @@ import { DriverStatus, OrderStatus, VendorStatus, UserRole } from '@prisma/clien
 import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -108,12 +109,12 @@ export class AdminController {
   }
 
   @Patch('orders/:id/status')
-  async setOrderStatus(@Param('id') id: string, @Body() dto: AdminOrderStatusDto) {
+  async setOrderStatus(@CurrentUser() user: { id: string }, @Param('id') id: string, @Body() dto: AdminOrderStatusDto) {
     const transitions: Record<string, OrderStatus[]> = {
       PENDING: [OrderStatus.ACCEPTED, OrderStatus.CANCELLED],
       ACCEPTED: [OrderStatus.PREPARING, OrderStatus.CANCELLED],
       PREPARING: [OrderStatus.READY, OrderStatus.CANCELLED],
-      READY: [OrderStatus.ASSIGNED, OrderStatus.CANCELLED],
+      READY: [OrderStatus.CANCELLED],
       ASSIGNED: [OrderStatus.PICKED_UP, OrderStatus.CANCELLED],
       PICKED_UP: [OrderStatus.DELIVERED],
     };
@@ -128,7 +129,7 @@ export class AdminController {
         data: { status: dto.status, ...(dto.status === OrderStatus.CANCELLED ? { driverId: null } : {}) },
       });
       if (!changed.count) throw new (require('@nestjs/common').BadRequestException)('تغيرت حالة الطلب؛ أعد المحاولة');
-      await tx.orderStatusHistory.create({ data: { orderId: id, status: dto.status, changedBy: 'ADMIN' } });
+      await tx.orderStatusHistory.create({ data: { orderId: id, status: dto.status, changedBy: user.id } });
       return tx.order.findUnique({ where: { id }, include: { statusHistory: { orderBy: { createdAt: 'asc' } } } });
     });
   }
