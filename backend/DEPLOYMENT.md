@@ -12,16 +12,19 @@ cp .env.example .env
 docker compose up --build
 ```
 
-Database, Redis, and API ports bind to localhost only. PostgreSQL/PostGIS and Redis are isolated on the internal Docker network. The one-shot migration service waits for PostgreSQL health; API startup waits for successful migrations and healthy Redis.
+Database, Redis, and API ports bind to localhost only. PostgreSQL/PostGIS and Redis are isolated on the internal Docker network. The migration/bootstrap service uses the Docker build stage, which includes the Prisma CLI.
 
-Health check: `http://127.0.0.1:3000/healthz`.
+**Migration limitation:** the source currently has no committed Prisma migration history. The local Compose bootstrap therefore uses `prisma db push` to initialize the development database, without `--accept-data-loss`. This is not a production migration strategy. Before production, generate, review, commit, and test an initial Prisma migration, then use `prisma migrate deploy` as a release step.
+
+- Liveness: `http://127.0.0.1:3000/api/v1/healthz`
+- Readiness (checks PostgreSQL and Redis): `http://127.0.0.1:3000/api/v1/readyz`
 
 ## Production requirements
 - Set `NODE_ENV=production`; use strong, distinct JWT and OTP secrets.
 - Configure the actual SMS provider HTTPS endpoint and API key. The current generic HTTP payload is `{ "to": "+963...", "message": "..." }`; adapt it to the provider's documented API before real OTP delivery.
 - Production startup fails if SMS credentials or core secrets are missing. Console SMS refuses to send in production.
 - Terminate HTTPS at a trusted proxy/load balancer. Set `CORS_ORIGINS` to exact browser origins; native mobile clients usually omit Origin.
-- Run migrations as a release step, not in every API replica. Back up PostgreSQL and test restoration before accepting real orders.
+- Run reviewed, committed Prisma migrations as a release step, not in every API replica. Back up PostgreSQL and test restoration before accepting real orders.
 - Do not expose PostgreSQL or Redis publicly. Use private networking, TLS, access controls, monitoring, and tested backups.
 
 ## Android build
