@@ -16,7 +16,7 @@ services:
       mkdir -p .render-build/darb-project/backend/prisma/migrations &&
       cp -R backend/prisma/migrations/. .render-build/darb-project/backend/prisma/migrations/ &&
       cd .render-build/darb-project/backend &&
-      npm install --no-audit --no-fund &&
+      npm install --include=dev --no-audit --no-fund &&
       npx prisma generate &&
       npm run build
     startCommand: cd .render-build/darb-project/backend && npx prisma migrate deploy && npm start
