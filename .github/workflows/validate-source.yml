@@ -75,3 +75,11 @@ jobs:
             flutter build apk --debug
             echo "::endgroup::"
           done
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: darb-debug-apk
+          path: extracted/**/build/app/outputs/flutter-apk/*.apk
+          if-no-files-found: error
+          retention-days: 14
