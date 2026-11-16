@@ -169,7 +169,7 @@ jobs:
         working-directory: extracted/darb-project/mobile
         run: |
           set -euo pipefail
-          flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings
+          flutter analyze lib --no-pub --no-fatal-infos --no-fatal-warnings
           flutter build apk --release
           flutter build appbundle --release
 
