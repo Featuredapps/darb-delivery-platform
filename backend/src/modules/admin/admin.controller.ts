@@ -122,7 +122,7 @@ export class AdminController {
       const order = await tx.order.findUnique({ where: { id }, select: { id: true, status: true } });
       if (!order) throw new NotFoundException('الطلب غير موجود');
       if (!transitions[order.status]?.includes(dto.status)) {
-        throw new (require('@nestjs/common').BadRequestException)('انتقال حالة الطلب غير مسموح');
+        throw new BadRequestException('انتقال حالة الطلب غير مسموح');
       }
       const changed = await tx.order.updateMany({
         where: { id, status: order.status },
