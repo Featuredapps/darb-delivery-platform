@@ -22,14 +22,10 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          echo "Repository files:"
-          ls -la
           test -f DARB-source.zip
           unzip -t DARB-source.zip | tail -n 2
           mkdir -p /tmp/darb-source
           unzip -q DARB-source.zip -d /tmp/darb-source
-          echo "Archive contents containing backend package.json:"
-          find /tmp/darb-source -path '*/backend/package.json' -print
           PACKAGE_JSON="$(find /tmp/darb-source -path '*/backend/package.json' -print -quit)"
           test -n "$PACKAGE_JSON"
           SOURCE="$(dirname "$PACKAGE_JSON")"
@@ -41,6 +37,16 @@ jobs:
           rm -f backend/.env
           test -f backend/package.json
           test -f backend/prisma/schema.prisma
+
+      - name: Apply maintained backend overrides
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d backend-overrides
+          cp -a backend-overrides/. backend/
+          test -f backend/src/health/health.controller.ts
+          grep -q 'sender_id' backend/src/modules/auth/sms/sms.providers.ts
+
       - name: Install, generate Prisma client, and compile NestJS
         working-directory: backend
         env:
