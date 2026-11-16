@@ -1,36 +1,53 @@
-import { InternalServerErrorException, Logger } from '@nestjs/common';
+import { BadGatewayException, InternalServerErrorException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SmsProvider } from './sms.provider';
 
-/** للتطوير: يطبع الرسالة في الـ console بدل إرسالها */
+/** Development-only provider. Never use this provider in production. */
 export class ConsoleSmsProvider implements SmsProvider {
   private readonly logger = new Logger('ConsoleSms');
-
   async send(phone: string, message: string): Promise<void> {
-    this.logger.warn(`[DEV] SMS to ${phone}: ${message}`);
+    this.logger.warn(`[DEV ONLY] SMS to ${phone}: ${message}`);
   }
 }
 
-/**
- * مزود HTTP عام. عدّل الشكل (body/headers) حسب مزود SMS المحلي الذي تتعاقد معه.
- */
+/** SMS Syria REST API v1 provider. The API key stays on the server. */
 export class HttpSmsProvider implements SmsProvider {
+  private readonly logger = new Logger('SmsSyria');
   constructor(private readonly config: ConfigService) {}
 
   async send(phone: string, message: string): Promise<void> {
-    const res = await fetch(this.config.getOrThrow<string>('SMS_API_URL'), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.config.getOrThrow<string>('SMS_API_KEY')}`,
-      },
-      body: JSON.stringify({ to: phone, message }),
-      signal: AbortSignal.timeout(10_000),
-    });
+    const apiUrl = this.config.get<string>('SMS_API_URL', 'https://smssyria.net/api/v1/messages');
+    const apiKey = this.config.get<string>('SMS_API_KEY');
+    const senderId = this.config.get<string>('SMS_SENDER_ID');
+    if (!apiKey || !senderId) {
+      this.logger.error('SMS provider configuration is incomplete');
+      throw new InternalServerErrorException('خدمة الرسائل غير مهيأة على الخادم');
+    }
+    const validSender = /^[A-Za-z0-9]{2,11}$/.test(senderId) || /^[0-9]{2,16}$/.test(senderId);
+    if (!validSender) {
+      this.logger.error('SMS_SENDER_ID has an invalid format');
+      throw new InternalServerErrorException('معرّف مرسل الرسائل غير صالح');
+    }
 
-    if (!res.ok) {
-      throw new InternalServerErrorException('فشل إرسال رسالة التحقق');
+    let response: Response;
+    try {
+      response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+        body: JSON.stringify({ to: phone, sender_id: senderId, message }),
+        signal: AbortSignal.timeout(10_000),
+      });
+    } catch {
+      this.logger.error('SMS provider request failed or timed out');
+      throw new BadGatewayException('تعذر الوصول إلى مزود الرسائل، حاول لاحقاً');
+    }
+    if (!response.ok) {
+      const status = response.status;
+      this.logger.error(`SMS provider rejected request (HTTP ${status})`);
+      if ([401, 402, 422, 503].includes(status)) {
+        throw new BadGatewayException('رفض مزود الرسائل الطلب. تحقق من رصيد الحساب وإعدادات المرسل');
+      }
+      throw new BadGatewayException('فشل إرسال رسالة التحقق');
     }
   }
 }
-

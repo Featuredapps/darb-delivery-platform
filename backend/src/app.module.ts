@@ -10,8 +10,10 @@ import { AddressesModule } from './modules/addresses/addresses.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
+import { HealthController } from './health/health.controller';
 
 @Module({
+  controllers: [HealthController],
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
@@ -27,4 +29,3 @@ import { RedisModule } from './redis/redis.module';
   ],
 })
 export class AppModule {}
-
