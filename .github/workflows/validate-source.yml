@@ -99,8 +99,15 @@ jobs:
                [ -z "$main_activity" ] || [ ! -f android/gradlew ]; then
               echo "Incomplete Android scaffold detected; regenerating with Flutter stable."
               cp android/app/src/main/AndroidManifest.xml /tmp/darb-AndroidManifest.xml
+              had_widget_test=false
+              if [ -f test/widget_test.dart ]; then had_widget_test=true; fi
               flutter create --platforms=android --project-name darb --org com.darb .
               cp /tmp/darb-AndroidManifest.xml android/app/src/main/AndroidManifest.xml
+              # Flutter's generated starter test targets a different template app; remove it only if newly generated.
+              if [ "$had_widget_test" = false ]; then
+                rm -f test/widget_test.dart
+                rmdir test 2>/dev/null || true
+              fi
             fi
 
             # Fail before compilation if the Android project is still incomplete or uses old embedding.
