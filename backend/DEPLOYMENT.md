@@ -1,7 +1,7 @@
 # Backend deployment and local secure setup
 
 ## Prepare secrets
-Copy `.env.example` to `.env` and replace every placeholder. Generate separate values with `openssl rand -hex 32`. Use different values for PostgreSQL, Redis, JWT access, JWT refresh, and OTP secrets. Never commit the real `.env`.
+Copy `.env.example` to `.env` and replace every placeholder. Generate separate values with `openssl rand -hex 32`. Use different values for PostgreSQL, Redis, JWT access, JWT refresh, and OTP secrets. Never commit the real `.env`. For the initial administrator only, optionally set `ADMIN_PHONE=+9639XXXXXXXX`; the seed promotes only that exact phone number and skips bootstrap when the variable is absent. Keep it operator-controlled.
 
 ## Local stack
 From `backend/`:
