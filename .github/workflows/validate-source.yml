@@ -19,7 +19,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Extract source archive
+        shell: bash
         run: |
+          set -euo pipefail
           test -s DARB-source.zip
           unzip -q DARB-source.zip -d extracted
           dart_file="extracted/darb-project/mobile/lib/screens/app_shell.dart"
@@ -43,6 +45,7 @@ jobs:
       - name: Build every Node package
         shell: bash
         run: |
+          set -euo pipefail
           mapfile -t manifests < <(find extracted -name package.json -not -path '*/node_modules/*' -not -path '*/.dart_tool/*' | sort)
           if [ "${#manifests[@]}" -eq 0 ]; then
             echo "::error::No package.json found in source archive"
@@ -67,9 +70,10 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Analyze and build Flutter app
+      - name: Repair Android scaffold, analyze, and build Flutter app
         shell: bash
         run: |
+          set -euo pipefail
           mapfile -t manifests < <(find extracted -name pubspec.yaml | sort)
           if [ "${#manifests[@]}" -eq 0 ]; then
             echo "::error::No pubspec.yaml found in source archive"
@@ -79,12 +83,36 @@ jobs:
             dir="$(dirname "$manifest")"
             echo "::group::Flutter app: $dir"
             cd "$GITHUB_WORKSPACE/$dir"
-            # Compatibility fix for current stable Flutter SDK's flutter_localizations.
-            if grep -qE '^  intl: *\^0\.19\.0' pubspec.yaml; then
-              sed -i 's/^  intl: *\^0\.19\.0/  intl: ^0.20.3/' pubspec.yaml
+
+            # Resolve the SDK-pinned intl constraint before flutter create runs pub resolution.
+            python3 - <<'PY'
+          from pathlib import Path
+          p = Path("pubspec.yaml")
+          s = p.read_text()
+          p.write_text(s.replace("intl: ^0.19.0", "intl: ^0.20.3"))
+          PY
+
+            # The supplied archive contains only a partial Android directory.
+            # Preserve its app manifest while regenerating the missing v2 Android platform scaffold.
+            main_activity="$(find android/app/src/main -type f 2>/dev/null | grep -E 'MainActivity[.]kt$|MainActivity[.]java$' | head -n 1 || true)"
+            if [ ! -f android/app/build.gradle ] && [ ! -f android/app/build.gradle.kts ] ||
+               [ -z "$main_activity" ] || [ ! -f android/gradlew ]; then
+              echo "Incomplete Android scaffold detected; regenerating with Flutter stable."
+              cp android/app/src/main/AndroidManifest.xml /tmp/darb-AndroidManifest.xml
+              flutter create --platforms=android --project-name darb --org com.darb .
+              cp /tmp/darb-AndroidManifest.xml android/app/src/main/AndroidManifest.xml
             fi
+
+            # Fail before compilation if the Android project is still incomplete or uses old embedding.
+            test -f android/gradlew
+            test -f android/app/build.gradle -o -f android/app/build.gradle.kts
+            main_activity="$(find android/app/src/main -type f | grep -E 'MainActivity[.]kt$|MainActivity[.]java$' | head -n 1 || true)"
+            test -n "$main_activity"
+            grep -Fq 'io.flutter.embedding.android.FlutterActivity' "$main_activity"
+            grep -q 'android:name="flutterEmbedding" android:value="2"' android/app/src/main/AndroidManifest.xml
+
             flutter pub get
-            # Deprecation infos and non-blocking lints are reported but do not stop a valid release build.
+            # Infos and warnings are reported but do not suppress compiler/build errors.
             if ! flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings; then
               echo "::group::Dart syntax context: app_shell.dart lines 25-33"
               nl -ba lib/screens/app_shell.dart | sed -n '25,33p' | fold -w 160
@@ -105,6 +133,7 @@ jobs:
 
       - name: Package corrected source archive
         run: |
+          set -euo pipefail
           cd extracted
           zip -qr "$GITHUB_WORKSPACE/DARB-source-fixed.zip" darb-project \
             -x '*/node_modules/*' '*/.dart_tool/*' '*/build/*'
