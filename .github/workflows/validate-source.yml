@@ -70,6 +70,10 @@ jobs:
             dir="$(dirname "$manifest")"
             echo "::group::Flutter app: $dir"
             cd "$GITHUB_WORKSPACE/$dir"
+            # Compatibility fix for current stable Flutter SDK's flutter_localizations.
+            if grep -qE '^  intl: *\^0\.19\.0' pubspec.yaml; then
+              sed -i 's/^  intl: *\^0\.19\.0/  intl: ^0.20.3/' pubspec.yaml
+            fi
             flutter pub get
             flutter analyze
             flutter build apk --debug
