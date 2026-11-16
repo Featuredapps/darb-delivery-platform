@@ -54,6 +54,22 @@ jobs:
           npm run db:generate
           npm run build
 
+      - name: Generate initial Prisma migration
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://build:build@127.0.0.1:5432/darb_build
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -d prisma/migrations ] || [ -z "$(find prisma/migrations -mindepth 1 -maxdepth 1 -type d -print -quit)" ]; then
+            mkdir -p prisma/migrations/0001_init
+            npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script > /tmp/darb-initial-migration.sql
+            { printf 'CREATE EXTENSION IF NOT EXISTS postgis;\n\n'; cat /tmp/darb-initial-migration.sql; } > prisma/migrations/0001_init/migration.sql
+            printf 'provider = "postgresql"\n' > prisma/migrations/migration_lock.toml
+          fi
+          test -s prisma/migrations/0001_init/migration.sql
+          grep -q 'CREATE EXTENSION IF NOT EXISTS postgis' prisma/migrations/0001_init/migration.sql
+
       - name: Commit extracted backend only after successful build
         shell: bash
         run: |
