@@ -5,6 +5,7 @@ on:
     paths:
       - "DARB-source.zip"
       - ".github/workflows/validate-source.yml"
+      - "mobile-overrides/**"
   workflow_dispatch:
 
 permissions:
