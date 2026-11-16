@@ -1,0 +1,80 @@
+name: Generate and validate initial DARB database migration
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/generate-initial-migration.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  migration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: darb
+          POSTGRES_PASSWORD: darb_ci_password
+          POSTGRES_DB: darb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U darb -d darb"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Extract backend source
+        run: unzip -q DARB-source.zip -d extracted
+
+      - name: Install dependencies and generate Prisma client
+        working-directory: extracted/darb-project/backend
+        run: |
+          npm install --no-audit --no-fund
+          npx prisma generate
+
+      - name: Generate initial migration and include reviewed SQL constraints
+        working-directory: extracted/darb-project/backend
+        run: |
+          set -euo pipefail
+          mkdir -p prisma/migrations/20261116162000_initial
+          npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script > prisma/migrations/20261116162000_initial/migration.sql
+          cat prisma/sql/002_postgis_indexes.sql >> prisma/migrations/20261116162000_initial/migration.sql
+          printf 'provider = "postgresql"\n' > prisma/migrations/migration_lock.toml
+
+      - name: Apply migration to disposable PostGIS database
+        working-directory: extracted/darb-project/backend
+        env:
+          DATABASE_URL: postgresql://darb:darb_ci_password@localhost:5432/darb?schema=public
+        run: |
+          npx prisma migrate deploy
+          npx prisma migrate status
+
+      - name: Publish validated migration to repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p backend/prisma/migrations
+          cp -R extracted/darb-project/backend/prisma/migrations/. backend/prisma/migrations/
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend/prisma/migrations
+          if git diff --cached --quiet; then
+            echo "No migration changes to publish."
+            exit 0
+          fi
+          git commit -m "db: add validated initial Prisma migration"
+          git push origin HEAD:main
