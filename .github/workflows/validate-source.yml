@@ -22,6 +22,15 @@ jobs:
         run: |
           test -s DARB-source.zip
           unzip -q DARB-source.zip -d extracted
+          dart_file="extracted/darb-project/mobile/lib/screens/app_shell.dart"
+          if grep -Fq "cityId:cityId))));}}" "$dart_file"; then
+            sed -i "s/cityId:cityId))));}}/cityId:cityId)))));}}/" "$dart_file"
+          fi
+          if grep -Fq "cityId:cityId))));}}" "$dart_file"; then
+            echo "::error::Vendor navigation syntax patch did not apply"
+            exit 1
+          fi
+          echo "Applied Dart syntax repair to vendor navigation."
           echo "Extracted files:"
           find extracted -maxdepth 4 -type f | sort | head -250
 
