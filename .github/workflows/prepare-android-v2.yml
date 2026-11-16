@@ -1,0 +1,69 @@
+name: Preflight Android scaffold repair
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/prepare-android-v2.yml'
+      - 'DARB-source.zip'
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract source and inspect Android scaffold
+        run: |
+          set -euo pipefail
+          unzip -q DARB-source.zip -d extracted
+          cd extracted/darb-project/mobile
+          echo "Before repair:"
+          find android -maxdepth 7 -type f | sort || true
+          test -f pubspec.yaml
+          test -f android/app/src/main/AndroidManifest.xml
+          cp android/app/src/main/AndroidManifest.xml /tmp/darb-AndroidManifest.xml
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Regenerate missing Android platform scaffold
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd extracted/darb-project/mobile
+          if [ ! -f android/app/build.gradle ] && [ ! -f android/app/build.gradle.kts ] ||
+             ! find android/app/src/main -type f \\( -name 'MainActivity.kt' -o -name 'MainActivity.java' \\) | grep -q . ||
+             [ ! -f android/gradlew ]; then
+            echo "Android scaffold is incomplete; generating the current Flutter Android platform files."
+            flutter create --platforms=android --project-name darb --org com.darb .
+          else
+            echo "Android scaffold is already complete; no regeneration needed."
+          fi
+
+          test -f android/gradlew
+          test -f android/app/src/main/AndroidManifest.xml
+          test -f android/app/build.gradle -o -f android/app/build.gradle.kts
+          main_activity="$(find android/app/src/main -type f \\( -name 'MainActivity.kt' -o -name 'MainActivity.java' \\) | head -n 1)"
+          test -n "$main_activity"
+          grep -Eq 'io\\.flutter\\.embedding\\.android\\.FlutterActivity' "$main_activity"
+          grep -q 'android:value="2"' android/app/src/main/AndroidManifest.xml
+          echo "Verified Android v2 embedding and complete Gradle scaffold."
+          echo "MainActivity: $main_activity"
+          find android -maxdepth 7 -type f | sort
+
+      - name: Preserve app label and existing manifest settings
+        run: |
+          set -euo pipefail
+          cd extracted/darb-project/mobile
+          cp /tmp/darb-AndroidManifest.xml android/app/src/main/AndroidManifest.xml
+          grep -q 'android:name="flutterEmbedding" android:value="2"' android/app/src/main/AndroidManifest.xml
+          grep -q 'android:name=".MainActivity"' android/app/src/main/AndroidManifest.xml
