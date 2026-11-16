@@ -41,7 +41,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: extracted/darb-project/backend
-        run: npm ci
+        run: npm install --no-audit --no-fund
 
       - name: Generate Prisma client
         working-directory: extracted/darb-project/backend
