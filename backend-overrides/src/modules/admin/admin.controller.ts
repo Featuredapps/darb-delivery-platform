@@ -1,5 +1,5 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
-import { DriverStatus, VendorStatus, UserRole } from '@prisma/client';
+import { BadRequestException, Body, Controller, Get, NotFoundException, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { DriverStatus, OrderStatus, VendorStatus, UserRole } from '@prisma/client';
 import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -7,6 +7,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { PrismaService } from '../../prisma/prisma.service';
 
+class AdminOrderStatusDto { @IsEnum(OrderStatus) status!: OrderStatus; }
 class VendorStatusDto { @IsEnum(VendorStatus) status!: VendorStatus; }
 class DriverStatusDto { @IsEnum(DriverStatus) status!: DriverStatus; }
 class CityStatusDto { @IsBoolean() isActive!: boolean; }
@@ -68,6 +69,68 @@ export class AdminController {
   @Patch('delivery-zones/:id')
   updateDeliveryZone(@Param('id') id: string, @Body() dto: UpdateDeliveryZoneDto) {
     return this.prisma.deliveryZone.update({ where: { id }, data: dto });
+  }
+
+  @Get('orders')
+  orders(@Query('status') status?: string, @Query('take') take?: string) {
+    const limit = Math.min(100, Math.max(1, Number.parseInt(take ?? '30', 10) || 30));
+    if (status && !Object.values(OrderStatus).includes(status as OrderStatus)) {
+      throw new BadRequestException('حالة الطلب غير صالحة');
+    }
+    return this.prisma.order.findMany({
+      where: status ? { status: status as OrderStatus } : {},
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      include: {
+        items: true,
+        payment: true,
+        customer: { select: { id: true, name: true, phone: true } },
+        vendor: { include: { translations: true } },
+        driver: { include: { user: { select: { id: true, name: true, phone: true } } } },
+        city: { select: { id: true, code: true, names: true } },
+        statusHistory: { orderBy: { createdAt: 'asc' } },
+      },
+    });
+  }
+
+  @Get('orders/:id')
+  orderDetails(@Param('id') id: string) {
+    return this.prisma.order.findUniqueOrThrow({
+      where: { id },
+      include: {
+        items: true, payment: true, address: true,
+        customer: { select: { id: true, name: true, phone: true } },
+        vendor: { include: { translations: true, location: true } },
+        driver: { include: { user: { select: { id: true, name: true, phone: true } }, currentLocation: true } },
+        statusHistory: { orderBy: { createdAt: 'asc' } },
+      },
+    });
+  }
+
+  @Patch('orders/:id/status')
+  async setOrderStatus(@Param('id') id: string, @Body() dto: AdminOrderStatusDto) {
+    const transitions: Record<string, OrderStatus[]> = {
+      PENDING: [OrderStatus.ACCEPTED, OrderStatus.CANCELLED],
+      ACCEPTED: [OrderStatus.PREPARING, OrderStatus.CANCELLED],
+      PREPARING: [OrderStatus.READY, OrderStatus.CANCELLED],
+      READY: [OrderStatus.ASSIGNED, OrderStatus.CANCELLED],
+      ASSIGNED: [OrderStatus.PICKED_UP, OrderStatus.CANCELLED],
+      PICKED_UP: [OrderStatus.DELIVERED],
+    };
+    return this.prisma.$transaction(async (tx) => {
+      const order = await tx.order.findUnique({ where: { id }, select: { id: true, status: true } });
+      if (!order) throw new NotFoundException('الطلب غير موجود');
+      if (!transitions[order.status]?.includes(dto.status)) {
+        throw new (require('@nestjs/common').BadRequestException)('انتقال حالة الطلب غير مسموح');
+      }
+      const changed = await tx.order.updateMany({
+        where: { id, status: order.status },
+        data: { status: dto.status, ...(dto.status === OrderStatus.CANCELLED ? { driverId: null } : {}) },
+      });
+      if (!changed.count) throw new (require('@nestjs/common').BadRequestException)('تغيرت حالة الطلب؛ أعد المحاولة');
+      await tx.orderStatusHistory.create({ data: { orderId: id, status: dto.status, changedBy: 'ADMIN' } });
+      return tx.order.findUnique({ where: { id }, include: { statusHistory: { orderBy: { createdAt: 'asc' } } } });
+    });
   }
 
   @Get('vendors/pending')
