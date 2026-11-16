@@ -111,16 +111,16 @@ jobs:
               }
           """, 1)
           if "signingConfig signingConfigs.release" not in s:
-              m = re.search(r"buildTypes\\s*\\{", s)
+              m = re.search(r"buildTypes\s*\{", s)
               if not m:
                   raise SystemExit("Could not locate buildTypes block in app/build.gradle")
               start = m.end()
-              rel = re.search(r"release\\s*\\{", s[start:])
+              rel = re.search(r"release\s*\{", s[start:])
               if not rel:
-                  s = s[:start] + "\\n        release { signingConfig signingConfigs.release }\\n" + s[start:]
+                  s = s[:start] + "\n        release { signingConfig signingConfigs.release }\n" + s[start:]
               else:
                   pos = start + rel.end()
-                  s = s[:pos] + "\\n            signingConfig signingConfigs.release" + s[pos:]
+                  s = s[:pos] + "\n            signingConfig signingConfigs.release" + s[pos:]
           p.write_text(s)
           PY
           test -s android/app/darb-release.jks
