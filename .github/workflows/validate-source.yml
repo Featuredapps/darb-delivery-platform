@@ -87,3 +87,17 @@ jobs:
           path: extracted/**/build/app/outputs/flutter-apk/*.apk
           if-no-files-found: error
           retention-days: 14
+
+      - name: Package corrected source archive
+        run: |
+          cd extracted
+          zip -qr "$GITHUB_WORKSPACE/DARB-source-fixed.zip" darb-project \
+            -x '*/node_modules/*' '*/.dart_tool/*' '*/build/*'
+
+      - name: Upload corrected source archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: darb-source-fixed
+          path: DARB-source-fixed.zip
+          if-no-files-found: error
+          retention-days: 30
