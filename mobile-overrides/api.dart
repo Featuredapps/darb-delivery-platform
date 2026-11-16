@@ -148,15 +148,26 @@ class Api {
           )
           .timeout(const Duration(seconds: 20));
 
-      if (response.statusCode < 200 || response.statusCode >= 300) {
+      if (response.statusCode == 401 || response.statusCode == 403) {
         return false;
       }
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw const ApiException(
+          'تعذر تجديد جلسة الدخول حالياً. حاول مجدداً بعد قليل.',
+        );
+      }
       final decoded = jsonDecode(response.body);
-      if (decoded is! Map<String, dynamic>) return false;
+      if (decoded is! Map<String, dynamic>) {
+        throw const ApiException('استجابة تجديد الجلسة غير صالحة.');
+      }
       await saveTokens(decoded);
       return _accessToken != null && _refreshToken != null;
+    } on ApiException {
+      rethrow;
     } catch (_) {
-      return false;
+      throw const ApiException(
+        'تعذر الاتصال لتجديد الجلسة. تحقق من الإنترنت وحاول مجدداً.',
+      );
     }
   }
 }
