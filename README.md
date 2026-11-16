@@ -6,11 +6,11 @@
 
 ## حالة التحقق
 
-- Backend CI: تثبيت الحزم، توليد Prisma Client، تطبيق Migration على PostgreSQL 16 مع PostGIS، بناء NestJS، وتشغيل الاختبارات. آخر تشغيل ناجح: [Backend CI](https://github.com/Featuredapps/darb-delivery-platform/actions/runs/43911047605).
+- Backend CI: تثبيت الحزم، توليد Prisma Client، تطبيق Migration على PostgreSQL 16 مع PostGIS، بناء NestJS، وتشغيل الاختبارات. راجع [سجل تشغيل CI](https://github.com/Featuredapps/darb-delivery-platform/actions).
 - اختبارات وحدة فحص صحة الخادم تغطي حالات النجاح وتعطل قاعدة البيانات أو Redis.
 - تم تطبيق Migration الأولية بنجاح على قاعدة بيانات PostGIS مؤقتة في GitHub Actions.
 - نجح بناء APK وAAB موقعين في تشغيل سابق، لكن ذلك البناء استخدم عنوان API افتراضياً للمحاكي، ولذلك لا يصلح لتسجيل دخول فعلي من هاتف المستخدم.
-- لا يوجد حتى الآن نشر فعلي لخدمات Backend أو عنوان API عام تم التحقق منه.
+- تم نشر Backend على Render Free بعنوان `https://darb-api-yapv.onrender.com` وفق سجل Render بتاريخ 2026-11-16. سجل الإقلاع أكد نجاح NestJS وتهيئة الوحدات وتطبيق migrations وعدم ظهور أخطاء Redis في آخر تشغيل أرسله المستخدم. يلزم إجراء اختبار HTTP خارجي مستقل لمساري `/api/v1/healthz` و`/api/v1/readyz` قبل اعتبار الجاهزية التشغيلية مؤكدة.
 
 ## آخر تحديث تقني
 
@@ -19,7 +19,7 @@
 - أضيفت Migration أولية معتمدة في `backend/prisma/migrations/20261116162000_initial/`.
 - Migration تنشئ الجداول والعلاقات والفهارس، وتفعّل PostGIS، وتضيف فهارس مكانية وقيود رقم الهاتف السوري.
 - Backend CI يختبر تطبيق Migration على PostgreSQL/PostGIS نظيف قبل البناء والاختبارات.
-- Render Blueprint ينشئ API المجاني فقط ويعتمد على PostgreSQL وRedis خارجيين لتجنب انتهاء قاعدة Render المجانية وفقدان بيانات Redis عند إعادة التشغيل.
+- Render Blueprint ينشئ API المجاني فقط ويعتمد على Supabase PostgreSQL وUpstash Redis خارجيين. النشر الحالي يستخدم عنوان API: `https://darb-api-yapv.onrender.com`.
 - إعداد Blueprint لا ينشئ الاستضافة تلقائياً؛ يتطلب ربط حسابات الخدمات وإدخال عناوين الاتصال.
 
 ## النشر المجاني التجريبي
@@ -48,9 +48,9 @@ NestJS + Prisma + PostgreSQL/PostGIS + Redis.
 
 Flutter، واجهة عربية RTL.
 
-## تكاملات لم يثبت تفعيلها إنتاجياً بعد
+## تكاملات لم يثبت تفعيلها بعد
 
-- مزود SMS فعلي يدعم إرسال الرسائل إلى سوريا وربط OTP.
+- مزود SMS فعلي يدعم إرسال الرسائل إلى سوريا وربط OTP. الخادم الحالي لا يُعد جاهزاً لتسجيل دخول حقيقي عبر OTP حتى يتم ضبط `SMS_API_URL` و`SMS_API_KEY` لمزود متوافق وإجراء اختبار إرسال واستقبال.
 - Firebase Cloud Messaging وإشعارات الأجهزة الحقيقية.
 - الخرائط وGeocoding وتتبع السائق الحي.
 
