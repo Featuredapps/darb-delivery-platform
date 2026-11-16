@@ -1,13 +1,10 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 @Injectable()
 export class VendorsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async apply(userId: string, dto: {name:string;type:string;cityId:string;description?:string;address?:string;latitude?:number;longitude?:number}) {
-    if ((dto.latitude === undefined) !== (dto.longitude === undefined)) {
-      throw new BadRequestException('يجب إرسال خط العرض وخط الطول معاً');
-    }
+  async apply(userId: string, dto: {name:string;type:string;cityId:string;description?:string;address?:string}) {
     return this.prisma.$transaction(async tx => {
       const user = await tx.user.findUnique({ where: { id: userId } });
       if (!user || user.role !== 'CUSTOMER') throw new NotFoundException('الحساب غير مؤهل لتقديم طلب بائع');
@@ -18,9 +15,6 @@ export class VendorsService {
         translations: { create: { locale: 'ar', name: dto.name, description: dto.description } },
         cities: { create: { cityId: dto.cityId } },
         location: { create: { cityId: dto.cityId, address: dto.address } } } });
-      if (dto.latitude !== undefined && dto.longitude !== undefined) {
-        await tx.$executeRaw`UPDATE "VendorLocation" SET point = ST_SetSRID(ST_MakePoint(${dto.longitude}, ${dto.latitude}), 4326)::geography WHERE "vendorId" = ${vendor.id}`;
-      }
       await tx.user.update({ where: { id: userId }, data: { role: 'VENDOR' } });
       return { id: vendor.id, status: vendor.status, message: 'تم استلام طلبك وسيتم مراجعته قبل تفعيل المتجر' };
     });

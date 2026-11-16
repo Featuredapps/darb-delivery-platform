@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { IsNumber, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
+import { IsOptional, IsString, MaxLength } from 'class-validator';
 import { UserRole } from '@prisma/client';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -9,8 +9,6 @@ import { AddressesService } from './addresses.service';
 class CreateAddressDto {
   @IsOptional() @IsString() @MaxLength(40) label?: string;
   @IsString() @MaxLength(500) details!: string;
-  @IsOptional() @IsNumber() @Min(-90) @Max(90) latitude?: number;
-  @IsOptional() @IsNumber() @Min(-180) @Max(180) longitude?: number;
 }
 @Controller('addresses') @UseGuards(JwtAuthGuard, RolesGuard) @Roles(UserRole.CUSTOMER)
 export class AddressesController {
