@@ -2,6 +2,10 @@ name: Inspect Android embedding
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/inspect-android.yml'
+      - 'DARB-source.zip'
 
 permissions:
   contents: read
