@@ -33,6 +33,7 @@ jobs:
             exit 1
           fi
           echo "Applied Dart syntax repair to vendor navigation."
+          cp mobile-overrides/api.dart extracted/darb-project/mobile/lib/core/api.dart
           echo "Extracted files:"
           find extracted -maxdepth 4 -type f | sort | head -250
 
