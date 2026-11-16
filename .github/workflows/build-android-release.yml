@@ -44,6 +44,11 @@ jobs:
             echo "::error::Vendor navigation syntax patch did not apply"
             exit 1
           fi
+          # Apply the reviewed login UI and launcher artwork overrides.
+          cp mobile-overrides/login_screen.dart extracted/darb-project/mobile/lib/screens/login_screen.dart
+          mkdir -p extracted/darb-project/mobile/android/app/src/main/res/drawable
+          cp mobile-overrides/ic_launcher.xml extracted/darb-project/mobile/android/app/src/main/res/drawable/ic_launcher.xml
+          sed -i 's|android:icon="@mipmap/ic_launcher"|android:icon="@drawable/ic_launcher"|' extracted/darb-project/mobile/android/app/src/main/AndroidManifest.xml
 
       - name: Set up Java 17 and Flutter
         uses: actions/setup-java@v4
