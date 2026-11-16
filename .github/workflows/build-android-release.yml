@@ -1,0 +1,154 @@
+name: Build signed DARB Android release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate signing secrets
+        shell: bash
+        env:
+          DARB_KEYSTORE_BASE64: ${{ secrets.DARB_KEYSTORE_BASE64 }}
+          DARB_KEYSTORE_PASSWORD: ${{ secrets.DARB_KEYSTORE_PASSWORD }}
+          DARB_KEY_ALIAS: ${{ secrets.DARB_KEY_ALIAS }}
+          DARB_KEY_PASSWORD: ${{ secrets.DARB_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for name in DARB_KEYSTORE_BASE64 DARB_KEYSTORE_PASSWORD DARB_KEY_ALIAS DARB_KEY_PASSWORD; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::Missing required GitHub Actions secret: $name"
+              exit 1
+            fi
+          done
+
+      - name: Extract and repair source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s DARB-source.zip
+          unzip -q DARB-source.zip -d extracted
+          dart_file="extracted/darb-project/mobile/lib/screens/app_shell.dart"
+          if grep -Fq "cityId:cityId))));}}" "$dart_file"; then
+            sed -i "s/cityId:cityId))));}}/cityId:cityId)))));}}/" "$dart_file"
+          fi
+          if grep -Fq "cityId:cityId))));}}" "$dart_file"; then
+            echo "::error::Vendor navigation syntax patch did not apply"
+            exit 1
+          fi
+
+      - name: Set up Java 17 and Flutter
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Prepare Android project and signing
+        working-directory: extracted/darb-project/mobile
+        shell: bash
+        env:
+          DARB_KEYSTORE_BASE64: ${{ secrets.DARB_KEYSTORE_BASE64 }}
+          DARB_KEYSTORE_PASSWORD: ${{ secrets.DARB_KEYSTORE_PASSWORD }}
+          DARB_KEY_ALIAS: ${{ secrets.DARB_KEY_ALIAS }}
+          DARB_KEY_PASSWORD: ${{ secrets.DARB_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("pubspec.yaml")
+          s = p.read_text()
+          p.write_text(s.replace("intl: ^0.19.0", "intl: ^0.20.3"))
+          PY
+          main_activity="$(find android/app/src/main -type f 2>/dev/null | grep -E 'MainActivity[.]kt$|MainActivity[.]java$' | head -n 1 || true)"
+          if [ ! -f android/app/build.gradle ] && [ ! -f android/app/build.gradle.kts ] || [ -z "$main_activity" ] || [ ! -f android/gradlew ]; then
+            cp android/app/src/main/AndroidManifest.xml /tmp/darb-AndroidManifest.xml
+            flutter create --platforms=android --project-name darb --org com.darb .
+            cp /tmp/darb-AndroidManifest.xml android/app/src/main/AndroidManifest.xml
+          fi
+          mkdir -p android/app
+          printf '%s' "$DARB_KEYSTORE_BASE64" | base64 --decode > android/app/darb-release.jks
+          cat > android/key.properties <<EOF
+          storePassword=$DARB_KEYSTORE_PASSWORD
+          keyPassword=$DARB_KEY_PASSWORD
+          keyAlias=$DARB_KEY_ALIAS
+          storeFile=darb-release.jks
+          EOF
+          chmod 600 android/key.properties android/app/darb-release.jks
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path("android/app/build.gradle")
+          if not p.exists():
+              raise SystemExit("Expected generated Groovy android/app/build.gradle")
+          s = p.read_text()
+          if "signingConfigs {" not in s:
+              s = s.replace("android {", """def keystoreProperties = new Properties()
+          def keystorePropertiesFile = rootProject.file('key.properties')
+          if (keystorePropertiesFile.exists()) {
+              keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+          }
+
+          android {
+              signingConfigs {
+                  release {
+                      keyAlias keystoreProperties['keyAlias']
+                      keyPassword keystoreProperties['keyPassword']
+                      storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+                      storePassword keystoreProperties['storePassword']
+                  }
+              }
+          """, 1)
+          if "signingConfig signingConfigs.release" not in s:
+              m = re.search(r"buildTypes\\s*\\{", s)
+              if not m:
+                  raise SystemExit("Could not locate buildTypes block in app/build.gradle")
+              start = m.end()
+              rel = re.search(r"release\\s*\\{", s[start:])
+              if not rel:
+                  s = s[:start] + "\\n        release { signingConfig signingConfigs.release }\\n" + s[start:]
+              else:
+                  pos = start + rel.end()
+                  s = s[:pos] + "\\n            signingConfig signingConfigs.release" + s[pos:]
+          p.write_text(s)
+          PY
+          test -s android/app/darb-release.jks
+          grep -q "signingConfig signingConfigs.release" android/app/build.gradle
+          flutter pub get
+
+      - name: Analyze and build signed APK and AAB
+        working-directory: extracted/darb-project/mobile
+        run: |
+          set -euo pipefail
+          flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings
+          flutter build apk --release
+          flutter build appbundle --release
+
+      - name: Verify release outputs
+        working-directory: extracted/darb-project/mobile
+        run: |
+          set -euo pipefail
+          test -s build/app/outputs/flutter-apk/app-release.apk
+          test -s build/app/outputs/bundle/release/app-release.aab
+          apksigner verify --verbose build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Upload signed Android release
+        uses: actions/upload-artifact@v4
+        with:
+          name: darb-android-signed-release
+          path: |
+            extracted/darb-project/mobile/build/app/outputs/flutter-apk/app-release.apk
+            extracted/darb-project/mobile/build/app/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 30
