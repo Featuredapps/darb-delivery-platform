@@ -45,7 +45,7 @@ The SMS key must never be added to Flutter, the website, Git history, or chat. S
 | PATCH | `/api/v1/orders/:id/status` | Owning vendor/driver |
 | GET | `/api/v1/drivers/me` | Driver |
 | PATCH | `/api/v1/drivers/online` | Driver |
-| GET | `/api/v1/admin/vendors/pending` | Admin |
+| GET | `/api/v1/admin/overview` | Admin |\n| GET | `/api/v1/admin/cities` | Admin |\n| PATCH | `/api/v1/admin/cities/:id/status` | Admin |\n| GET | `/api/v1/admin/delivery-zones` | Admin |\n| POST | `/api/v1/admin/delivery-zones` | Admin |\n| PATCH | `/api/v1/admin/delivery-zones/:id` | Admin |\n| GET | `/api/v1/admin/vendors/pending` | Admin |
 | PATCH | `/api/v1/admin/vendors/:id/status` | Admin |
 | GET | `/api/v1/admin/drivers/pending` | Admin |
 | PATCH | `/api/v1/admin/drivers/:id/status` | Admin |
