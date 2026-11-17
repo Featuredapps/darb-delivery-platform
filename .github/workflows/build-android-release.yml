@@ -211,8 +211,8 @@ jobs:
             exit 1
           fi
           flutter analyze lib --no-pub --no-fatal-infos --no-fatal-warnings
-          flutter build apk --release --dart-define=API_BASE_URL="$DARB_API_BASE_URL" --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_SERVER_CLIENT_ID" --dart-define=FIREBASE_API_KEY="$FIREBASE_API_KEY" --dart-define=FIREBASE_APP_ID="$FIREBASE_APP_ID" --dart-define=FIREBASE_MESSAGING_SENDER_ID="$FIREBASE_MESSAGING_SENDER_ID" --dart-define=FIREBASE_PROJECT_ID="$FIREBASE_PROJECT_ID"
-          flutter build appbundle --release --dart-define=API_BASE_URL="$DARB_API_BASE_URL" --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_SERVER_CLIENT_ID" --dart-define=FIREBASE_API_KEY="$FIREBASE_API_KEY" --dart-define=FIREBASE_APP_ID="$FIREBASE_APP_ID" --dart-define=FIREBASE_MESSAGING_SENDER_ID="$FIREBASE_MESSAGING_SENDER_ID" --dart-define=FIREBASE_PROJECT_ID="$FIREBASE_PROJECT_ID"
+          flutter build apk --release --build-number="$GITHUB_RUN_NUMBER" --dart-define=API_BASE_URL="$DARB_API_BASE_URL" --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_SERVER_CLIENT_ID" --dart-define=FIREBASE_API_KEY="$FIREBASE_API_KEY" --dart-define=FIREBASE_APP_ID="$FIREBASE_APP_ID" --dart-define=FIREBASE_MESSAGING_SENDER_ID="$FIREBASE_MESSAGING_SENDER_ID" --dart-define=FIREBASE_PROJECT_ID="$FIREBASE_PROJECT_ID"
+          flutter build appbundle --release --build-number="$GITHUB_RUN_NUMBER" --dart-define=API_BASE_URL="$DARB_API_BASE_URL" --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_SERVER_CLIENT_ID" --dart-define=FIREBASE_API_KEY="$FIREBASE_API_KEY" --dart-define=FIREBASE_APP_ID="$FIREBASE_APP_ID" --dart-define=FIREBASE_MESSAGING_SENDER_ID="$FIREBASE_MESSAGING_SENDER_ID" --dart-define=FIREBASE_PROJECT_ID="$FIREBASE_PROJECT_ID"
 
       - name: Verify release outputs
         working-directory: extracted/darb-project/mobile
@@ -252,6 +252,8 @@ jobs:
             echo
             echo "- Android package name: $APPLICATION_ID"
             echo "- Release signing certificate SHA-1: $SHA1"
+          echo "DARB_RELEASE_SHA1=$SHA1"
+          echo "DARB_ANDROID_APPLICATION_ID=$APPLICATION_ID"
             echo "- Web OAuth client ID: configured via GitHub Actions secret or public client-ID fallback"
             echo "- Backend audience: configure the same Web OAuth client ID as Render environment variable GOOGLE_SERVER_CLIENT_ID"
           } >> "$GITHUB_STEP_SUMMARY"
