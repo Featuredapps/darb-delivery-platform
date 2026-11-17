@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   inspect-and-build:
@@ -88,7 +88,6 @@ jobs:
             echo "::group::Flutter app: $dir"
             cd "$GITHUB_WORKSPACE/$dir"
 
-            # Resolve the SDK-pinned intl constraint before flutter create runs pub resolution.
             python3 - <<'PY'
           from pathlib import Path
           p = Path("pubspec.yaml")
@@ -96,8 +95,6 @@ jobs:
           p.write_text(s.replace("intl: ^0.19.0", "intl: ^0.20.3"))
           PY
 
-            # The supplied archive contains only a partial Android directory.
-            # Preserve its app manifest while regenerating the missing v2 Android platform scaffold.
             main_activity="$(find android/app/src/main -type f 2>/dev/null | grep -E 'MainActivity[.]kt$|MainActivity[.]java$' | head -n 1 || true)"
             if [ ! -f android/app/build.gradle ] && [ ! -f android/app/build.gradle.kts ] ||
                [ -z "$main_activity" ] || [ ! -f android/gradlew ]; then
@@ -107,14 +104,12 @@ jobs:
               if [ -f test/widget_test.dart ]; then had_widget_test=true; fi
               flutter create --platforms=android --project-name darb --org com.darb .
               cp /tmp/darb-AndroidManifest.xml android/app/src/main/AndroidManifest.xml
-              # Flutter's generated starter test targets a different template app; remove it only if newly generated.
               if [ "$had_widget_test" = false ]; then
                 rm -f test/widget_test.dart
                 rmdir test 2>/dev/null || true
               fi
             fi
 
-            # Fail before compilation if the Android project is still incomplete or uses old embedding.
             test -f android/gradlew
             test -f android/app/build.gradle -o -f android/app/build.gradle.kts
             main_activity="$(find android/app/src/main -type f | grep -E 'MainActivity[.]kt$|MainActivity[.]java$' | head -n 1 || true)"
@@ -122,8 +117,6 @@ jobs:
             grep -Fq 'io.flutter.embedding.android.FlutterActivity' "$main_activity"
             grep -q 'android:name="flutterEmbedding" android:value="2"' android/app/src/main/AndroidManifest.xml
 
-            # Install DARB launcher artwork. Android 8+ uses an adaptive icon;
-            # keep the existing legacy mipmap fallback for older Android versions.
             mkdir -p android/app/src/main/res/drawable android/app/src/main/res/mipmap-anydpi-v26
             cp "$GITHUB_WORKSPACE/mobile-overrides/ic_launcher.xml" android/app/src/main/res/drawable/darb_launcher_foreground.xml
             cat > android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml <<'XML'
@@ -136,7 +129,6 @@ jobs:
             echo "Installed DARB adaptive launcher icon."
 
             flutter pub get
-            # Infos and warnings are reported but do not suppress compiler/build errors.
             if ! flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings; then
               echo "::group::Dart syntax context: app_shell.dart lines 25-33"
               nl -ba lib/screens/app_shell.dart | sed -n '25,33p' | fold -w 160
@@ -147,7 +139,7 @@ jobs:
             echo "::endgroup::"
           done
 
-      - name: Upload debug APK
+      - name: Upload debug APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: darb-debug-apk-production-api
@@ -155,17 +147,11 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-      - name: Package corrected source archive
-        run: |
-          set -euo pipefail
-          cd extracted
-          zip -qr "$GITHUB_WORKSPACE/DARB-source-fixed.zip" darb-project \
-            -x '*/node_modules/*' '*/.dart_tool/*' '*/build/*'
-
-      - name: Upload corrected source archive
-        uses: actions/upload-artifact@v4
+      - name: Publish direct APK download
+        uses: softprops/action-gh-release@v2
         with:
-          name: darb-source-fixed
-          path: DARB-source-fixed.zip
-          if-no-files-found: error
-          retention-days: 30
+          tag_name: darb-apk-build-${{ github.run_number }}
+          name: DARB Android APK build ${{ github.run_number }}
+          files: extracted/**/build/app/outputs/flutter-apk/app-debug.apk
+          fail_on_unmatched_files: true
+          generate_release_notes: false
