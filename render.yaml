@@ -69,11 +69,12 @@ services:
         value: msgplus
       - key: MSGPLUS_API_KEY
         sync: false
-      - key: MSGPLUS_SENDER_NAME
+      - key: MSGPLUS_SENDER_ID
         sync: false
       - key: MSGPLUS_TEMPLATE_ID
-        value: "3"
+        value: "1"
       - key: GOOGLE_SERVER_CLIENT_ID
         sync: false
       - key: FIREBASE_SERVICE_ACCOUNT_JSON
         sync: false
+
