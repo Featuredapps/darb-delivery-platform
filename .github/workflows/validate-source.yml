@@ -45,6 +45,8 @@ jobs:
           PY
           cp mobile-overrides/api.dart extracted/darb-project/mobile/lib/core/api.dart
           cp mobile-overrides/login_screen.dart extracted/darb-project/mobile/lib/screens/login_screen.dart
+          cp mobile-overrides/main.dart extracted/darb-project/mobile/lib/main.dart
+          cp mobile-overrides/localizations.dart extracted/darb-project/mobile/lib/localizations.dart
           mkdir -p extracted/darb-project/backend/src/modules/orders
           cp backend-overrides/orders.service.spec.ts extracted/darb-project/backend/src/modules/orders/orders.service.spec.ts
           cp backend-overrides/sms.providers.ts extracted/darb-project/backend/src/modules/auth/sms/sms.providers.ts
@@ -158,14 +160,22 @@ jobs:
           XML
             echo "Installed DARB adaptive launcher icon."
 
-            flutter pub get
+            python3 - <<'PY'
+          from pathlib import Path
+          p = Path("pubspec.yaml")
+          s = p.read_text()
+          if "google_sign_in:" not in s:
+              s = s.replace("  flutter_localizations:\n    sdk: flutter\n", "  flutter_localizations:\n    sdk: flutter\n  google_sign_in: ^6.2.1\n")
+          p.write_text(s)
+          PY
+          flutter pub get
             if ! flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings; then
               echo "::group::Dart syntax context: app_shell.dart lines 25-33"
               nl -ba lib/screens/app_shell.dart | sed -n '25,33p' | fold -w 160
               echo "::endgroup::"
               exit 1
             fi
-            flutter build apk --debug --dart-define=API_BASE_URL=https://darb-api-yapv.onrender.com/api/v1
+            flutter build apk --debug --dart-define=API_BASE_URL=https://darb-api-yapv.onrender.com/api/v1 --dart-define=GOOGLE_SERVER_CLIENT_ID="${{ secrets.GOOGLE_SERVER_CLIENT_ID }}"
             echo "::endgroup::"
           done
 

@@ -50,7 +50,7 @@ Flutter، واجهة عربية RTL.
 
 ## تكاملات لم يثبت تفعيلها بعد
 
-- تكامل MsgPlus يستخدم `POST https://sms.msgplus.tech/api/v1/send` مع `Authorization: Bearer` و`X-Timestamp`، والحقل `sender_name`، والقالب `template_id=1` والمتغير `P1` كما هو مضبوط في حساب MsgPlus. لضمان التوافق مع إعداد Render الحالي، تُقرأ قيمة اسم المرسل من `MSGPLUS_SENDER_NAME` أو من المتغير القديم `MSGPLUS_SENDER_ID` (مع أن القيمة اسم وليست رقماً). يلزم اختبار قبول وتسليم فعلي قبل اعتبار OTP جاهزاً.
+- تكامل MsgPlus موجود في Backend ويُضبط عبر `SMS_PROVIDER=msgplus` و`MSGPLUS_API_KEY` و`MSGPLUS_SENDER_NAME` و`MSGPLUS_TEMPLATE_ID=3`. لم يتم تنفيذ اختبار إرسال حي؛ لذلك لا نعتبر OTP جاهزاً تشغيلياً حتى يُجرى اختبار معتمد. لا تُرسل رسائل أو تستهلك رصيداً دون موافقة صريحة.
 - Firebase Cloud Messaging وإشعارات الأجهزة الحقيقية.
 - الخرائط وGeocoding وتتبع السائق الحي.
 
@@ -69,3 +69,8 @@ Flutter، واجهة عربية RTL.
 ## إعدادات الأمان
 
 لا تضع أسرار الإنتاج في المستودع. استخدم ملفات البيئة المحلية أو GitHub Actions Secrets، وراجع إعدادات HTTPS وسياسات الوصول قبل النشر.
+
+## Mobile login UI update
+- The Flutter login override now provides Arabic/English/Turkish language switching, RTL/LTR layout, Syrian phone validation/formatting, OTP request/verification, and Google Sign-In client flow.
+- Android builds add `google_sign_in` and may receive `GOOGLE_SERVER_CLIENT_ID` through the GitHub Actions secret of the same name.
+- Google sign-in remains unavailable until a Google OAuth client is configured and the NestJS API implements `POST /api/v1/auth/google` with ID-token verification and a user-account linking/creation policy. The mobile client displays a localized message if the endpoint is absent; OTP login remains the working path.

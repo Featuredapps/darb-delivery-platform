@@ -51,6 +51,8 @@ jobs:
           fi
           # Apply the reviewed login UI and launcher artwork overrides.
           cp mobile-overrides/login_screen.dart extracted/darb-project/mobile/lib/screens/login_screen.dart
+          cp mobile-overrides/main.dart extracted/darb-project/mobile/lib/main.dart
+          cp mobile-overrides/localizations.dart extracted/darb-project/mobile/lib/localizations.dart
           cp mobile-overrides/api.dart extracted/darb-project/mobile/lib/core/api.dart
           mkdir -p extracted/darb-project/mobile/android/app/src/main/res/drawable
           cp mobile-overrides/ic_launcher.xml extracted/darb-project/mobile/android/app/src/main/res/drawable/ic_launcher.xml
@@ -174,12 +176,21 @@ jobs:
           else
             grep -q "signingConfig signingConfigs.release" android/app/build.gradle
           fi
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("pubspec.yaml")
+          s = p.read_text()
+          if "google_sign_in:" not in s:
+              s = s.replace("  flutter_localizations:\n    sdk: flutter\n", "  flutter_localizations:\n    sdk: flutter\n  google_sign_in: ^6.2.1\n")
+          p.write_text(s)
+          PY
           flutter pub get
 
       - name: Analyze and build signed APK and AAB
         working-directory: extracted/darb-project/mobile
         env:
           DARB_API_BASE_URL: ${{ inputs.api_base_url }}
+          GOOGLE_SERVER_CLIENT_ID: ${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
         run: |
           set -euo pipefail
           if [[ "$DARB_API_BASE_URL" != https://* || "$DARB_API_BASE_URL" == */ ]]; then
@@ -187,8 +198,8 @@ jobs:
             exit 1
           fi
           flutter analyze lib --no-pub --no-fatal-infos --no-fatal-warnings
-          flutter build apk --release --dart-define=API_BASE_URL="$DARB_API_BASE_URL"
-          flutter build appbundle --release --dart-define=API_BASE_URL="$DARB_API_BASE_URL"
+          flutter build apk --release --dart-define=API_BASE_URL="$DARB_API_BASE_URL" --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_SERVER_CLIENT_ID"
+          flutter build appbundle --release --dart-define=API_BASE_URL="$DARB_API_BASE_URL" --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_SERVER_CLIENT_ID"
 
       - name: Verify release outputs
         working-directory: extracted/darb-project/mobile
