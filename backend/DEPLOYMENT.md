@@ -82,3 +82,6 @@ Firebase Cloud Messaging remains pending Firebase project configuration (google-
 ## Firebase Cloud Messaging
 
 The current source includes device-token registration and order-created/assigned/status push triggers. Configure FIREBASE_SERVICE_ACCOUNT_JSON in Render with the Firebase Admin service-account JSON. Configure FIREBASE_API_KEY, FIREBASE_APP_ID, FIREBASE_MESSAGING_SENDER_ID, and FIREBASE_PROJECT_ID as GitHub Actions secrets for Android builds. The app requests notification permission and registers its FCM token after login. Without these values push is intentionally disabled; order creation and status updates continue normally.
+
+
+The first deployment with the city seed migration will activate 12 Syrian city records with Arabic, English, and Turkish names. It deliberately does not fabricate vendors, products, drivers, delivery fees, or commercial registrations. Approved sellers must add their real catalog, and delivery-zone prices must be entered by an administrator before paid delivery orders are enabled.
