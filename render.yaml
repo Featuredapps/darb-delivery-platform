@@ -36,7 +36,6 @@ services:
         value: msgplus
       - key: MSGPLUS_API_KEY
         sync: false
+      # MsgPlus API v1 requires the numeric sender ID returned by GET /api/v1/senders.
       - key: MSGPLUS_SENDER_ID
-        value: Msgplus
-      - key: MSGPLUS_TEMPLATE_ID
-        value: "3"
+        sync: false
