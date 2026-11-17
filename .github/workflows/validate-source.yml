@@ -48,8 +48,43 @@ jobs:
           cp mobile-overrides/main.dart extracted/darb-project/mobile/lib/main.dart
           cp mobile-overrides/localizations.dart extracted/darb-project/mobile/lib/localizations.dart
           mkdir -p extracted/darb-project/backend/src/modules/orders
+          mkdir -p extracted/darb-project/backend/src/modules/notifications
           cp backend-overrides/orders.service.spec.ts extracted/darb-project/backend/src/modules/orders/orders.service.spec.ts
           cp backend-overrides/sms.providers.ts extracted/darb-project/backend/src/modules/auth/sms/sms.providers.ts
+          cp backend-overrides/auth.service.ts extracted/darb-project/backend/src/modules/auth/auth.service.ts
+          cp backend-overrides/auth.controller.ts extracted/darb-project/backend/src/modules/auth/auth.controller.ts
+          cp backend-overrides/otp.service.ts extracted/darb-project/backend/src/modules/auth/otp.service.ts
+          cp backend-overrides/otp.service.spec.ts extracted/darb-project/backend/src/modules/auth/otp.service.spec.ts
+          cp backend-overrides/auth.service.spec.ts extracted/darb-project/backend/src/modules/auth/auth.service.spec.ts
+          cp backend-overrides/orders.tracking.service.spec.ts extracted/darb-project/backend/src/modules/orders/orders.tracking.service.spec.ts
+          cp backend-overrides/driver-location.service.spec.ts extracted/darb-project/backend/src/modules/drivers/driver-location.service.spec.ts
+          cp backend-overrides/notifications.service.spec.ts extracted/darb-project/backend/src/modules/notifications/notifications.service.spec.ts
+          cp backend-overrides/admin.controller.ts extracted/darb-project/backend/src/modules/admin/admin.controller.ts
+          cp backend-overrides/vendors.service.ts extracted/darb-project/backend/src/modules/vendors/vendors.service.ts
+          cp backend-overrides/addresses.service.ts extracted/darb-project/backend/src/modules/addresses/addresses.service.ts
+          cp backend-overrides/addresses.controller.ts extracted/darb-project/backend/src/modules/addresses/addresses.controller.ts
+          cp backend-overrides/drivers.service.ts extracted/darb-project/backend/src/modules/drivers/drivers.service.ts
+          cp backend-overrides/drivers.module.ts extracted/darb-project/backend/src/modules/drivers/drivers.module.ts
+          cp backend-overrides/driver-location.controller.ts extracted/darb-project/backend/src/modules/drivers/driver-location.controller.ts
+          cp backend-overrides/driver-location.service.ts extracted/darb-project/backend/src/modules/drivers/driver-location.service.ts
+          cp backend-overrides/orders.module.ts extracted/darb-project/backend/src/modules/orders/orders.module.ts
+          cp backend-overrides/orders.tracking.controller.ts extracted/darb-project/backend/src/modules/orders/orders.tracking.controller.ts
+          cp backend-overrides/orders.tracking.service.ts extracted/darb-project/backend/src/modules/orders/orders.tracking.service.ts
+          mkdir -p extracted/darb-project/backend/src/modules/notifications extracted/darb-project/backend/src/modules/health
+          cp backend/src/modules/health/* extracted/darb-project/backend/src/modules/health/
+          cp backend-overrides/notifications.service.ts extracted/darb-project/backend/src/modules/notifications/notifications.service.ts
+          cp backend-overrides/notifications.controller.ts extracted/darb-project/backend/src/modules/notifications/notifications.controller.ts
+          cp backend-overrides/notifications.module.ts extracted/darb-project/backend/src/modules/notifications/notifications.module.ts
+          cp backend-overrides/orders.controller.ts extracted/darb-project/backend/src/modules/orders/orders.controller.ts
+          cp backend-overrides/app.module.ts extracted/darb-project/backend/src/app.module.ts
+          mkdir -p extracted/darb-project/backend/prisma/migrations/20261117170000_firebase_devices
+          cp backend-overrides/firebase-devices.migration.sql extracted/darb-project/backend/prisma/migrations/20261117170000_firebase_devices/migration.sql
+          cp mobile-overrides/app_shell.dart extracted/darb-project/mobile/lib/screens/app_shell.dart
+          cp mobile-overrides/notifications.dart extracted/darb-project/mobile/lib/notifications.dart
+          mkdir -p extracted/darb-project/backend/prisma/migrations/20261117160000_google_accounts
+          cp backend-overrides/google-accounts.migration.sql extracted/darb-project/backend/prisma/migrations/20261117160000_google_accounts/migration.sql
+          cp backend-overrides/schema.prisma extracted/darb-project/backend/prisma/schema.prisma
+          bash backend-overrides/prepare-source.sh extracted/darb-project
           echo "Applied backend order tests and MsgPlus diagnostics."
           echo "Extracted files:"
           find extracted -maxdepth 4 -type f | sort | head -250
@@ -175,7 +210,7 @@ jobs:
               echo "::endgroup::"
               exit 1
             fi
-            flutter build apk --debug --dart-define=API_BASE_URL=https://darb-api-yapv.onrender.com/api/v1 --dart-define=GOOGLE_SERVER_CLIENT_ID="${{ secrets.GOOGLE_SERVER_CLIENT_ID }}"
+            flutter build apk --debug --dart-define=API_BASE_URL=https://darb-api-yapv.onrender.com/api/v1 --dart-define=GOOGLE_SERVER_CLIENT_ID="${{ secrets.GOOGLE_SERVER_CLIENT_ID }}" --dart-define=FIREBASE_API_KEY="${{ secrets.FIREBASE_API_KEY }}" --dart-define=FIREBASE_APP_ID="${{ secrets.FIREBASE_APP_ID }}" --dart-define=FIREBASE_MESSAGING_SENDER_ID="${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}" --dart-define=FIREBASE_PROJECT_ID="${{ secrets.FIREBASE_PROJECT_ID }}"
             echo "::endgroup::"
           done
 

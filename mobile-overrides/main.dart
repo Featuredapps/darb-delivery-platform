@@ -4,6 +4,7 @@ import 'core/api.dart';
 import 'screens/app_shell.dart';
 import 'screens/login_screen.dart';
 import 'localizations.dart';
+import 'notifications.dart';
 
 const ink = Color(0xFF12302A);
 const green = Color(0xFF167A5A);
@@ -12,6 +13,7 @@ final ValueNotifier<Locale> darbLocale = ValueNotifier(const Locale('ar'));
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await DarbNotifications.initialize();
   await Api.instance.restore();
   runApp(const DarbApp());
 }

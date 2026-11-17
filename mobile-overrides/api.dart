@@ -25,6 +25,16 @@ class Api {
   }
 
   Future<void> clear() async {
+    final refreshToken = await _storage.read(key: 'refreshToken');
+    if (refreshToken != null && refreshToken.isNotEmpty) {
+      try {
+        await http.post(
+          Uri.parse('$baseUrl/auth/logout'),
+          headers: const {'Content-Type': 'application/json', 'Accept': 'application/json'},
+          body: jsonEncode({'refreshToken': refreshToken}),
+        ).timeout(const Duration(seconds: 8));
+      } catch (_) {}
+    }
     _accessToken = null;
     await _storage.deleteAll();
   }
@@ -32,6 +42,7 @@ class Api {
   Future<dynamic> get(String path) => _request('GET', path);
   Future<dynamic> post(String path, Map<String, dynamic> body) => _request('POST', path, body: body);
   Future<dynamic> patch(String path, Map<String, dynamic> body) => _request('PATCH', path, body: body);
+  Future<dynamic> delete(String path, Map<String, dynamic> body) => _request('DELETE', path, body: body);
 
   Future<bool> _refreshAccessToken() async {
     if (_refreshing != null) return _refreshing!;

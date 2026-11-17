@@ -12,8 +12,35 @@ services:
       unzip -q DARB-source.zip -d .render-build &&
       cp -R backend/src/. .render-build/darb-project/backend/src/ &&
       cp backend-overrides/sms.providers.ts .render-build/darb-project/backend/src/modules/auth/sms/sms.providers.ts &&
+      cp backend-overrides/auth.service.ts .render-build/darb-project/backend/src/modules/auth/auth.service.ts &&
+      cp backend-overrides/auth.controller.ts .render-build/darb-project/backend/src/modules/auth/auth.controller.ts &&
+      cp backend-overrides/otp.service.ts .render-build/darb-project/backend/src/modules/auth/otp.service.ts &&
+      cp backend-overrides/admin.controller.ts .render-build/darb-project/backend/src/modules/admin/admin.controller.ts &&
+      cp backend-overrides/vendors.service.ts .render-build/darb-project/backend/src/modules/vendors/vendors.service.ts &&
+      cp backend-overrides/addresses.service.ts .render-build/darb-project/backend/src/modules/addresses/addresses.service.ts &&
+      cp backend-overrides/addresses.controller.ts .render-build/darb-project/backend/src/modules/addresses/addresses.controller.ts &&
+      cp backend-overrides/drivers.service.ts .render-build/darb-project/backend/src/modules/drivers/drivers.service.ts &&
+      cp backend-overrides/drivers.module.ts .render-build/darb-project/backend/src/modules/drivers/drivers.module.ts &&
+      cp backend-overrides/driver-location.controller.ts .render-build/darb-project/backend/src/modules/drivers/driver-location.controller.ts &&
+      cp backend-overrides/driver-location.service.ts .render-build/darb-project/backend/src/modules/drivers/driver-location.service.ts &&
+      cp backend-overrides/orders.module.ts .render-build/darb-project/backend/src/modules/orders/orders.module.ts &&
+      cp backend-overrides/orders.tracking.controller.ts .render-build/darb-project/backend/src/modules/orders/orders.tracking.controller.ts &&
+      cp backend-overrides/orders.tracking.service.ts .render-build/darb-project/backend/src/modules/orders/orders.tracking.service.ts &&
+      cp backend-overrides/orders.controller.ts .render-build/darb-project/backend/src/modules/orders/orders.controller.ts &&
+      mkdir -p .render-build/darb-project/backend/src/modules/notifications .render-build/darb-project/backend/src/modules/health &&
+      cp -R backend/src/modules/health/. .render-build/darb-project/backend/src/modules/health/ &&
+      cp backend-overrides/notifications.service.ts .render-build/darb-project/backend/src/modules/notifications/notifications.service.ts &&
+      cp backend-overrides/notifications.controller.ts .render-build/darb-project/backend/src/modules/notifications/notifications.controller.ts &&
+      cp backend-overrides/notifications.module.ts .render-build/darb-project/backend/src/modules/notifications/notifications.module.ts &&
+      cp backend-overrides/app.module.ts .render-build/darb-project/backend/src/app.module.ts &&
+      mkdir -p .render-build/darb-project/backend/prisma/migrations/20261117170000_firebase_devices &&
+      cp backend-overrides/firebase-devices.migration.sql .render-build/darb-project/backend/prisma/migrations/20261117170000_firebase_devices/migration.sql &&
+      cp backend-overrides/schema.prisma .render-build/darb-project/backend/prisma/schema.prisma &&
+      mkdir -p .render-build/darb-project/backend/prisma/migrations/20261117160000_google_accounts &&
+      cp backend-overrides/google-accounts.migration.sql .render-build/darb-project/backend/prisma/migrations/20261117160000_google_accounts/migration.sql &&
       mkdir -p .render-build/darb-project/backend/prisma/migrations &&
       cp -R backend/prisma/migrations/. .render-build/darb-project/backend/prisma/migrations/ &&
+      bash backend-overrides/prepare-source.sh .render-build/darb-project &&
       cd .render-build/darb-project/backend &&
       npm install --include=dev --no-audit --no-fund &&
       npx prisma generate &&
@@ -36,6 +63,11 @@ services:
         value: msgplus
       - key: MSGPLUS_API_KEY
         sync: false
-      # Set this to the exact approved sender NAME shown in the MsgPlus account (e.g. MsgPlus).
-      - key: MSGPLUS_SENDER_ID
+      - key: MSGPLUS_SENDER_NAME
+        sync: false
+      - key: MSGPLUS_TEMPLATE_ID
+        value: "3"
+      - key: GOOGLE_SERVER_CLIENT_ID
+        sync: false
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
         sync: false

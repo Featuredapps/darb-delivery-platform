@@ -54,6 +54,9 @@ jobs:
           cp mobile-overrides/main.dart extracted/darb-project/mobile/lib/main.dart
           cp mobile-overrides/localizations.dart extracted/darb-project/mobile/lib/localizations.dart
           cp mobile-overrides/api.dart extracted/darb-project/mobile/lib/core/api.dart
+          cp mobile-overrides/app_shell.dart extracted/darb-project/mobile/lib/screens/app_shell.dart
+          cp mobile-overrides/notifications.dart extracted/darb-project/mobile/lib/notifications.dart
+          bash backend-overrides/prepare-source.sh extracted/darb-project
           mkdir -p extracted/darb-project/mobile/android/app/src/main/res/drawable
           cp mobile-overrides/ic_launcher.xml extracted/darb-project/mobile/android/app/src/main/res/drawable/ic_launcher.xml
           sed -i 's|android:icon="@mipmap/ic_launcher"|android:icon="@drawable/ic_launcher"|' extracted/darb-project/mobile/android/app/src/main/AndroidManifest.xml
@@ -191,6 +194,10 @@ jobs:
         env:
           DARB_API_BASE_URL: ${{ inputs.api_base_url }}
           GOOGLE_SERVER_CLIENT_ID: ${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
+          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
         run: |
           set -euo pipefail
           if [[ "$DARB_API_BASE_URL" != https://* || "$DARB_API_BASE_URL" == */ ]]; then
@@ -198,8 +205,8 @@ jobs:
             exit 1
           fi
           flutter analyze lib --no-pub --no-fatal-infos --no-fatal-warnings
-          flutter build apk --release --dart-define=API_BASE_URL="$DARB_API_BASE_URL" --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_SERVER_CLIENT_ID"
-          flutter build appbundle --release --dart-define=API_BASE_URL="$DARB_API_BASE_URL" --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_SERVER_CLIENT_ID"
+          flutter build apk --release --dart-define=API_BASE_URL="$DARB_API_BASE_URL" --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_SERVER_CLIENT_ID" --dart-define=FIREBASE_API_KEY="$FIREBASE_API_KEY" --dart-define=FIREBASE_APP_ID="$FIREBASE_APP_ID" --dart-define=FIREBASE_MESSAGING_SENDER_ID="$FIREBASE_MESSAGING_SENDER_ID" --dart-define=FIREBASE_PROJECT_ID="$FIREBASE_PROJECT_ID"
+          flutter build appbundle --release --dart-define=API_BASE_URL="$DARB_API_BASE_URL" --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_SERVER_CLIENT_ID" --dart-define=FIREBASE_API_KEY="$FIREBASE_API_KEY" --dart-define=FIREBASE_APP_ID="$FIREBASE_APP_ID" --dart-define=FIREBASE_MESSAGING_SENDER_ID="$FIREBASE_MESSAGING_SENDER_ID" --dart-define=FIREBASE_PROJECT_ID="$FIREBASE_PROJECT_ID"
 
       - name: Verify release outputs
         working-directory: extracted/darb-project/mobile
