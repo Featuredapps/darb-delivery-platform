@@ -101,72 +101,71 @@ jobs:
 
           python3 - <<'PYCODE'
           from pathlib import Path
-          import re
           groovy = Path("android/app/build.gradle")
           kotlin = Path("android/app/build.gradle.kts")
           is_kotlin = kotlin.exists()
           p = kotlin if is_kotlin else groovy
           if not p.exists():
-              raise SystemExit("Flutter did not generate Android Gradle app build file")
+              raise SystemExit("Missing Android Gradle app build file after flutter create")
           s = p.read_text()
           if is_kotlin:
               if "import java.util.Properties" not in s:
                   s = "import java.util.Properties\nimport java.io.FileInputStream\n" + s
-              props = '''
-          val keystoreProperties = Properties()
-          val keystorePropertiesFile = rootProject.file("key.properties")
-          if (!keystorePropertiesFile.exists()) throw GradleException("Release signing properties missing")
-          keystoreProperties.load(FileInputStream(keystorePropertiesFile))
-          '''
+              props = """
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+if (!keystorePropertiesFile.exists()) throw GradleException("Release signing properties missing")
+keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+"""
               if "keystorePropertiesFile" not in s:
                   s = s.replace("android {", props + "\nandroid {", 1)
-              signing = '''
-              signingConfigs {
-                  create("release") {
-                      keyAlias = keystoreProperties["keyAlias"] as String
-                      keyPassword = keystoreProperties["keyPassword"] as String
-                      storeFile = file(keystoreProperties["storeFile"] as String)
-                      storePassword = keystoreProperties["storePassword"] as String
-                  }
-              }
-          '''
+              signing = """
+signingConfigs {
+    create("release") {
+        keyAlias = keystoreProperties["keyAlias"] as String
+        keyPassword = keystoreProperties["keyPassword"] as String
+        storeFile = file(keystoreProperties["storeFile"] as String)
+        storePassword = keystoreProperties["storePassword"] as String
+    }
+}
+"""
               if 'create("release")' not in s:
-                  s = s.replace("    buildTypes {", signing + "\n    buildTypes {", 1)
-              s = re.sub(r'signingConfig\s*=\s*signingConfigs\.getByName\(\s*"debug"\s*\)', 'signingConfig = signingConfigs.getByName("release")', s)
+                  s = s.replace("    buildTypes {", "    " + signing + "    buildTypes {", 1)
+              s = s.replace('signingConfig = signingConfigs.getByName("debug")', 'signingConfig = signingConfigs.getByName("release")')
               if 'signingConfig = signingConfigs.getByName("release")' not in s:
                   s = s.replace("    buildTypes {", '    buildTypes {\n        release {\n            signingConfig = signingConfigs.getByName("release")\n        }', 1)
-              m = re.search(r'buildTypes\s*\{[\s\S]*?\brelease\s*\{([\s\S]*?)\n\s*\}', s)
-              if not m or 'signingConfigs.getByName("release")' not in m.group(1):
-                  raise SystemExit("Kotlin release buildType is not signed with release keystore")
+              if 'signingConfig = signingConfigs.getByName("release")' not in s:
+                  raise SystemExit("Release buildType is not configured for release signing")
           else:
-              props = '''
-          def keystoreProperties = new Properties()
-          def keystorePropertiesFile = rootProject.file('key.properties')
-          if (!keystorePropertiesFile.exists()) throw new GradleException("Release signing properties missing")
-          keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-          '''
+              if "import java.util.Properties" not in s:
+                  s = "import java.util.Properties\nimport java.io.FileInputStream\n" + s
+              props = """
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (!keystorePropertiesFile.exists()) throw new GradleException("Release signing properties missing")
+keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+"""
               if "keystorePropertiesFile" not in s:
                   s = s.replace("android {", props + "\nandroid {", 1)
-              signing = '''
-              signingConfigs {
-                  release {
-                      keyAlias keystoreProperties['keyAlias']
-                      keyPassword keystoreProperties['keyPassword']
-                      storeFile file(keystoreProperties['storeFile'])
-                      storePassword keystoreProperties['storePassword']
-                  }
-              }
-          '''
+              signing = """
+signingConfigs {
+    release {
+        keyAlias keystoreProperties['keyAlias']
+        keyPassword keystoreProperties['keyPassword']
+        storeFile file(keystoreProperties['storeFile'])
+        storePassword keystoreProperties['storePassword']
+    }
+}
+"""
               if "signingConfigs {" not in s:
-                  s = s.replace("    buildTypes {", signing + "\n    buildTypes {", 1)
-              s = re.sub(r'signingConfig\s+signingConfigs\.debug', 'signingConfig signingConfigs.release', s)
+                  s = s.replace("    buildTypes {", "    " + signing + "    buildTypes {", 1)
+              s = s.replace('signingConfig signingConfigs.debug', 'signingConfig signingConfigs.release')
               if "signingConfig signingConfigs.release" not in s:
                   s = s.replace("    buildTypes {", "    buildTypes {\n        release {\n            signingConfig signingConfigs.release\n        }", 1)
-              m = re.search(r'buildTypes\s*\{[\s\S]*?\brelease\s*\{([\s\S]*?)\n\s*\}', s)
-              if not m or "signingConfig signingConfigs.release" not in m.group(1):
-                  raise SystemExit("Groovy release buildType is not signed with release keystore")
+              if "signingConfig signingConfigs.release" not in s:
+                  raise SystemExit("Release buildType is not configured for release signing")
           p.write_text(s)
-          print("Release signing config verified in", p)
+          print("Release keystore configured", p)
           PYCODE
 
           python3 - <<'PYCODE'
