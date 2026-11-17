@@ -53,18 +53,8 @@ export class MsgPlusSmsProvider implements SmsProvider {
 
     if (!response.ok) {
       const status = response.status;
-      const responseText = await response.text().catch(() => '');
-      let providerMessage = '';
-      try {
-        const body = JSON.parse(responseText) as Record<string, unknown>;
-        const candidate = body.message ?? body.error ?? body.detail;
-        if (typeof candidate === 'string') providerMessage = candidate.slice(0, 240);
-      } catch {
-        // Ignore non-JSON provider bodies.
-      }
-
-      // Keep provider diagnostics useful without exposing phone numbers, OTPs, or credentials.
-      this.logger.error(`MsgPlus rejected OTP request: HTTP ${status}; provider_message=${providerMessage || 'not provided'}`);
+      // Do not log provider response bodies: they may echo phone numbers, OTPs, or account data.
+      this.logger.error(`MsgPlus rejected OTP request: HTTP ${status}`);
 
       const reason = status === 400 ? 'بيانات طلب MsgPlus غير صحيحة'
         : status === 401 ? 'مفتاح MsgPlus غير صحيح أو غير مفعّل'
@@ -72,7 +62,7 @@ export class MsgPlusSmsProvider implements SmsProvider {
         : status === 422 ? 'رفض MsgPlus الطلب: تحقق من متغيرات القالب P1 وP2 وP3 والرقم والرصيد'
         : status === 429 ? 'طلبات SMS كثيرة؛ حاول لاحقاً'
         : 'فشل إرسال رسالة التحقق';
-      throw new InternalServerErrorException(providerMessage ? `${reason} (تفاصيل المزود: ${providerMessage})` : reason);
+      throw new InternalServerErrorException(reason);
     }
   }
 }
