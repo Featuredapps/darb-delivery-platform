@@ -241,19 +241,49 @@ jobs:
           flutter build apk --release --build-number="$GITHUB_RUN_NUMBER" --dart-define=API_BASE_URL="$DARB_API_BASE_URL" --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_SERVER_CLIENT_ID" --dart-define=FIREBASE_API_KEY="$FIREBASE_API_KEY" --dart-define=FIREBASE_APP_ID="$FIREBASE_APP_ID" --dart-define=FIREBASE_MESSAGING_SENDER_ID="$FIREBASE_MESSAGING_SENDER_ID" --dart-define=FIREBASE_PROJECT_ID="$FIREBASE_PROJECT_ID"
           flutter build appbundle --release --build-number="$GITHUB_RUN_NUMBER" --dart-define=API_BASE_URL="$DARB_API_BASE_URL" --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_SERVER_CLIENT_ID" --dart-define=FIREBASE_API_KEY="$FIREBASE_API_KEY" --dart-define=FIREBASE_APP_ID="$FIREBASE_APP_ID" --dart-define=FIREBASE_MESSAGING_SENDER_ID="$FIREBASE_MESSAGING_SENDER_ID" --dart-define=FIREBASE_PROJECT_ID="$FIREBASE_PROJECT_ID"
 
-      - name: Verify release outputs
+      - name: Verify release outputs and signing identity
         working-directory: extracted/darb-project/mobile
+        shell: bash
+        env:
+          DARB_KEYSTORE_PASSWORD: ${{ secrets.DARB_KEYSTORE_PASSWORD }}
+          DARB_KEY_ALIAS: ${{ secrets.DARB_KEY_ALIAS }}
         run: |
           set -euo pipefail
-          test -s build/app/outputs/flutter-apk/app-release.apk
-          test -s build/app/outputs/bundle/release/app-release.aab
+          APK="build/app/outputs/flutter-apk/app-release.apk"
+          AAB="build/app/outputs/bundle/release/app-release.aab"
+          KEYSTORE="android/app/darb-release.jks"
+          test -s "$APK"
+          test -s "$AAB"
+          test -s "$KEYSTORE"
           APKSIGNER="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name apksigner 2>/dev/null | sort -V | tail -n 1)"
-          if [ -z "$APKSIGNER" ]; then
-            echo "::error::Android SDK apksigner was not found in build-tools"
+          APKANALYZER="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}" -type f -name apkanalyzer 2>/dev/null | sort -V | tail -n 1)"
+          if [ -z "$APKSIGNER" ] || [ -z "$APKANALYZER" ]; then
+            echo "::error::Android SDK signing/package inspection tools were not found"
             exit 1
           fi
-          "$APKSIGNER" verify --verbose build/app/outputs/flutter-apk/app-release.apk
-          jarsigner -verify -verbose -certs build/app/outputs/bundle/release/app-release.aab
+          "$APKSIGNER" verify --verbose "$APK"
+          jarsigner -verify -verbose -certs "$AAB"
+          KEY_SHA1="$(keytool -list -v -keystore "$KEYSTORE" -alias "$DARB_KEY_ALIAS" -storepass "$DARB_KEYSTORE_PASSWORD" | awk -F': ' '/SHA1:/{print $2; exit}' | tr -d ': ' | tr '[:upper:]' '[:lower:]')"
+          APK_SHA1="$( "$APKSIGNER" verify --print-certs "$APK" | awk -F': ' '/certificate SHA-1 digest:/{print $2; exit}' | tr -d ': ' | tr '[:upper:]' '[:lower:]')"
+          APP_ID="$("$APKANALYZER" manifest application-id "$APK")"
+          if [ -z "$KEY_SHA1" ] || [ -z "$APK_SHA1" ] || [ "$KEY_SHA1" != "$APK_SHA1" ]; then
+            echo "::error::APK signer does not match the configured DARB release keystore. Refusing to publish."
+            echo "Keystore SHA-1: $KEY_SHA1"
+            echo "APK SHA-1: $APK_SHA1"
+            exit 1
+          fi
+          if [ "$APP_ID" != "com.darb.darb" ]; then
+            echo "::error::Unexpected Android applicationId: $APP_ID"
+            exit 1
+          fi
+          {
+            echo "## Verified Android release"
+            echo
+            echo "- Application ID: $APP_ID"
+            echo "- APK signing SHA-1: $APK_SHA1"
+            echo "- APK signature matches configured release keystore: YES"
+            echo "- AAB signature verification: PASSED"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Publish Google OAuth Android registration details
         working-directory: extracted/darb-project/mobile
