@@ -206,14 +206,6 @@ jobs:
           FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
         run: |
           set -euo pipefail
-          if [[ -z "${GOOGLE_SERVER_CLIENT_ID//[[:space:]]/}" ]]; then
-            echo "::error::Missing GOOGLE_SERVER_CLIENT_ID GitHub Actions secret. Google sign-in cannot issue an ID token without the Web OAuth client ID."
-            exit 1
-          fi
-          if [[ "$GOOGLE_SERVER_CLIENT_ID" != *.apps.googleusercontent.com ]]; then
-            echo "::error::GOOGLE_SERVER_CLIENT_ID does not look like a Google OAuth Web client ID."
-            exit 1
-          fi
           if [[ "$DARB_API_BASE_URL" != https://* || "$DARB_API_BASE_URL" == */ ]]; then
             echo "::error::A production HTTPS API URL is required; refusing to package the emulator fallback URL."
             exit 1
@@ -263,6 +255,21 @@ jobs:
             echo "- Web OAuth client ID: configured in GitHub Actions secret (value intentionally hidden)"
             echo "- Backend audience: configure the same Web OAuth client ID as Render environment variable `GOOGLE_SERVER_CLIENT_ID`"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Validate Google OAuth client ID
+        env:
+          GOOGLE_SERVER_CLIENT_ID: ${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${GOOGLE_SERVER_CLIENT_ID//[[:space:]]/}" ]]; then
+            echo "::error::Missing GOOGLE_SERVER_CLIENT_ID GitHub Actions secret. Google sign-in cannot issue an ID token without the Web OAuth client ID."
+            exit 1
+          fi
+          if [[ "$GOOGLE_SERVER_CLIENT_ID" != *.apps.googleusercontent.com ]]; then
+            echo "::error::GOOGLE_SERVER_CLIENT_ID does not look like a Google OAuth Web client ID."
+            exit 1
+          fi
 
       - name: Upload signed Android release
         uses: actions/upload-artifact@v4
