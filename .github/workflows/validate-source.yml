@@ -6,6 +6,7 @@ on:
       - "DARB-source.zip"
       - ".github/workflows/validate-source.yml"
       - "mobile-overrides/**"
+      - "backend-overrides/**"
   workflow_dispatch:
 
 permissions:
@@ -44,7 +45,9 @@ jobs:
           PY
           cp mobile-overrides/api.dart extracted/darb-project/mobile/lib/core/api.dart
           cp mobile-overrides/login_screen.dart extracted/darb-project/mobile/lib/screens/login_screen.dart
-          echo "Applied Arabic RTL login screen override."
+          mkdir -p extracted/darb-project/backend/src/modules/orders
+          cp backend-overrides/orders.service.spec.ts extracted/darb-project/backend/src/modules/orders/orders.service.spec.ts
+          echo "Applied backend order lifecycle tests."
           echo "Extracted files:"
           find extracted -maxdepth 4 -type f | sort | head -250
 
@@ -68,6 +71,9 @@ jobs:
             echo "::group::Node package: $dir"
             cd "$GITHUB_WORKSPACE/$dir"
             npm install --no-audit --no-fund
+            if node -e "process.exit(require('./package.json').scripts?.test ? 0 : 1)"; then
+              npm test -- --runInBand
+            fi
             if node -e "process.exit(require('./package.json').scripts?.build ? 0 : 1)"; then
               npm run build
             else
