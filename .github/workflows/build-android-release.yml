@@ -91,108 +91,56 @@ jobs:
           from pathlib import Path
           import re
 
-          def block_bounds(source, pattern, description):
-              match = re.search(pattern, source)
-              if not match:
-                  raise SystemExit(f"Missing {description} block")
-              opening = source.find("{", match.start(), match.end())
+          def locate_block(src, pattern, label):
+              m = re.search(pattern, src)
+              if not m:
+                  raise SystemExit(f"Missing {label} block")
+              op = src.find("{", m.start(), m.end())
               depth = 0
-              for i in range(opening, len(source)):
-                  if source[i] == "{":
+              for i in range(op, len(src)):
+                  if src[i] == "{":
                       depth += 1
-                  elif source[i] == "}":
+                  elif src[i] == "}":
                       depth -= 1
                       if depth == 0:
-                          return opening, i
-              raise SystemExit(f"Unbalanced {description} block")
+                          return op, i
+              raise SystemExit(f"Unbalanced {label} block")
 
           groovy = Path("android/app/build.gradle")
           kotlin = Path("android/app/build.gradle.kts")
+          is_kotlin = kotlin.exists()
+          p = kotlin if is_kotlin else groovy
+          if not p.exists():
+              raise SystemExit("No Android app Gradle build file found")
+          src = p.read_text()
 
-          if groovy.exists():
-              p = groovy
-              source = p.read_text()
-              if "keystorePropertiesFile" not in source:
-                  source = source.replace(
-                      "android {",
-                      """def keystoreProperties = new Properties()
-          def keystorePropertiesFile = rootProject.file('key.properties')
-          if (!keystorePropertiesFile.exists()) {
-              throw new GradleException("Release signing key.properties is missing")
-          }
-          keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-
-          android {""", 1)
-              android_open, android_close = block_bounds(source, r"android\\s*\\{", "android")
-              android_body = source[android_open + 1:android_close]
-              signing = re.search(r"signingConfigs\\s*\\{", android_body)
-              if signing:
-                  absolute = android_open + 1 + signing.start()
-                  _, close = block_bounds(source[absolute:], r"signingConfigs\\s*\\{", "signingConfigs")
-                  close += absolute
-                  config_body = source[absolute:close + 1]
-                  if not re.search(r"release\\s*\\{", config_body):
-                      source = source[:close] + """
-                  release {
-                      keyAlias keystoreProperties['keyAlias']
-                      keyPassword keystoreProperties['keyPassword']
-                      storeFile file(keystoreProperties['storeFile'])
-                      storePassword keystoreProperties['storePassword']
-                  }
-          """ + source[close:]
-              else:
-                  source = source[:android_close] + """
-              signingConfigs {
-                  release {
-                      keyAlias keystoreProperties['keyAlias']
-                      keyPassword keystoreProperties['keyPassword']
-                      storeFile file(keystoreProperties['storeFile'])
-                      storePassword keystoreProperties['storePassword']
-                  }
-              }
-          """ + source[android_close:]
-              _, release_close = block_bounds(source, r"buildTypes\\s*\\{\\s*release\\s*\\{", "buildTypes.release")
-              release_open = source.rfind("{", 0, release_close)
-              release_body = source[release_open + 1:release_close]
-              if not re.search(r"signingConfig\\s+signingConfigs\\.release", release_body):
-                  source = source[:release_close] + "\\n            signingConfig signingConfigs.release\\n        " + source[release_close:]
-              p.write_text(source)
-
-          elif kotlin.exists():
-              p = kotlin
-              source = p.read_text()
-              if "import java.util.Properties" not in source:
-                  source = "import java.util.Properties\\nimport java.io.FileInputStream\\n" + source
-              if "keystorePropertiesFile" not in source:
-                  source = source.replace(
-                      "android {",
-                      """val keystoreProperties = Properties()
+          if is_kotlin:
+              if "import java.util.Properties" not in src:
+                  src = "import java.util.Properties\nimport java.io.FileInputStream\n" + src
+              props = '''val keystoreProperties = Properties()
           val keystorePropertiesFile = rootProject.file("key.properties")
-          if (!keystorePropertiesFile.exists()) {
-              throw GradleException("Release signing key.properties is missing")
-          }
+          if (!keystorePropertiesFile.exists()) throw GradleException("Release key.properties missing")
           keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 
-          android {""", 1)
-              android_open, android_close = block_bounds(source, r"android\\s*\\{", "android")
-              android_body = source[android_open + 1:android_close]
-              signing = re.search(r"signingConfigs\\s*\\{", android_body)
-              if signing:
-                  absolute = android_open + 1 + signing.start()
-                  _, close = block_bounds(source[absolute:], r"signingConfigs\\s*\\{", "signingConfigs")
-                  close += absolute
-                  config_body = source[absolute:close + 1]
-                  if not re.search(r'create\\s*\\(\\s*"release"\\s*\\)', config_body):
-                      source = source[:close] + """
+          '''
+              if "keystorePropertiesFile" not in src:
+                  src = src.replace("android {", props + "android {", 1)
+              ao, ac = locate_block(src, r"android\s*\{", "android")
+              if re.search(r"signingConfigs\s*\{", src[ao+1:ac]):
+                  so, sc = locate_block(src[ao+1:ac], r"signingConfigs\s*\{", "signingConfigs")
+                  abs_close = ao + 1 + sc
+                  body = src[ao+1+so:abs_close+1]
+                  if not re.search(r'create\s*\(\s*"release"\s*\)', body):
+                      src = src[:abs_close] + '''
                   create("release") {
                       keyAlias = keystoreProperties["keyAlias"] as String
                       keyPassword = keystoreProperties["keyPassword"] as String
                       storeFile = file(keystoreProperties["storeFile"] as String)
                       storePassword = keystoreProperties["storePassword"] as String
                   }
-          """ + source[close:]
+          ''' + src[abs_close:]
               else:
-                  source = source[:android_close] + """
+                  src = src[:ac] + '''
               signingConfigs {
                   create("release") {
                       keyAlias = keystoreProperties["keyAlias"] as String
@@ -201,29 +149,64 @@ jobs:
                       storePassword = keystoreProperties["storePassword"] as String
                   }
               }
-          """ + source[android_close:]
-              _, release_close = block_bounds(source, r"buildTypes\\s*\\{\\s*getByName\\(\\s*"release"\\s*\\)", "buildTypes.release")
-              release_open = source.rfind("{", 0, release_close)
-              release_body = source[release_open + 1:release_close]
-              if 'signingConfig = signingConfigs.getByName("release")' not in release_body:
-                  source = source[:release_close] + '\\n            signingConfig = signingConfigs.getByName("release")\\n        ' + source[release_close:]
-              p.write_text(source)
+          ''' + src[ac:]
+              _, rc = locate_block(src, r'buildTypes\s*\{\s*getByName\(\s*"release"\s*\)', "buildTypes.release")
+              ro = src.rfind("{", 0, rc)
+              rb = src[ro+1:rc]
+              if not re.search(r'signingConfig\s*=\s*signingConfigs\.getByName\(\s*"release"\s*\)', rb):
+                  src = src[:rc] + '\n            signingConfig = signingConfigs.getByName("release")\n        ' + src[rc:]
           else:
-              raise SystemExit("No Android app Gradle build file found")
+              props = '''def keystoreProperties = new Properties()
+          def keystorePropertiesFile = rootProject.file('key.properties')
+          if (!keystorePropertiesFile.exists()) throw new GradleException("Release key.properties missing")
+          keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 
-          # Fail early unless the release build type itself references the release key.
-          check = p.read_text()
-          _, release_close = block_bounds(check, r"buildTypes\\s*\\{\\s*(?:release\\s*\\{|getByName\\(\\s*"release"\\s*\\)\\s*\\{)", "buildTypes.release")
-          release_open = check.rfind("{", 0, release_close)
-          release_body = check[release_open + 1:release_close]
-          expected = r"signingConfig\\s*(?:=\\s*)?signingConfigs(?:\\.release|\\.getByName\\(\\s*"release"\\s*\\))"
-          if not re.search(expected, release_body):
-              raise SystemExit("Release buildType is not bound to signingConfigs.release")
-          if not re.search(r"keyAlias", check) or not re.search(r"storeFile", check):
+          '''
+              if "keystorePropertiesFile" not in src:
+                  src = src.replace("android {", props + "android {", 1)
+              ao, ac = locate_block(src, r"android\s*\{", "android")
+              if re.search(r"signingConfigs\s*\{", src[ao+1:ac]):
+                  so, sc = locate_block(src[ao+1:ac], r"signingConfigs\s*\{", "signingConfigs")
+                  abs_close = ao + 1 + sc
+                  body = src[ao+1+so:abs_close+1]
+                  if not re.search(r"release\s*\{", body):
+                      src = src[:abs_close] + '''
+                  release {
+                      keyAlias keystoreProperties['keyAlias']
+                      keyPassword keystoreProperties['keyPassword']
+                      storeFile file(keystoreProperties['storeFile'])
+                      storePassword keystoreProperties['storePassword']
+                  }
+          ''' + src[abs_close:]
+              else:
+                  src = src[:ac] + '''
+              signingConfigs {
+                  release {
+                      keyAlias keystoreProperties['keyAlias']
+                      keyPassword keystoreProperties['keyPassword']
+                      storeFile file(keystoreProperties['storeFile'])
+                      storePassword keystoreProperties['storePassword']
+                  }
+              }
+          ''' + src[ac:]
+              _, rc = locate_block(src, r"buildTypes\s*\{\s*release\s*\{", "buildTypes.release")
+              ro = src.rfind("{", 0, rc)
+              rb = src[ro+1:rc]
+              if not re.search(r"signingConfig\s+signingConfigs\.release", rb):
+                  src = src[:rc] + '\n            signingConfig signingConfigs.release\n        ' + src[rc:]
+
+          _, rc = locate_block(src, r'buildTypes\s*\{\s*(?:release\s*\{|getByName\(\s*"release"\s*\))', "buildTypes.release")
+          ro = src.rfind("{", 0, rc)
+          rb = src[ro+1:rc]
+          valid = (re.search(r'signingConfig\s*=\s*signingConfigs\.getByName\(\s*"release"\s*\)', rb)
+                   if is_kotlin else re.search(r"signingConfig\s+signingConfigs\.release", rb))
+          if not valid:
+              raise SystemExit("Release buildType is NOT bound to signingConfigs.release")
+          if "keyAlias" not in src or "storeFile" not in src:
               raise SystemExit("Release keystore configuration is incomplete")
-          print("Verified: buildTypes.release explicitly uses signingConfigs.release")
+          p.write_text(src)
+          print("Verified release buildType signingConfig binding")
           PY
-
           if [ -f android/app/build.gradle.kts ]; then
             grep -q 'signingConfig = signingConfigs.getByName("release")' android/app/build.gradle.kts
           else
