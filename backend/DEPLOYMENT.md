@@ -43,7 +43,7 @@ See [FREE-DEPLOYMENT.md](../FREE-DEPLOYMENT.md) for the exact setup using:
 - Supabase Free PostgreSQL (500 MB); enable PostGIS and verify extension schema/search path compatibility before applying migrations.
 - Upstash Redis Free (256 MB / 500K commands per month).
 
-The API requires `DATABASE_URL` and `REDIS_URL`. Keep the generated `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, and `OTP_SECRET`. The implemented MsgPlus adapter is configured with `SMS_PROVIDER=msgplus`, `MSGPLUS_API_KEY`, `MSGPLUS_SENDER_ID`, and `MSGPLUS_TEMPLATE_ID=3`. The sender ID and template must be approved by MsgPlus. Do not use the legacy `SMS_API_URL` / `SMS_API_KEY` names for this adapter. No live SMS delivery is considered verified until an explicitly approved test is completed; do not send test messages or consume prepaid balance without the service owner's approval.
+The API requires `DATABASE_URL` and `REDIS_URL`. Keep the generated `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, and `OTP_SECRET`. The MsgPlus adapter uses `SMS_PROVIDER=msgplus`, `MSGPLUS_API_KEY`, and the exact approved sender name from the MsgPlus account. For backward compatibility, the sender name is read from `MSGPLUS_SENDER_NAME` first and then `MSGPLUS_SENDER_ID` (despite the legacy variable name, its value must be a name, not a number). It sends template `1` with the account's `P1` variable to `POST https://sms.msgplus.tech/api/v1/send`, using Bearer authentication and `X-Timestamp`. Do not use the legacy `SMS_API_URL` / `SMS_API_KEY` names for this adapter. No live SMS delivery is considered verified until an explicitly approved test is completed; do not send test messages or consume prepaid balance without the service owner's approval.
 
 The free tiers can sleep, pause, or enforce quotas. They are not suitable for real customer data, live orders, payments, or driver dispatch. Do not deploy real users until backups, restore procedures, availability, resource limits, and security have been reviewed.
 
@@ -51,7 +51,7 @@ The free tiers can sleep, pause, or enforce quotas. They are not suitable for re
 
 - Select durable paid resources with managed database backups and persistent Redis-compatible storage; review pricing before confirming.
 - Set `NODE_ENV=production` and use strong, distinct JWT and OTP secrets.
-- Configure a real SMS provider that supports delivery to Syrian numbers. The MsgPlus adapter sends `POST /api/send` with `sender_id`, `template_id`, `numbers`, and the template variables `P1=مستخدمنا`, `P2=درب`, `P3=<six-digit OTP>`. This integration is not considered verified until a live test is completed.
+- Configure a real SMS provider that supports delivery to Syrian numbers. The MsgPlus adapter sends `POST /api/v1/send` with `sender_name`, `template_id=1`, `numbers`, and `vars: { P1: <six-digit OTP> }`. This integration is not considered verified until a live test is completed.
 - Keep the SMS API URL and key in the hosting provider's secret manager. Console SMS is not suitable for production.
 - Terminate HTTPS at the hosting provider's trusted edge. Do not expose PostgreSQL or Redis publicly.
 - Back up PostgreSQL and test restoration before accepting real orders. Test role authorization, order lifecycle, OTP rate limits, refresh-token rotation/revocation, and driver tracking.
