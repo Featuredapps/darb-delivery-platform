@@ -50,7 +50,7 @@ Flutter، واجهة عربية RTL.
 
 ## تكاملات لم يثبت تفعيلها بعد
 
-- تكامل MsgPlus في Backend يستخدم `POST /api/send` مع `MSGPLUS_API_KEY` و`MSGPLUS_SENDER_ID` و`MSGPLUS_TEMPLATE_ID=3`. متغيرات القالب هي `P1=مستخدمنا` و`P2=درب` و`P3=<six-digit OTP>`. لم يتم تنفيذ اختبار إرسال حي؛ لذلك لا نعتبر OTP جاهزاً تشغيلياً حتى يُجرى اختبار معتمد. لا تُرسل رسائل أو تستهلك رصيداً دون موافقة صريحة.
+- تكامل MsgPlus في Backend يستخدم `POST https://sms.msgplus.tech/api/v1/send` مع `Authorization: Bearer` و`X-Timestamp`، والقالب `template_id=1` والمتغير `P1` حسب قالب الحساب. يجب ضبط `MSGPLUS_SENDER_ID` على المعرّف الرقمي المعتمد الظاهر في `GET /api/v1/senders`، وليس اسم المرسل النصي. يلزم اختبار قبول وتسليم فعلي قبل اعتبار OTP جاهزاً.
 - Firebase Cloud Messaging وإشعارات الأجهزة الحقيقية.
 - الخرائط وGeocoding وتتبع السائق الحي.
 
