@@ -37,6 +37,6 @@ services:
       - key: MSGPLUS_API_KEY
         sync: false
       - key: MSGPLUS_SENDER_ID
-        sync: false
+        value: Msgplus
       - key: MSGPLUS_TEMPLATE_ID
         value: "3"
