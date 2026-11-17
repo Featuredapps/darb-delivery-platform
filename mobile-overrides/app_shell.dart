@@ -18,9 +18,9 @@ class _AppShellState extends State<AppShell> {
     if (error != null) return Scaffold(body: Center(child: Padding(padding:const EdgeInsets.all(24), child:Column(mainAxisSize:MainAxisSize.min, children:[Text(error!,textAlign:TextAlign.center),const SizedBox(height:12),FilledButton(onPressed:_logout,child:const Text('تسجيل الدخول مجدداً'))]))));
     final isCustomer = role == 'CUSTOMER';
     final isAdmin = role == 'ADMIN';
-    final titles = isAdmin ? ['طلبات المتاجر','طلبات السائقين','حسابي'] : isCustomer ? ['الرئيسية','طلباتي','حسابي'] : role == 'VENDOR' ? ['طلبات المتجر','المنتجات','حسابي'] : ['الطلبات المتاحة','توصيلاتي','حسابي'];
-    final pages = isAdmin ? [const AdminQueue(kind:'vendors'),const AdminQueue(kind:'drivers'),AccountPage(me:me,onLogout:_logout)] : isCustomer ? [const CustomerHome(),const CustomerOrders(),AccountPage(me:me,onLogout:_logout)] : role == 'VENDOR' ? [const VendorOrders(),const VendorProducts(),AccountPage(me:me,onLogout:_logout)] : [const DriverAvailable(),const DriverOrders(),AccountPage(me:me,onLogout:_logout)];
-    return Scaffold(appBar:AppBar(title:Row(children:[Container(width:34,height:34,alignment:Alignment.center,decoration:BoxDecoration(color:ink,borderRadius:BorderRadius.circular(11)),child:const Text('د',style:TextStyle(color:Colors.white,fontWeight:FontWeight.w900,fontSize:22))),const SizedBox(width:10),const Text('دَرْب',style:TextStyle(fontWeight:FontWeight.w900))]), actions:[IconButton(onPressed:_load,icon:const Icon(Icons.refresh))]),body:pages[tab],bottomNavigationBar:NavigationBar(selectedIndex:tab,onDestinationSelected:(v)=>setState(()=>tab=v),destinations:[for(var i=0;i<titles.length;i++) NavigationDestination(icon:Icon(i==0?Icons.home_outlined:i==1?Icons.receipt_long_outlined:Icons.person_outline),label:titles[i]) ]));
+    final titles = isAdmin ? ['طلبات المتاجر','طلبات السائقين','رسوم التوصيل','حسابي'] : isCustomer ? ['الرئيسية','طلباتي','حسابي'] : role == 'VENDOR' ? ['طلبات المتجر','المنتجات','حسابي'] : ['الطلبات المتاحة','توصيلاتي','حسابي'];
+    final pages = isAdmin ? [const AdminQueue(kind:'vendors'),const AdminQueue(kind:'drivers'),const AdminDeliveryZones(),AccountPage(me:me,onLogout:_logout)] : isCustomer ? [const CustomerHome(),const CustomerOrders(),AccountPage(me:me,onLogout:_logout)] : role == 'VENDOR' ? [const VendorOrders(),const VendorProducts(),AccountPage(me:me,onLogout:_logout)] : [const DriverAvailable(),const DriverOrders(),AccountPage(me:me,onLogout:_logout)];
+    return Scaffold(appBar:AppBar(title:Row(children:[Container(width:34,height:34,alignment:Alignment.center,decoration:BoxDecoration(color:ink,borderRadius:BorderRadius.circular(11)),child:const Text('د',style:TextStyle(color:Colors.white,fontWeight:FontWeight.w900,fontSize:22))),const SizedBox(width:10),const Text('دَرْب',style:TextStyle(fontWeight:FontWeight.w900))]), actions:[IconButton(onPressed:_load,icon:const Icon(Icons.refresh))]),body:pages[tab],bottomNavigationBar:NavigationBar(selectedIndex:tab,onDestinationSelected:(v)=>setState(()=>tab=v),destinations:[for(var i=0;i<titles.length;i++) NavigationDestination(icon:Icon(isAdmin?(i==0?Icons.storefront_outlined:i==1?Icons.delivery_dining:i==2?Icons.payments_outlined:Icons.person_outline):(i==0?Icons.home_outlined:i==1?Icons.receipt_long_outlined:Icons.person_outline)),label:titles[i]) ]));
   }
 }
 
@@ -110,6 +110,74 @@ Widget _action(String id,String label,String status)=>TextButton(onPressed:()=>_
 Future<void> _track(String id)async{try{final location=await Api.instance.get('/orders/$id/driver-location');if(location is! Map||location['available']!=true){if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('لم يشارك السائق موقعه بعد')));return;}final lat=location['latitude'];final lng=location['longitude'];final uri=Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lng');if(!await launchUrl(uri,mode:LaunchMode.externalApplication))throw Exception('تعذر فتح الخرائط');}catch(e){if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(e.toString())));}}Future<void> _changeStatus(String id,String status)async{try{await Api.instance.patch('/orders/$id/status',{'status':status});await _load();}catch(e){if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(e.toString())));}}
 Future<void> _claim(String id)async{try{await Api.instance.post('/orders/$id/claim',{});await _load();}catch(e){if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(e.toString())));}}
 }
+
+class AdminDeliveryZones extends StatefulWidget {
+  const AdminDeliveryZones({super.key});
+  @override State<AdminDeliveryZones> createState() => _AdminDeliveryZonesState();
+}
+class _AdminDeliveryZonesState extends State<AdminDeliveryZones> {
+  bool loading=true,working=false;
+  String? error;
+  List zones=[],cities=[];
+  @override void initState(){super.initState();_load();}
+  Future<void> _load()async{
+    setState(()=>loading=true);
+    try{final values=await Future.wait([Api.instance.get('/admin/delivery-zones'),Api.instance.get('/cities')]);zones=values[0] as List;cities=values[1] as List;error=null;}
+    catch(e){error=e.toString();}
+    finally{if(mounted)setState(()=>loading=false);}
+  }
+  String _cityName(Map city){
+    final names=city['names'] as List? ?? [];
+    for(final item in names){if(item is Map&&item['locale']=='ar')return item['name'].toString();}
+    return names.isNotEmpty?names.first['name'].toString():city['code'].toString();
+  }
+  Future<void> _edit([Map? zone])async{
+    if(cities.isEmpty){ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('لا توجد مدن مفعّلة')));return;}
+    final name=TextEditingController(text:zone?['name']?.toString()??'');
+    final base=TextEditingController(text:zone?['feeBase']?.toString()??'');
+    final perKm=TextEditingController(text:zone?['feePerKm']?.toString()??'');
+    String cityId=zone?['cityId']?.toString()??cities.first['id'].toString();
+    final ok=await showDialog<bool>(context:context,builder:(ctx)=>StatefulBuilder(builder:(ctx,setDialog)=>AlertDialog(
+      title:Text(zone==null?'إضافة منطقة توصيل':'تعديل رسوم التوصيل'),
+      content:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[
+        if(zone==null)DropdownButtonFormField<String>(value:cityId,decoration:const InputDecoration(labelText:'المدينة'),items:[for(final c in cities)DropdownMenuItem(value:c['id'].toString(),child:Text(_cityName(c)))],onChanged:(v){if(v!=null)setDialog(()=>cityId=v);}),
+        TextField(controller:name,decoration:const InputDecoration(labelText:'اسم المنطقة')),
+        TextField(controller:base,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:const InputDecoration(labelText:'الرسم الأساسي (ل.س)')),
+        TextField(controller:perKm,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:const InputDecoration(labelText:'الرسم لكل كيلومتر (ل.س)')),
+      ])),
+      actions:[TextButton(onPressed:()=>Navigator.pop(ctx,false),child:const Text('إلغاء')),FilledButton(onPressed:()=>Navigator.pop(ctx,true),child:const Text('حفظ'))],
+    )));
+    if(ok==true){
+      final feeBase=double.tryParse(base.text),feePerKm=double.tryParse(perKm.text);
+      if(name.text.trim().isEmpty||feeBase==null||feePerKm==null||feeBase<0||feePerKm<0){
+        if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('أدخل اسمًا ورسومًا رقمية غير سالبة')));
+      }else{
+        setState(()=>working=true);
+        try{
+          final body={'name':name.text.trim(),'feeBase':feeBase,'feePerKm':feePerKm,if(zone==null)'cityId':cityId};
+          if(zone==null){await Api.instance.post('/admin/delivery-zones',body);}else{await Api.instance.patch('/admin/delivery-zones/${zone['id']}',body);}
+          await _load();
+        }catch(e){if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(e.toString())));}
+        finally{if(mounted)setState(()=>working=false);}
+      }
+    }
+    name.dispose();base.dispose();perKm.dispose();
+  }
+  @override Widget build(BuildContext context)=>Scaffold(
+    floatingActionButton:FloatingActionButton.extended(onPressed:working?null:()=>_edit(),icon:const Icon(Icons.add),label:const Text('إضافة منطقة')),
+    body:loading?const Center(child:CircularProgressIndicator()):error!=null?Center(child:TextButton(onPressed:_load,child:Text('تعذر تحميل المناطق: $error'))):zones.isEmpty?const Center(child:_EmptyPanel(text:'لم تُضف رسوم توصيل بعد')):RefreshIndicator(onRefresh:_load,child:ListView(padding:const EdgeInsets.all(16),children:[
+      const Text('إعداد رسوم التوصيل',style:TextStyle(fontSize:20,fontWeight:FontWeight.w900)),
+      const SizedBox(height:8),const Text('لا يمكن إنشاء طلب في مدينة لا تملك منطقة ورسوم توصيل مضبوطة.',style:TextStyle(color:Colors.black54)),
+      for(final zone in zones)Card(child:ListTile(
+        leading:const Icon(Icons.payments_outlined,color:green),
+        title:Text(zone['name']?.toString()??'منطقة'),
+        subtitle:Text('${_cityName(zone['city'] as Map)} • أساسي: ${zone['feeBase']} ل.س • لكل كم: ${zone['feePerKm']} ل.س'),
+        trailing:IconButton(onPressed:working?null:()=>_edit(zone as Map),icon:const Icon(Icons.edit_outlined)),
+      )),
+    ])),
+  );
+}
+
 class VendorProducts extends StatefulWidget {const VendorProducts({super.key});@override State<VendorProducts> createState()=>_VendorProductsState();}
 class _VendorProductsState extends State<VendorProducts>{bool loading=true,saving=false;String? error,vendorStatus;List products=[];@override void initState(){super.initState();_load();}Future<void> _load()async{try{final mine=await Api.instance.get('/vendors/mine');vendorStatus=mine['status']?.toString();if(vendorStatus!='APPROVED'){products=[];error=null;}else{final id=mine['id'].toString();products=await Api.instance.get('/vendors/$id/products?locale=ar') as List;error=null;}}catch(e){error=e.toString();}finally{if(mounted)setState(()=>loading=false);}}Future<void> _add()async{final name=TextEditingController(),price=TextEditingController(),description=TextEditingController();final ok=await showDialog<bool>(context:context,builder:(ctx)=>AlertDialog(title:const Text('منتج جديد'),content:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[TextField(controller:name,decoration:const InputDecoration(labelText:'اسم المنتج')),TextField(controller:price,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:const InputDecoration(labelText:'السعر')),TextField(controller:description,maxLines:2,decoration:const InputDecoration(labelText:'الوصف'))])),actions:[TextButton(onPressed:()=>Navigator.pop(ctx,false),child:const Text('إلغاء')),FilledButton(onPressed:()=>Navigator.pop(ctx,true),child:const Text('إضافة'))]));if(ok==true&&name.text.trim().isNotEmpty&&(double.tryParse(price.text)??0)>0){setState(()=>saving=true);try{await Api.instance.post('/vendor/products',{'name':name.text.trim(),'price':double.parse(price.text),'description':description.text.trim(),'currency':'SYP'});await _load();}catch(e){setState(()=>error=e.toString());}finally{if(mounted)setState(()=>saving=false);}}name.dispose();price.dispose();description.dispose();}@override Widget build(BuildContext context)=>Scaffold(body:loading?const Center(child:CircularProgressIndicator()):vendorStatus!=null&&vendorStatus!='APPROVED'?Center(child:Padding(padding:const EdgeInsets.all(24),child:Text(vendorStatus=='PENDING'?'طلب متجرك قيد المراجعة. ستتمكن من إدارة المنتجات بعد اعتماد الإدارة.':'حالة المتجر: $vendorStatus',textAlign:TextAlign.center))):error!=null?ListView(padding:const EdgeInsets.all(18),children:[Text(error!),TextButton(onPressed:(){setState(()=>loading=true);_load();},child:const Text('إعادة المحاولة'))]):products.isEmpty?Center(child:Column(mainAxisSize:MainAxisSize.min,children:[const _EmptyPanel(text:'لم تضف أي منتجات بعد'),FilledButton.icon(onPressed:saving?null:_add,icon:const Icon(Icons.add),label:const Text('إضافة منتج'))])):ListView(padding:const EdgeInsets.all(16),children:[Row(mainAxisAlignment:MainAxisAlignment.spaceBetween,children:[const Text('منتجات متجرك',style:TextStyle(fontSize:20,fontWeight:FontWeight.w900)),FilledButton.icon(onPressed:saving?null:_add,icon:const Icon(Icons.add),label:const Text('إضافة'))]),for(final p in products)Card(child:ListTile(title:Text(_productName(p)),subtitle:Text('${p['basePrice']} ${p['currency']}'),leading:const Icon(Icons.inventory_2_outlined))) ]));}
 class AccountPage extends StatefulWidget {
@@ -151,4 +219,3 @@ class _AccountPageState extends State<AccountPage>{
 }
 class _EmptyPanel extends StatelessWidget {final String text;const _EmptyPanel({required this.text});@override Widget build(BuildContext context)=>Container(padding:const EdgeInsets.all(24),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(18)),child:Text(text,textAlign:TextAlign.center,style:const TextStyle(color:Colors.black54)));}
 class _ErrorPanel extends StatelessWidget {final String message;final Future<void> Function() retry;const _ErrorPanel({required this.message,required this.retry});@override Widget build(BuildContext context)=>Container(padding:const EdgeInsets.all(18),decoration:BoxDecoration(color:const Color(0xFFFFEEEE),borderRadius:BorderRadius.circular(16)),child:Column(children:[Text(message,style:const TextStyle(color:Colors.red)),TextButton(onPressed:retry,child:const Text('إعادة المحاولة'))]));}
-
