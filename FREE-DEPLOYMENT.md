@@ -32,8 +32,8 @@ contents are lost on restart.
    `darb-api`. Set the prompted environment variables:
    - `DATABASE_URL`: Supabase PostgreSQL connection string
    - `REDIS_URL`: Upstash TLS Redis connection URL
-   - `SMS_API_URL` and `SMS_API_KEY`: leave unset only for a build/health-check
-     preview; real OTP delivery will not work without a genuine SMS provider.
+   - Keep the generated `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, and `OTP_SECRET` values.
+   - For the implemented MsgPlus adapter, set `SMS_PROVIDER=msgplus`, `MSGPLUS_API_KEY`, `MSGPLUS_SENDER_NAME`, and `MSGPLUS_TEMPLATE_ID=3`. The sender and template must be approved by MsgPlus. Do not substitute the legacy `SMS_API_URL` / `SMS_API_KEY` variables. OTP delivery remains unverified until an explicitly approved live test is performed; do not send test SMS or consume prepaid balance without approval.
 6. Render generates the JWT and OTP secrets automatically. Wait for deployment, then
    verify `/api/v1/healthz` and `/api/v1/readyz`.
 
