@@ -6,7 +6,7 @@ import { SmsProvider } from './sms.provider';
 export class ConsoleSmsProvider implements SmsProvider {
   private readonly logger = new Logger('ConsoleSms');
   async send(phone: string, message: string): Promise<void> {
-    this.logger.warn(\`[DEV] SMS to \${phone}: \${message}\`);
+    this.logger.warn(`[DEV] SMS to ${phone}: ${message}`);
   }
 }
 
@@ -32,7 +32,7 @@ export class MsgPlusSmsProvider implements SmsProvider {
       response = await fetch('https://sms.msgplus.tech/api/send', {
         method: 'POST',
         headers: {
-          Authorization: \`Bearer \${apiKey}\`,
+          Authorization: `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -64,7 +64,7 @@ export class MsgPlusSmsProvider implements SmsProvider {
       }
 
       // Keep provider diagnostics useful without exposing phone numbers, OTPs, or credentials.
-      this.logger.error(\`MsgPlus rejected OTP request: HTTP \${status}; provider_message=\${providerMessage || 'not provided'}\`);
+      this.logger.error(`MsgPlus rejected OTP request: HTTP ${status}; provider_message=${providerMessage || 'not provided'}`);
 
       const reason = status === 400 ? 'بيانات طلب MsgPlus غير صحيحة'
         : status === 401 ? 'مفتاح MsgPlus غير صحيح أو غير مفعّل'
@@ -72,7 +72,7 @@ export class MsgPlusSmsProvider implements SmsProvider {
         : status === 422 ? 'رفض MsgPlus الطلب: تحقق من متغيرات القالب P1 وP2 وP3 والرقم والرصيد'
         : status === 429 ? 'طلبات SMS كثيرة؛ حاول لاحقاً'
         : 'فشل إرسال رسالة التحقق';
-      throw new InternalServerErrorException(providerMessage ? \`\${reason} (تفاصيل المزود: \${providerMessage})\` : reason);
+      throw new InternalServerErrorException(providerMessage ? `${reason} (تفاصيل المزود: ${providerMessage})` : reason);
     }
   }
 }
@@ -83,7 +83,7 @@ export class HttpSmsProvider implements SmsProvider {
   async send(phone: string, message: string): Promise<void> {
     const res = await fetch(this.config.getOrThrow<string>('SMS_API_URL'), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: \`Bearer \${this.config.getOrThrow<string>('SMS_API_KEY')}\` },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${this.config.getOrThrow<string>('SMS_API_KEY')}` },
       body: JSON.stringify({ to: phone, message }),
       signal: AbortSignal.timeout(10000),
     });
