@@ -171,8 +171,10 @@ jobs:
           if ! grep -q '^  google_sign_in:' pubspec.yaml; then
             sed -i '/^  flutter_localizations:/i\  google_sign_in: ^6.2.1' pubspec.yaml
           fi
-          sed -i -E 's/^([[:space:]]*)intl:.*/\1intl: ^0.20.3/' pubspec.yaml
-          grep -q '^  intl: \^0.20.3
+          sed -i 's/^  intl:.*/  intl: ^0.20.3/' pubspec.yaml
+          grep -F '  intl: ^0.20.3' pubspec.yaml
+          grep -F '  google_sign_in:' pubspec.yaml
+          flutter pub get
 
       - name: Analyze and build signed APK and AAB
         working-directory: extracted/darb-project/mobile
