@@ -96,7 +96,7 @@ jobs:
           storePassword=$DARB_KEYSTORE_PASSWORD
           keyPassword=$DARB_KEY_PASSWORD
           keyAlias=$DARB_KEY_ALIAS
-          storeFile=app/darb-release.jks
+          storeFile=darb-release.jks
           EOF
 
           python3 - <<'PYCODE'
