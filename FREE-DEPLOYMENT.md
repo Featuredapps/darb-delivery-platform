@@ -33,12 +33,14 @@ contents are lost on restart.
    - `DATABASE_URL`: Supabase PostgreSQL connection string
    - `REDIS_URL`: Upstash TLS Redis connection URL
    - Keep the generated `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, and `OTP_SECRET` values.
-   - For the MsgPlus adapter, set `SMS_PROVIDER=msgplus`, `MSGPLUS_API_KEY`,
-     `MSGPLUS_SENDER_ID`, and `MSGPLUS_TEMPLATE_ID=3`. The sender ID and template
-     must be approved by MsgPlus. The adapter sends `P1=مستخدمنا`, `P2=درب`, and
-     `P3=<six-digit OTP>` to the account's template using `POST /api/send`.
-     OTP delivery remains unverified until an explicitly approved live test is performed.
-     Do not send test SMS or consume prepaid balance without approval.
+   - For the MsgPlus adapter, set `SMS_PROVIDER=msgplus`, `MSGPLUS_API_KEY`, and
+     `MSGPLUS_SENDER_ID` to the exact approved sender name displayed in the MsgPlus
+     account (the site name, as confirmed by the account owner). The adapter sends
+     template `1` with the six-digit OTP in variable `P1` to
+     `POST https://sms.msgplus.tech/api/v1/send` using `sender_name`,
+     Bearer authentication, and `X-Timestamp`. OTP delivery remains unverified until
+     an explicitly approved live test is performed. Do not send test SMS or consume
+     prepaid balance without approval.
 6. Render generates the JWT and OTP secrets automatically. Wait for deployment, then
    verify `/api/v1/healthz` and `/api/v1/readyz`.
 
