@@ -50,6 +50,7 @@ jobs:
           mkdir -p extracted/darb-project/backend/src/modules/orders
           mkdir -p extracted/darb-project/backend/src/modules/notifications
           cp backend-overrides/orders.service.spec.ts extracted/darb-project/backend/src/modules/orders/orders.service.spec.ts
+          cp backend-overrides/orders.service.ts extracted/darb-project/backend/src/modules/orders/orders.service.ts
           cp backend-overrides/sms.providers.ts extracted/darb-project/backend/src/modules/auth/sms/sms.providers.ts
           cp backend-overrides/auth.service.ts extracted/darb-project/backend/src/modules/auth/auth.service.ts
           cp backend-overrides/auth.controller.ts extracted/darb-project/backend/src/modules/auth/auth.controller.ts
@@ -61,6 +62,7 @@ jobs:
           cp backend-overrides/notifications.service.spec.ts extracted/darb-project/backend/src/modules/notifications/notifications.service.spec.ts
           cp backend-overrides/admin.controller.ts extracted/darb-project/backend/src/modules/admin/admin.controller.ts
           cp backend-overrides/vendors.service.ts extracted/darb-project/backend/src/modules/vendors/vendors.service.ts
+          cp backend-overrides/vendor-application.dto.ts extracted/darb-project/backend/src/modules/vendors/vendor-application.dto.ts
           cp backend-overrides/addresses.service.ts extracted/darb-project/backend/src/modules/addresses/addresses.service.ts
           cp backend-overrides/addresses.controller.ts extracted/darb-project/backend/src/modules/addresses/addresses.controller.ts
           cp backend-overrides/drivers.service.ts extracted/darb-project/backend/src/modules/drivers/drivers.service.ts
@@ -232,3 +234,4 @@ jobs:
           files: extracted/**/build/app/outputs/flutter-apk/app-debug.apk
           fail_on_unmatched_files: true
           generate_release_notes: false
+
