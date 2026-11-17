@@ -12,6 +12,7 @@ on:
   pull_request:
     paths:
       - 'backend/**'
+      - 'backend-overrides/**'
       - 'DARB-source.zip'
       - 'render.yaml'
       - '.github/workflows/backend-ci.yml'
