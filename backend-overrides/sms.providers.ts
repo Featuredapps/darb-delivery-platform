@@ -41,7 +41,9 @@ export class MsgPlusSmsProvider implements SmsProvider {
           template_id: templateId,
           numbers: [normalized],
           vars: {
-            code: match[1],
+            P1: 'مستخدمنا',
+            P2: 'درب',
+            P3: match[1],
           },
         }),
         signal: AbortSignal.timeout(10000),
@@ -58,7 +60,7 @@ export class MsgPlusSmsProvider implements SmsProvider {
       const reason = status === 400 ? 'بيانات طلب MsgPlus غير صحيحة أو توقيت الطلب غير صالح'
         : status === 401 ? 'مفتاح MsgPlus غير صحيح أو غير مفعّل'
         : status === 403 ? 'اسم المرسل أو قالب الرسالة غير معتمد لحساب MsgPlus'
-        : status === 422 ? 'رفض MsgPlus الطلب: تحقق من متغير القالب code والرقم والرصيد'
+        : status === 422 ? 'رفض MsgPlus الطلب: تحقق من متغيرات القالب P1 وP2 وP3 والرقم والرصيد'
         : status === 429 ? 'طلبات SMS كثيرة؛ حاول لاحقاً'
         : 'فشل إرسال رسالة التحقق';
       throw new InternalServerErrorException(reason);
