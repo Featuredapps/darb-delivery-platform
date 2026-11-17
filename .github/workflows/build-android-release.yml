@@ -250,25 +250,26 @@ jobs:
           {
             echo "## Google OAuth setup for this Android release"
             echo
-            echo "- Android package name: `$APPLICATION_ID`"
-            echo "- Release signing certificate SHA-1: `$SHA1`"
+            echo "- Android package name: $APPLICATION_ID"
+            echo "- Release signing certificate SHA-1: $SHA1"
             echo "- Web OAuth client ID: configured in GitHub Actions secret (value intentionally hidden)"
-            echo "- Backend audience: configure the same Web OAuth client ID as Render environment variable `GOOGLE_SERVER_CLIENT_ID`"
+            echo "- Backend audience: configure the same Web OAuth client ID as Render environment variable GOOGLE_SERVER_CLIENT_ID"
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Validate Google OAuth client ID
+      - name: Check Google OAuth configuration
         env:
           GOOGLE_SERVER_CLIENT_ID: ${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
         shell: bash
         run: |
           set -euo pipefail
           if [[ -z "${GOOGLE_SERVER_CLIENT_ID//[[:space:]]/}" ]]; then
-            echo "::error::Missing GOOGLE_SERVER_CLIENT_ID GitHub Actions secret. Google sign-in cannot issue an ID token without the Web OAuth client ID."
-            exit 1
-          fi
-          if [[ "$GOOGLE_SERVER_CLIENT_ID" != *.apps.googleusercontent.com ]]; then
-            echo "::error::GOOGLE_SERVER_CLIENT_ID does not look like a Google OAuth Web client ID."
-            exit 1
+            echo "::warning::GOOGLE_SERVER_CLIENT_ID is not configured. The APK will be uploaded, but Google sign-in will remain unavailable until the Web OAuth client ID is configured in GitHub and Render."
+            echo "Google sign-in: NOT CONFIGURED (OTP login remains available)." >> "$GITHUB_STEP_SUMMARY"
+          elif [[ "$GOOGLE_SERVER_CLIENT_ID" != *.apps.googleusercontent.com ]]; then
+            echo "::warning::GOOGLE_SERVER_CLIENT_ID does not look like a Google OAuth Web client ID. Verify it before testing Google sign-in."
+            echo "Google sign-in: CLIENT ID FORMAT NEEDS REVIEW." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Google sign-in: Web client ID is configured; a real-device sign-in test is still required." >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Upload signed Android release
