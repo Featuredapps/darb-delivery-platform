@@ -75,3 +75,5 @@ Flutter، واجهة عربية RTL.
 - Android builds add `google_sign_in` and may receive `GOOGLE_SERVER_CLIENT_ID` through the GitHub Actions secret of the same name.
 - Google sign-in remains unavailable until a Google OAuth client is configured and the NestJS API implements `POST /api/v1/auth/google` with ID-token verification and a user-account linking/creation policy. The mobile client displays a localized message if the endpoint is absent; OTP login remains the working path.
 - The deployment migration seeds 12 active Syrian cities with Arabic, English, and Turkish names. It intentionally does not create fake stores, products, drivers, or delivery prices.
+
+Delivery pricing is configured once per city. Per-kilometre charges use PostGIS distance between the vendor GPS point and customer address GPS point; both are required when the per-kilometre rate is non-zero.

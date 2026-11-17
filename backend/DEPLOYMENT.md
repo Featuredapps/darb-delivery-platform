@@ -89,3 +89,5 @@ The first deployment with the city seed migration will activate 12 Syrian city r
 ## Delivery-zone administration
 
 An authenticated administrator can list, create, and update delivery zones through `/api/v1/admin/delivery-zones`. Each zone requires an active city, a non-negative `feeBase`, and a non-negative `feePerKm`. Order creation intentionally refuses a city without a configured delivery zone; do not set zero fees merely to bypass this guard.
+
+Delivery pricing is configured once per city. feeBase is the fixed base fee; when feePerKm is greater than zero, the order service calculates the distance between the vendor GPS point and the customer address point using PostGIS geography distance, rounds up to the next started kilometre, and adds that charge. Both GPS points are required for per-kilometre pricing; orders are rejected rather than silently undercharged when either point is missing.

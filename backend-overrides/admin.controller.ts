@@ -31,6 +31,7 @@ export class AdminController {
   @Post('delivery-zones') async createDeliveryZone(@Body() dto: CreateDeliveryZoneDto) {
     const city = await this.prisma.city.findFirst({ where: { id: dto.cityId, isActive: true }, select: { id: true } });
     if (!city) throw new BadRequestException('المدينة غير متاحة');
+    if (await this.prisma.deliveryZone.findUnique({ where: { cityId: dto.cityId } })) throw new BadRequestException('تم إعداد رسوم هذه المدينة مسبقاً؛ عدّل الإعداد الموجود');
     return this.prisma.deliveryZone.create({ data: dto });
   }
   @Patch('delivery-zones/:id') updateDeliveryZone(@Param('id') id: string, @Body() dto: UpdateDeliveryZoneDto) {

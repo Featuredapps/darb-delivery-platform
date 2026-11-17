@@ -258,7 +258,7 @@ model DriverLocation {
 
 model DeliveryZone {
   id       String  @id @default(uuid())
-  cityId   String
+  cityId   String  @unique
   name     String
   feeBase  Decimal @default(0) @db.Decimal(12, 2)
   feePerKm Decimal @default(0) @db.Decimal(12, 2)
