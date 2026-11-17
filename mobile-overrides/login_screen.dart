@@ -86,24 +86,33 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   Future<void> _handleGoogleSignIn() async {
     final l = AppLocalizations.of(context);
     if (authenticating) return;
+    var stage = 'GOOGLE_ACCOUNT_PICKER';
     setState(() { googleLoading = true; error = null; });
     try {
+      if (_googleServerClientId.isEmpty) {
+        throw StateError('GOOGLE_SERVER_CLIENT_ID is missing from this release build');
+      }
       final google = GoogleSignIn(
         scopes: const ['email', 'profile'],
-        serverClientId: _googleServerClientId.isEmpty ? null : _googleServerClientId,
+        serverClientId: _googleServerClientId,
       );
       final account = await google.signIn();
       if (account == null) return;
+      stage = 'GOOGLE_ID_TOKEN';
       final authentication = await account.authentication;
       final idToken = authentication.idToken;
-      if (idToken == null || idToken.isEmpty) throw Exception('Missing Google ID token');
+      if (idToken == null || idToken.isEmpty) {
+        throw StateError('Google returned no ID token. Check Android OAuth package name and release SHA-1.');
+      }
+      stage = 'BACKEND_AUTH_GOOGLE';
       final result = await Api.instance.post('/auth/google', {'idToken': idToken, 'locale': darbLocale.value.languageCode});
+      stage = 'SAVE_SESSION';
       await Api.instance.saveTokens(Map<String, dynamic>.from(result['tokens'] as Map));
       if (mounted) Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const AppShell()));
     } catch (e) {
-      final message = e.toString().contains('404') || e.toString().contains('not found')
-          ? l.t('googleUnavailable') : l.t('googleFailed');
-      _fail(message);
+      final detail = e.toString().replaceAll(RegExp(r'[\\r\\n]+'), ' ').trim();
+      final safeDetail = detail.length > 220 ? detail.substring(0, 220) : detail;
+      _fail('فشل تسجيل Google عند المرحلة $stage\\n$safeDetail');
     } finally {
       if (mounted) setState(() => googleLoading = false);
     }
