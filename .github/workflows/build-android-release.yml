@@ -252,13 +252,11 @@ jobs:
             echo
             echo "- Android package name: $APPLICATION_ID"
             echo "- Release signing certificate SHA-1: $SHA1"
-          echo "DARB_RELEASE_SHA1=$SHA1"
-          echo "::notice title=Android OAuth SHA-1::$SHA1"
-          echo "::notice title=Android application ID::$APPLICATION_ID"
-          echo "DARB_ANDROID_APPLICATION_ID=$APPLICATION_ID"
             echo "- Web OAuth client ID: configured via GitHub Actions secret or public client-ID fallback"
             echo "- Backend audience: configure the same Web OAuth client ID as Render environment variable GOOGLE_SERVER_CLIENT_ID"
           } >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice title=Android OAuth SHA-1::$SHA1"
+          echo "::notice title=Android application ID::$APPLICATION_ID"
 
       - name: Check Google OAuth configuration
         env:
