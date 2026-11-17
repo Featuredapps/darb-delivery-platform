@@ -1,7 +1,5 @@
 # Render Blueprint for DARB API — zero-cost preview deployment.
-# Only the API service is created here. Database and Redis are external free-tier
-# services so Render's 30-day Postgres expiry and ephemeral free Redis do not
-# become the source of truth for application data.
+# Database and Redis remain external free-tier services.
 services:
   - type: web
     name: darb-api
@@ -13,6 +11,7 @@ services:
       mkdir -p .render-build &&
       unzip -q DARB-source.zip -d .render-build &&
       cp -R backend/src/. .render-build/darb-project/backend/src/ &&
+      cp backend-overrides/sms.providers.ts .render-build/darb-project/backend/src/modules/auth/sms/sms.providers.ts &&
       mkdir -p .render-build/darb-project/backend/prisma/migrations &&
       cp -R backend/prisma/migrations/. .render-build/darb-project/backend/prisma/migrations/ &&
       cd .render-build/darb-project/backend &&
@@ -33,7 +32,11 @@ services:
         generateValue: true
       - key: OTP_SECRET
         generateValue: true
-      - key: SMS_API_URL
+      - key: SMS_PROVIDER
+        value: msgplus
+      - key: MSGPLUS_API_KEY
         sync: false
-      - key: SMS_API_KEY
+      - key: MSGPLUS_SENDER_NAME
         sync: false
+      - key: MSGPLUS_TEMPLATE_ID
+        value: "3"
