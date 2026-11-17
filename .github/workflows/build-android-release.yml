@@ -9,6 +9,7 @@ on:
       api_base_url:
         description: "Production HTTPS API base URL, including /api/v1 and no trailing slash"
         required: true
+        default: https://darb-api-yapv.onrender.com/api/v1
         type: string
 
 permissions:
@@ -195,7 +196,7 @@ jobs:
       - name: Analyze and build signed APK and AAB
         working-directory: extracted/darb-project/mobile
         env:
-          DARB_API_BASE_URL: ${{ inputs.api_base_url }}
+          DARB_API_BASE_URL: ${{ inputs.api_base_url || 'https://darb-api-yapv.onrender.com/api/v1' }}
           GOOGLE_SERVER_CLIENT_ID: ${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
           FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
           FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
@@ -234,3 +235,4 @@ jobs:
             extracted/darb-project/mobile/build/app/outputs/bundle/release/app-release.aab
           if-no-files-found: error
           retention-days: 30
+
