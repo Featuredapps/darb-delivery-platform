@@ -43,7 +43,7 @@ See [FREE-DEPLOYMENT.md](../FREE-DEPLOYMENT.md) for the exact setup using:
 - Supabase Free PostgreSQL (500 MB); enable PostGIS and verify extension schema/search path compatibility before applying migrations.
 - Upstash Redis Free (256 MB / 500K commands per month).
 
-The API requires `DATABASE_URL` and `REDIS_URL`. Keep the generated `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, and `OTP_SECRET`. The MsgPlus adapter uses `SMS_PROVIDER=msgplus`, `MSGPLUS_API_KEY`, and the exact approved sender name from the MsgPlus account. For backward compatibility, the sender name is read from `MSGPLUS_SENDER_NAME` first and then `MSGPLUS_SENDER_ID` (despite the legacy variable name, its value must be a name, not a number). It sends template `1` with the account's `P1` variable to `POST https://sms.msgplus.tech/api/v1/send`, using Bearer authentication and `X-Timestamp`. Do not use the legacy `SMS_API_URL` / `SMS_API_KEY` names for this adapter. No live SMS delivery is considered verified until an explicitly approved test is completed; do not send test messages or consume prepaid balance without the service owner's approval.
+The API requires `DATABASE_URL` and `REDIS_URL`. Keep the generated `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, and `OTP_SECRET`. The implemented MsgPlus adapter is configured with `SMS_PROVIDER=msgplus`, `MSGPLUS_API_KEY`, `MSGPLUS_SENDER_NAME`, and `MSGPLUS_TEMPLATE_ID=3`. The sender name and template must be approved by MsgPlus. Do not use the legacy `SMS_API_URL` / `SMS_API_KEY` names for this adapter. No live SMS delivery is considered verified until an explicitly approved test is completed; do not send test messages or consume prepaid balance without the service owner's approval.
 
 The free tiers can sleep, pause, or enforce quotas. They are not suitable for real customer data, live orders, payments, or driver dispatch. Do not deploy real users until backups, restore procedures, availability, resource limits, and security have been reviewed.
 
@@ -51,7 +51,7 @@ The free tiers can sleep, pause, or enforce quotas. They are not suitable for re
 
 - Select durable paid resources with managed database backups and persistent Redis-compatible storage; review pricing before confirming.
 - Set `NODE_ENV=production` and use strong, distinct JWT and OTP secrets.
-- Configure a real SMS provider that supports delivery to Syrian numbers. The MsgPlus adapter sends `POST /api/v1/send` with `sender_name`, `template_id=1`, `numbers`, and `vars: { P1: <six-digit OTP> }`. This integration is not considered verified until a live test is completed.
+- Configure a real SMS provider that supports delivery to Syrian numbers. The current HTTP adapter sends a generic JSON body `{ "to": "+963...", "message": "..." }`; adapt it to the provider's documented API. This is not a verified Syrian SMS integration.
 - Keep the SMS API URL and key in the hosting provider's secret manager. Console SMS is not suitable for production.
 - Terminate HTTPS at the hosting provider's trusted edge. Do not expose PostgreSQL or Redis publicly.
 - Back up PostgreSQL and test restoration before accepting real orders. Test role authorization, order lifecycle, OTP rate limits, refresh-token rotation/revocation, and driver tracking.
@@ -68,3 +68,26 @@ The API URL must be a real HTTPS endpoint reachable from the device. An emulator
 ## Remaining external integrations
 
 Firebase Cloud Messaging, live maps/geocoding, and a production Syrian SMS provider still require real provider accounts and credentials. A successful CI build does not prove these integrations work.
+
+
+## Google sign-in and driver tracking update
+
+The API source overlay now includes Google ID-token verification (GOOGLE_SERVER_CLIENT_ID), server-side refresh-token rotation/revocation in Redis, atomic OTP verification, profile updates, approved-role assignment, and driver-location endpoints. The migration makes User.phone nullable for Google-only accounts and adds unique Google subject/email fields. Render applies it through prisma migrate deploy.
+
+Google sign-in is not enabled until the same OAuth Web client ID is configured in Render and the Android OAuth client/package SHA-1 configuration is added to the mobile Firebase/Google project. Do not treat the button as live until a real Android device login succeeds. Driver GPS requires the user to grant foreground location permission and enable location services. Customer tracking is available only for the owning customer and active assigned/in-progress orders.
+
+Firebase Cloud Messaging remains pending Firebase project configuration (google-services.json / app identifiers and service credentials).
+
+
+## Firebase Cloud Messaging
+
+The current source includes device-token registration and order-created/assigned/status push triggers. Configure FIREBASE_SERVICE_ACCOUNT_JSON in Render with the Firebase Admin service-account JSON. Configure FIREBASE_API_KEY, FIREBASE_APP_ID, FIREBASE_MESSAGING_SENDER_ID, and FIREBASE_PROJECT_ID as GitHub Actions secrets for Android builds. The app requests notification permission and registers its FCM token after login. Without these values push is intentionally disabled; order creation and status updates continue normally.
+
+
+The first deployment with the city seed migration will activate 12 Syrian city records with Arabic, English, and Turkish names. It deliberately does not fabricate vendors, products, drivers, delivery fees, or commercial registrations. Approved sellers must add their real catalog, and delivery-zone prices must be entered by an administrator before paid delivery orders are enabled.
+
+## Delivery-zone administration
+
+An authenticated administrator can list, create, and update delivery zones through `/api/v1/admin/delivery-zones`. Each zone requires an active city, a non-negative `feeBase`, and a non-negative `feePerKm`. Order creation intentionally refuses a city without a configured delivery zone; do not set zero fees merely to bypass this guard.
+
+Delivery pricing is configured once per city. feeBase is the fixed base fee; when feePerKm is greater than zero, the order service calculates the distance between the vendor GPS point and the customer address point using PostGIS geography distance, rounds up to the next started kilometre, and adds that charge. Both GPS points are required for per-kilometre pricing; orders are rejected rather than silently undercharged when either point is missing.

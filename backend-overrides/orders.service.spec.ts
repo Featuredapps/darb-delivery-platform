@@ -37,6 +37,52 @@ describe('OrdersService safety checks', () => {
     })).rejects.toBeInstanceOf(BadRequestException);
   });
 
+  it('adds the rounded-up PostGIS distance fee to the order total', async () => {
+    const create = jest.fn().mockResolvedValue({ id: 'order-1' });
+    const tx: any = {
+      address: { findFirst: jest.fn().mockResolvedValue({ id: 'address-1' }) },
+      city: { findFirst: jest.fn().mockResolvedValue({ id: 'city-1', defaultCurrency: 'SYP' }) },
+      vendor: { findFirst: jest.fn().mockResolvedValue({ id: 'vendor-1' }) },
+      deliveryZone: { findUnique: jest.fn().mockResolvedValue({ feeBase: 100, feePerKm: 25 }) },
+      $queryRaw: jest.fn().mockResolvedValue([{ distanceKm: 1.25 }]),
+      product: { findMany: jest.fn().mockResolvedValue([{
+        id: 'product-1', currency: 'SYP', basePrice: 50, stockQty: null,
+        translations: [{ name: 'منتج' }],
+      }]) },
+      order: { create },
+    };
+    prisma.$transaction.mockImplementation(async (callback: (tx: any) => unknown) => callback(tx));
+
+    await service.create('customer-1', {
+      cityId: 'city-1', addressId: 'address-1', vendorId: 'vendor-1',
+      items: [{ productId: 'product-1', quantity: 1 }],
+    });
+
+    expect(create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ deliveryFee: 150, total: 200 }),
+    }));
+  });
+
+  it('refuses per-kilometre pricing when either GPS point is missing', async () => {
+    const create = jest.fn();
+    const tx: any = {
+      address: { findFirst: jest.fn().mockResolvedValue({ id: 'address-1' }) },
+      city: { findFirst: jest.fn().mockResolvedValue({ id: 'city-1', defaultCurrency: 'SYP' }) },
+      vendor: { findFirst: jest.fn().mockResolvedValue({ id: 'vendor-1' }) },
+      deliveryZone: { findUnique: jest.fn().mockResolvedValue({ feeBase: 100, feePerKm: 25 }) },
+      $queryRaw: jest.fn().mockResolvedValue([{ distanceKm: null }]),
+      product: { findMany: jest.fn() },
+      order: { create },
+    };
+    prisma.$transaction.mockImplementation(async (callback: (tx: any) => unknown) => callback(tx));
+
+    await expect(service.create('customer-1', {
+      cityId: 'city-1', addressId: 'address-1', vendorId: 'vendor-1',
+      items: [{ productId: 'product-1', quantity: 1 }],
+    })).rejects.toBeInstanceOf(BadRequestException);
+    expect(create).not.toHaveBeenCalled();
+  });
+
   it('uses an atomic READY/unassigned claim and rejects a lost race', async () => {
     prisma.driver.findUnique.mockResolvedValue({
       id: 'driver-1', cityId: 'city-1', status: 'APPROVED', isOnline: true,

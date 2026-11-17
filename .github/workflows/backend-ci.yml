@@ -12,7 +12,6 @@ on:
   pull_request:
     paths:
       - 'backend/**'
-      - 'backend-overrides/**'
       - 'DARB-source.zip'
       - 'render.yaml'
       - '.github/workflows/backend-ci.yml'
@@ -58,6 +57,45 @@ jobs:
           cp -R backend/src/. extracted/darb-project/backend/src/
           mkdir -p extracted/darb-project/backend/src/modules/auth/sms
           cp backend-overrides/sms.providers.ts extracted/darb-project/backend/src/modules/auth/sms/sms.providers.ts
+          cp backend-overrides/auth.service.ts extracted/darb-project/backend/src/modules/auth/auth.service.ts
+          cp backend-overrides/auth.controller.ts extracted/darb-project/backend/src/modules/auth/auth.controller.ts
+          cp backend-overrides/otp.service.ts extracted/darb-project/backend/src/modules/auth/otp.service.ts
+          cp backend-overrides/admin.controller.ts extracted/darb-project/backend/src/modules/admin/admin.controller.ts
+          cp backend-overrides/vendors.service.ts extracted/darb-project/backend/src/modules/vendors/vendors.service.ts
+          cp backend-overrides/vendor-application.dto.ts extracted/darb-project/backend/src/modules/vendors/vendor-application.dto.ts
+          cp backend-overrides/addresses.service.ts extracted/darb-project/backend/src/modules/addresses/addresses.service.ts
+          cp backend-overrides/addresses.controller.ts extracted/darb-project/backend/src/modules/addresses/addresses.controller.ts
+          cp backend-overrides/drivers.service.ts extracted/darb-project/backend/src/modules/drivers/drivers.service.ts
+          cp backend-overrides/drivers.module.ts extracted/darb-project/backend/src/modules/drivers/drivers.module.ts
+          cp backend-overrides/driver-location.controller.ts extracted/darb-project/backend/src/modules/drivers/driver-location.controller.ts
+          cp backend-overrides/driver-location.service.ts extracted/darb-project/backend/src/modules/drivers/driver-location.service.ts
+          cp backend-overrides/orders.module.ts extracted/darb-project/backend/src/modules/orders/orders.module.ts
+          cp backend-overrides/orders.controller.ts extracted/darb-project/backend/src/modules/orders/orders.controller.ts
+          cp backend-overrides/orders.service.ts extracted/darb-project/backend/src/modules/orders/orders.service.ts
+          cp backend-overrides/orders.tracking.controller.ts extracted/darb-project/backend/src/modules/orders/orders.tracking.controller.ts
+          cp backend-overrides/orders.tracking.service.ts extracted/darb-project/backend/src/modules/orders/orders.tracking.service.ts
+          mkdir -p extracted/darb-project/backend/src/modules/notifications extracted/darb-project/backend/src/modules/health
+          cp -R backend/src/modules/health/. extracted/darb-project/backend/src/modules/health/
+          cp backend-overrides/notifications.service.ts extracted/darb-project/backend/src/modules/notifications/notifications.service.ts
+          cp backend-overrides/notifications.controller.ts extracted/darb-project/backend/src/modules/notifications/notifications.controller.ts
+          cp backend-overrides/notifications.module.ts extracted/darb-project/backend/src/modules/notifications/notifications.module.ts
+          cp backend-overrides/app.module.ts extracted/darb-project/backend/src/app.module.ts
+          cp backend-overrides/schema.prisma extracted/darb-project/backend/prisma/schema.prisma
+          mkdir -p extracted/darb-project/backend/prisma/migrations/20261117160000_google_accounts
+          cp backend-overrides/google-accounts.migration.sql extracted/darb-project/backend/prisma/migrations/20261117160000_google_accounts/migration.sql
+          mkdir -p extracted/darb-project/backend/prisma/migrations/20261117170000_firebase_devices
+          cp backend-overrides/firebase-devices.migration.sql extracted/darb-project/backend/prisma/migrations/20261117170000_firebase_devices/migration.sql
+          mkdir -p extracted/darb-project/backend/prisma/migrations/20261117180000_seed_syrian_cities
+          cp backend-overrides/syrian-cities.migration.sql extracted/darb-project/backend/prisma/migrations/20261117180000_seed_syrian_cities/migration.sql
+          mkdir -p extracted/darb-project/backend/prisma/migrations/20261117190000_unique_delivery_zone_per_city
+          cp backend-overrides/unique-delivery-zone-per-city.migration.sql extracted/darb-project/backend/prisma/migrations/20261117190000_unique_delivery_zone_per_city/migration.sql
+          cp backend-overrides/otp.service.spec.ts extracted/darb-project/backend/src/modules/auth/otp.service.spec.ts
+          cp backend-overrides/auth.service.spec.ts extracted/darb-project/backend/src/modules/auth/auth.service.spec.ts
+          cp backend-overrides/orders.service.spec.ts extracted/darb-project/backend/src/modules/orders/orders.service.spec.ts
+          cp backend-overrides/orders.tracking.service.spec.ts extracted/darb-project/backend/src/modules/orders/orders.tracking.service.spec.ts
+          cp backend-overrides/driver-location.service.spec.ts extracted/darb-project/backend/src/modules/drivers/driver-location.service.spec.ts
+          cp backend-overrides/notifications.service.spec.ts extracted/darb-project/backend/src/modules/notifications/notifications.service.spec.ts
+          bash backend-overrides/prepare-source.sh extracted/darb-project
           mkdir -p extracted/darb-project/backend/prisma/migrations
           cp -R backend/prisma/migrations/. extracted/darb-project/backend/prisma/migrations/
 
