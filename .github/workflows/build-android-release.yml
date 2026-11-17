@@ -69,7 +69,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: "21"
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -176,27 +176,6 @@ jobs:
               p.write_text(s)
           else:
               raise SystemExit("No Android app Gradle build file found")
-          PY
-          # Android Lint 8 currently crashes in the Google Sign-In Android dependency
-          # (NoSuchMethodError in CommentDetector). Flutter analysis remains mandatory above;
-          # disable only the broken Gradle vital-lint task so release packaging can complete.
-          python3 - <<'PY'
-          from pathlib import Path
-          root = Path("android/build.gradle")
-          if root.exists():
-              s = root.read_text()
-              marker = "tasks.configureEach {"
-              block = """
-          subprojects {
-              tasks.configureEach {
-                  if (name == "lintVitalAnalyzeRelease") {
-                      enabled = false
-                  }
-              }
-          }
-          """
-              if marker not in s or 'name == "lintVitalAnalyzeRelease"' not in s:
-                  root.write_text(s + "\n" + block)
           PY
           test -s android/app/darb-release.jks
           if [ -f android/app/build.gradle.kts ]; then
