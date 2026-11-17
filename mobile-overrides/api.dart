@@ -86,7 +86,7 @@ class Api {
     late http.Response response;
     try {
       response = await _send(method, uri, body);
-      if (response.statusCode == 401 && !path.startsWith('/auth/')) {
+      if (response.statusCode == 401 && (path == '/auth/me' || !path.startsWith('/auth/'))) {
         if (await _refreshAccessToken()) response = await _send(method, uri, body);
       }
     } catch (_) {
@@ -107,3 +107,4 @@ class ApiException implements Exception {
   const ApiException(this.message);
   @override String toString() => message;
 }
+
