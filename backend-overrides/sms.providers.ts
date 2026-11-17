@@ -20,10 +20,10 @@ export class MsgPlusSmsProvider implements SmsProvider {
     const apiKey = this.config.get<string>('MSGPLUS_API_KEY');
     const senderName = this.config.get<string>('MSGPLUS_SENDER_NAME');
     const templateId = Number(this.config.get<string>('MSGPLUS_TEMPLATE_ID', '3'));
-    const match = message.match(/(?:^|\\D)(\\d{6})(?:\\D|$)/);
-    const normalized = phone.replace(/[\\s()-]/g, '').replace(/^\\+/, '');
+    const match = message.match(/(?:^|\D)(\d{6})(?:\D|$)/);
+    const normalized = phone.replace(/[\s()-]/g, '').replace(/^\\+/, '');
 
-    if (!apiKey || !senderName || !Number.isInteger(templateId) || templateId <= 0 || !match || !/^9639\\d{8}$/.test(normalized)) {
+    if (!apiKey || !senderName || !Number.isInteger(templateId) || templateId <= 0 || !match || !/^9639\d{8}$/.test(normalized)) {
       throw new InternalServerErrorException('إعدادات إرسال رمز التحقق غير مكتملة');
     }
 
