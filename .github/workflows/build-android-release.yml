@@ -3,7 +3,9 @@ name: Build signed DARB Android release
 on:
   push:
     branches:
+      - main
       - feat/darb-localized-login-google
+      - fix/google-oauth-release-validation
   workflow_dispatch:
     inputs:
       api_base_url:
@@ -204,6 +206,14 @@ jobs:
           FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
         run: |
           set -euo pipefail
+          if [[ -z "${GOOGLE_SERVER_CLIENT_ID//[[:space:]]/}" ]]; then
+            echo "::error::Missing GOOGLE_SERVER_CLIENT_ID GitHub Actions secret. Google sign-in cannot issue an ID token without the Web OAuth client ID."
+            exit 1
+          fi
+          if [[ "$GOOGLE_SERVER_CLIENT_ID" != *.apps.googleusercontent.com ]]; then
+            echo "::error::GOOGLE_SERVER_CLIENT_ID does not look like a Google OAuth Web client ID."
+            exit 1
+          fi
           if [[ "$DARB_API_BASE_URL" != https://* || "$DARB_API_BASE_URL" == */ ]]; then
             echo "::error::A production HTTPS API URL is required; refusing to package the emulator fallback URL."
             exit 1
@@ -225,6 +235,34 @@ jobs:
           fi
           "$APKSIGNER" verify --verbose build/app/outputs/flutter-apk/app-release.apk
           jarsigner -verify -verbose -certs build/app/outputs/bundle/release/app-release.aab
+
+      - name: Publish Google OAuth Android registration details
+        working-directory: extracted/darb-project/mobile
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="build/app/outputs/flutter-apk/app-release.apk"
+          APKANALYZER="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}" -type f -name apkanalyzer 2>/dev/null | sort -V | tail -n 1)"
+          APKSIGNER="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name apksigner 2>/dev/null | sort -V | tail -n 1)"
+          if [ -z "$APKANALYZER" ] || [ -z "$APKSIGNER" ]; then
+            echo "::error::Android package or signing certificate inspection tools were not found."
+            exit 1
+          fi
+          APPLICATION_ID="$("$APKANALYZER" manifest application-id "$APK")"
+          CERT_LINE="$("$APKSIGNER" verify --print-certs "$APK" | grep -m1 'certificate SHA-1 digest')"
+          SHA1="${CERT_LINE##*: }"
+          if [ -z "$APPLICATION_ID" ] || [ -z "$SHA1" ]; then
+            echo "::error::Could not extract Android package name and release SHA-1 fingerprint."
+            exit 1
+          fi
+          {
+            echo "## Google OAuth setup for this Android release"
+            echo
+            echo "- Android package name: `$APPLICATION_ID`"
+            echo "- Release signing certificate SHA-1: `$SHA1`"
+            echo "- Web OAuth client ID: configured in GitHub Actions secret (value intentionally hidden)"
+            echo "- Backend audience: configure the same Web OAuth client ID as Render environment variable `GOOGLE_SERVER_CLIENT_ID`"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload signed Android release
         uses: actions/upload-artifact@v4
