@@ -50,7 +50,7 @@ Flutter، واجهة عربية RTL.
 
 ## تكاملات لم يثبت تفعيلها بعد
 
-- تكامل MsgPlus في Backend يستخدم `POST https://sms.msgplus.tech/api/v1/send` مع `Authorization: Bearer` و`X-Timestamp`، والقالب `template_id=1` والمتغير `P1` حسب قالب الحساب. يُضبط `MSGPLUS_SENDER_ID` على المعرّف الرقمي أو اسم المرسل المعتمد كما يظهر في `GET /api/v1/senders`؛ ويحوّل التكامل الاسم إلى المعرّف تلقائياً. يلزم اختبار قبول وتسليم فعلي قبل اعتبار OTP جاهزاً.
+- تكامل MsgPlus يستخدم `POST https://sms.msgplus.tech/api/v1/send` مع `Authorization: Bearer` و`X-Timestamp`، والحقل `sender_name`، والقالب `template_id=1` والمتغير `P1` كما هو مضبوط في حساب MsgPlus. لضمان التوافق مع إعداد Render الحالي، تُقرأ قيمة اسم المرسل من `MSGPLUS_SENDER_NAME` أو من المتغير القديم `MSGPLUS_SENDER_ID` (مع أن القيمة اسم وليست رقماً). يلزم اختبار قبول وتسليم فعلي قبل اعتبار OTP جاهزاً.
 - Firebase Cloud Messaging وإشعارات الأجهزة الحقيقية.
 - الخرائط وGeocoding وتتبع السائق الحي.
 

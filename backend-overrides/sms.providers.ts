@@ -16,43 +16,19 @@ export class MsgPlusSmsProvider implements SmsProvider {
 
   constructor(private readonly config: ConfigService) {}
 
-  private async resolveSenderId(apiKey: string, configuredSender: string): Promise<number> {
-    const directId = Number(configuredSender);
-    if (Number.isInteger(directId) && directId > 0) return directId;
-
-    let response: Response;
-    try {
-      response = await fetch('https://sms.msgplus.tech/api/v1/senders', {
-        headers: { Authorization: `Bearer ${apiKey}`, Accept: 'application/json' },
-        signal: AbortSignal.timeout(10000),
-      });
-    } catch {
-      throw new InternalServerErrorException('تعذر التحقق من اسم المرسل في MsgPlus');
-    }
-    if (!response.ok) {
-      this.logger.error(`MsgPlus sender lookup failed: HTTP ${response.status}`);
-      throw new InternalServerErrorException('تعذر جلب معرّف المرسل المعتمد من MsgPlus');
-    }
-    const result = await response.json() as { senders?: Array<{ id?: number; name?: string }> };
-    const sender = result.senders?.find(item => item.name?.trim().toLowerCase() === configuredSender.trim().toLowerCase());
-    if (!sender || !Number.isInteger(sender.id) || (sender.id as number) <= 0) {
-      throw new InternalServerErrorException('اسم المرسل المضبوط غير موجود ضمن أسماء MsgPlus المعتمدة');
-    }
-    return sender.id as number;
-  }
 
   async send(phone: string, message: string): Promise<void> {
     const apiKey = this.config.get<string>('MSGPLUS_API_KEY');
-    const senderConfigured = this.config.get<string>('MSGPLUS_SENDER_ID');
+    // Keep the existing Render variable for compatibility; its value is the approved sender NAME, not a numeric ID.
+    const senderName = this.config.get<string>('MSGPLUS_SENDER_NAME') ?? this.config.get<string>('MSGPLUS_SENDER_ID');
     const templateId = 1;
     const match = message.match(/(?:^|\D)(\d{6})(?:\D|$)/);
     const normalized = phone.replace(/[\s()-]/g, '').replace(/^\+/, '');
 
-    if (!apiKey || !senderConfigured || !match || !/^9639\d{8}$/.test(normalized)) {
+    if (!apiKey || !senderName || !match || !/^9639\d{8}$/.test(normalized)) {
       throw new InternalServerErrorException('إعدادات إرسال رمز التحقق غير مكتملة');
     }
 
-    const senderId = await this.resolveSenderId(apiKey, senderConfigured);
     let response: Response;
     try {
       response = await fetch('https://sms.msgplus.tech/api/v1/send', {
@@ -64,7 +40,7 @@ export class MsgPlusSmsProvider implements SmsProvider {
           Accept: 'application/json',
         },
         body: JSON.stringify({
-          sender_id: senderId,
+          sender_name: senderName,
           template_id: templateId,
           numbers: [normalized],
           vars: { P1: match[1] },
@@ -82,7 +58,7 @@ export class MsgPlusSmsProvider implements SmsProvider {
 
       const reason = status === 400 ? 'توقيت طلب MsgPlus غير صحيح أو ترويسة X-Timestamp مفقودة'
         : status === 401 ? 'مفتاح MsgPlus غير صحيح أو غير مفعّل'
-        : status === 403 ? 'معرّف المرسل أو قالب الرسالة غير معتمد'
+        : status === 403 ? 'اسم المرسل أو قالب الرسالة غير معتمد'
         : status === 404 ? 'مسار MsgPlus API v1 غير موجود'
         : status === 422 ? 'رفض MsgPlus متغير القالب P1 أو رقم الهاتف أو الرصيد'
         : status === 429 ? 'طلبات SMS كثيرة؛ حاول لاحقاً'
