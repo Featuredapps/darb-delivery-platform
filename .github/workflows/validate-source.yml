@@ -34,6 +34,14 @@ jobs:
             exit 1
           fi
           echo "Applied Dart syntax repair to vendor navigation."
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("extracted/darb-project/mobile/lib/screens/app_shell.dart")
+          s = p.read_text()
+          old = "    final city = widget.kind == 'drivers' ? row['city']?['code']?.toString() ?? '' : '';"
+          new = "    final cityData = row['city'];\n    final city = widget.kind == 'drivers' && cityData is Map ? cityData['code']?.toString() ?? '' : '';"
+          p.write_text(s.replace(old, new))
+          PY
           cp mobile-overrides/api.dart extracted/darb-project/mobile/lib/core/api.dart
           cp mobile-overrides/login_screen.dart extracted/darb-project/mobile/lib/screens/login_screen.dart
           echo "Applied Arabic RTL login screen override."
