@@ -146,8 +146,9 @@ class _AccountPageState extends State<AccountPage>{
    if(profile?['vendorApplication']==null)FilledButton.tonalIcon(onPressed:()=>_apply(context,true),icon:const Icon(Icons.storefront_outlined),label:const Text('قدّم طلب انضمام كبائع')) else ListTile(leading:const Icon(Icons.storefront_outlined),title:const Text('طلب المتجر'),subtitle:Text(profile?['vendorApplication'].toString()??'')),
    if(profile?['driverApplication']==null)FilledButton.tonalIcon(onPressed:()=>_apply(context,false),icon:const Icon(Icons.delivery_dining),label:const Text('قدّم طلب انضمام كسائق')) else ListTile(leading:const Icon(Icons.delivery_dining),title:const Text('طلب السائق'),subtitle:Text(profile?['driverApplication'].toString()??'')),
  ],
-  const SizedBox(height:16),OutlinedButton.icon(onPressed:onLogout,icon:const Icon(Icons.logout),label:const Text('تسجيل الخروج'))
+  const SizedBox(height:16),OutlinedButton.icon(onPressed:widget.onLogout,icon:const Icon(Icons.logout),label:const Text('تسجيل الخروج'))
  ]);
 }
 class _EmptyPanel extends StatelessWidget {final String text;const _EmptyPanel({required this.text});@override Widget build(BuildContext context)=>Container(padding:const EdgeInsets.all(24),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(18)),child:Text(text,textAlign:TextAlign.center,style:const TextStyle(color:Colors.black54)));}
 class _ErrorPanel extends StatelessWidget {final String message;final Future<void> Function() retry;const _ErrorPanel({required this.message,required this.retry});@override Widget build(BuildContext context)=>Container(padding:const EdgeInsets.all(18),decoration:BoxDecoration(color:const Color(0xFFFFEEEE),borderRadius:BorderRadius.circular(16)),child:Column(children:[Text(message,style:const TextStyle(color:Colors.red)),TextButton(onPressed:retry,child:const Text('إعادة المحاولة'))]));}
+
