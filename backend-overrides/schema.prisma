@@ -103,7 +103,7 @@ model City {
   vendors VendorCity[]
   drivers Driver[]
   orders  Order[]
-  zones   DeliveryZone[]
+  zone    DeliveryZone?
 }
 
 model CityTranslation {
@@ -370,3 +370,4 @@ model UserDevice {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@index([userId])
 }
+
