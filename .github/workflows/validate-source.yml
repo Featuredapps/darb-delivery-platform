@@ -214,24 +214,8 @@ jobs:
               echo "::endgroup::"
               exit 1
             fi
-            flutter build apk --debug --dart-define=API_BASE_URL=https://darb-api-yapv.onrender.com/api/v1 --dart-define=GOOGLE_SERVER_CLIENT_ID="${{ secrets.GOOGLE_SERVER_CLIENT_ID }}" --dart-define=FIREBASE_API_KEY="${{ secrets.FIREBASE_API_KEY }}" --dart-define=FIREBASE_APP_ID="${{ secrets.FIREBASE_APP_ID }}" --dart-define=FIREBASE_MESSAGING_SENDER_ID="${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}" --dart-define=FIREBASE_PROJECT_ID="${{ secrets.FIREBASE_PROJECT_ID }}"
+            echo "Static analysis passed. Installable APKs are produced only by the signed release workflow."
             echo "::endgroup::"
           done
 
-      - name: Upload debug APK artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: darb-debug-apk-production-api
-          path: extracted/**/build/app/outputs/flutter-apk/*.apk
-          if-no-files-found: error
-          retention-days: 14
-
-      - name: Publish direct APK download
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: darb-apk-build-${{ github.run_number }}
-          name: DARB Android APK build ${{ github.run_number }}
-          files: extracted/**/build/app/outputs/flutter-apk/app-debug.apk
-          fail_on_unmatched_files: true
-          generate_release_notes: false
-
+      # Deliberately no APK artifact here: this workflow validates source only.\n      # Installable builds are published only by build-android-release.yml.\n
