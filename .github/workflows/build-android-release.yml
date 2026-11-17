@@ -199,7 +199,7 @@ jobs:
         working-directory: extracted/darb-project/mobile
         env:
           DARB_API_BASE_URL: ${{ inputs.api_base_url || 'https://darb-api-yapv.onrender.com/api/v1' }}
-          GOOGLE_SERVER_CLIENT_ID: ${{ secrets.GOOGLE_SERVER_CLIENT_ID || '1005839784892-6iees5memvdalvv2tpanqd25je2d88st.apps.googleusercontent.com' }}
+          GOOGLE_SERVER_CLIENT_ID: '1005839784892-3b1sctr2c32hfa6ssq17nunfhn2d9pji.apps.googleusercontent.com'
           FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
           FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
           FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
@@ -258,7 +258,7 @@ jobs:
 
       - name: Check Google OAuth configuration
         env:
-          GOOGLE_SERVER_CLIENT_ID: ${{ secrets.GOOGLE_SERVER_CLIENT_ID || '1005839784892-6iees5memvdalvv2tpanqd25je2d88st.apps.googleusercontent.com' }}
+          GOOGLE_SERVER_CLIENT_ID: '1005839784892-3b1sctr2c32hfa6ssq17nunfhn2d9pji.apps.googleusercontent.com'
         shell: bash
         run: |
           set -euo pipefail
