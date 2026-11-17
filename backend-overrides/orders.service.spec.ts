@@ -42,9 +42,8 @@ describe('OrdersService safety checks', () => {
       id: 'driver-1', cityId: 'city-1', status: 'APPROVED', isOnline: true,
     });
     const tx = {
-      order: { updateMany: jest.fn().mockResolvedValue({ count: 0 }) },
-      orderStatusHistory: { create: jest.fn() },
       order: { updateMany: jest.fn().mockResolvedValue({ count: 0 }), findUnique: jest.fn() },
+      orderStatusHistory: { create: jest.fn() },
     };
     prisma.$transaction.mockImplementation(async (callback: (tx: any) => unknown) => callback(tx));
 
