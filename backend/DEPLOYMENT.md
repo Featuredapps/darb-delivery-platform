@@ -85,3 +85,7 @@ The current source includes device-token registration and order-created/assigned
 
 
 The first deployment with the city seed migration will activate 12 Syrian city records with Arabic, English, and Turkish names. It deliberately does not fabricate vendors, products, drivers, delivery fees, or commercial registrations. Approved sellers must add their real catalog, and delivery-zone prices must be entered by an administrator before paid delivery orders are enabled.
+
+## Delivery-zone administration
+
+An authenticated administrator can list, create, and update delivery zones through `/api/v1/admin/delivery-zones`. Each zone requires an active city, a non-negative `feeBase`, and a non-negative `feePerKm`. Order creation intentionally refuses a city without a configured delivery zone; do not set zero fees merely to bypass this guard.

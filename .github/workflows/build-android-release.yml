@@ -1,6 +1,9 @@
 name: Build signed DARB Android release
 
 on:
+  push:
+    branches:
+      - feat/darb-localized-login-google
   workflow_dispatch:
     inputs:
       api_base_url:
