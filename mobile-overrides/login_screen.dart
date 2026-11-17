@@ -150,7 +150,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     const SizedBox(width: 9), const Icon(Icons.arrow_back_rounded, size: 19),
                   ]),
               )),
-              const Spacer(),
+              const SizedBox(height: 24),
               const SizedBox(height: 34),
               const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Icon(Icons.lock_outline, size: 14, color: Color(0xFF8A9690)), SizedBox(width: 6),
