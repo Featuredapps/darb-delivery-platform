@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'backend/**'
+      - 'backend-overrides/**'
       - 'DARB-source.zip'
       - 'render.yaml'
       - '.github/workflows/backend-ci.yml'
@@ -54,6 +55,8 @@ jobs:
           set -euo pipefail
           unzip -q DARB-source.zip -d extracted
           cp -R backend/src/. extracted/darb-project/backend/src/
+          mkdir -p extracted/darb-project/backend/src/modules/auth/sms
+          cp backend-overrides/sms.providers.ts extracted/darb-project/backend/src/modules/auth/sms/sms.providers.ts
           mkdir -p extracted/darb-project/backend/prisma/migrations
           cp -R backend/prisma/migrations/. extracted/darb-project/backend/prisma/migrations/
 
