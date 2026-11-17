@@ -60,6 +60,14 @@ jobs:
           mkdir -p extracted/darb-project/backend/prisma/migrations
           cp -R backend/prisma/migrations/. extracted/darb-project/backend/prisma/migrations/
 
+      - name: Upload auth source for security review
+        uses: actions/upload-artifact@v4
+        with:
+          name: darb-auth-source-review
+          path: extracted/darb-project/backend/src/modules/auth/
+          if-no-files-found: error
+          retention-days: 3
+
       - name: Install dependencies
         working-directory: extracted/darb-project/backend
         run: npm install --no-audit --no-fund
