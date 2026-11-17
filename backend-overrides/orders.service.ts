@@ -7,6 +7,8 @@ export class OrdersService {
   constructor(private readonly prisma: PrismaService) {}
   async create(customerId: string, dto: {cityId:string;addressId:string;vendorId:string;items:{productId:string;quantity:number}[];notes?:string}) {
     if (!dto.items?.length || dto.items.length > 30) throw new BadRequestException('قائمة المنتجات غير صالحة');
+    const ids = [...new Set(dto.items.map(x => x.productId))];
+    if (ids.length !== dto.items.length) throw new BadRequestException('لا تكرر المنتج في السلة');
     return this.prisma.$transaction(async tx => {
       const [address, city, vendor, deliveryZone] = await Promise.all([
         tx.address.findFirst({ where: { id: dto.addressId, userId: customerId }, select: { id: true } }),
@@ -37,8 +39,6 @@ export class OrdersService {
         if (distanceKm === null) throw new BadRequestException('حدد موقع عنوان التوصيل وموقع المتجر لحساب رسوم التوصيل لكل كيلومتر');
       }
       const deliveryFee = feeBase + Math.ceil(distanceKm ?? 0) * feePerKm;
-      const ids = [...new Set(dto.items.map(x => x.productId))];
-      if (ids.length !== dto.items.length) throw new BadRequestException('لا تكرر المنتج في السلة');
       const products = await tx.product.findMany({ where: { id: { in: ids }, vendorId: vendor.id, isAvailable: true }, include: { translations: { where: { locale: 'ar' }, take: 1 } } });
       if (products.length !== ids.length) throw new BadRequestException('بعض المنتجات لم تعد متاحة');
       const byId = new Map(products.map(p => [p.id, p]));
@@ -114,3 +114,4 @@ export class OrdersService {
     });
   }
 }
+
