@@ -43,7 +43,7 @@ See [FREE-DEPLOYMENT.md](../FREE-DEPLOYMENT.md) for the exact setup using:
 - Supabase Free PostgreSQL (500 MB); enable PostGIS and verify extension schema/search path compatibility before applying migrations.
 - Upstash Redis Free (256 MB / 500K commands per month).
 
-The API Blueprint asks for `DATABASE_URL` and `REDIS_URL` connection strings. It generates separate JWT access, JWT refresh, and OTP secrets. It also asks for `SMS_API_URL` and `SMS_API_KEY`; leaving those unset permits build/health-check validation only, not actual OTP delivery.
+The API requires `DATABASE_URL` and `REDIS_URL`. Keep the generated `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, and `OTP_SECRET`. The implemented MsgPlus adapter is configured with `SMS_PROVIDER=msgplus`, `MSGPLUS_API_KEY`, `MSGPLUS_SENDER_NAME`, and `MSGPLUS_TEMPLATE_ID=3`. The sender name and template must be approved by MsgPlus. Do not use the legacy `SMS_API_URL` / `SMS_API_KEY` names for this adapter. No live SMS delivery is considered verified until an explicitly approved test is completed; do not send test messages or consume prepaid balance without the service owner's approval.
 
 The free tiers can sleep, pause, or enforce quotas. They are not suitable for real customer data, live orders, payments, or driver dispatch. Do not deploy real users until backups, restore procedures, availability, resource limits, and security have been reviewed.
 
