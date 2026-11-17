@@ -20,7 +20,11 @@ export class MsgPlusSmsProvider implements SmsProvider {
   async send(phone: string, message: string): Promise<void> {
     const apiKey = this.config.get<string>('MSGPLUS_API_KEY');
     // Keep the existing Render variable for compatibility; its value is the approved sender NAME, not a numeric ID.
-    const senderName = this.config.get<string>('MSGPLUS_SENDER_NAME') ?? this.config.get<string>('MSGPLUS_SENDER_ID');
+    const configuredSenderName = this.config.get<string>('MSGPLUS_SENDER_NAME') ?? this.config.get<string>('MSGPLUS_SENDER_ID');
+    // MsgPlus sender names are case-sensitive; canonicalize the free-tier site sender spelling.
+    const senderName = configuredSenderName?.trim().toLowerCase() === 'msgplus'
+      ? 'MsgPlus'
+      : configuredSenderName?.trim();
     const templateId = 1;
     const match = message.match(/(?:^|\D)(\d{6})(?:\D|$)/);
     const normalized = phone.replace(/[\s()-]/g, '').replace(/^\+/, '');
