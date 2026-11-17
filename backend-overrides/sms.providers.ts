@@ -6,7 +6,7 @@ import { SmsProvider } from './sms.provider';
 export class ConsoleSmsProvider implements SmsProvider {
   private readonly logger = new Logger('ConsoleSms');
   async send(phone: string, message: string): Promise<void> {
-    this.logger.warn(`[DEV] SMS to ${phone}: ${message}`);
+    this.logger.warn(\`[DEV] SMS to \${phone}: \${message}\`);
   }
 }
 
@@ -21,8 +21,8 @@ export class MsgPlusSmsProvider implements SmsProvider {
     const senderIdRaw = this.config.get<string>('MSGPLUS_SENDER_ID');
     const senderId = Number(senderIdRaw);
     const templateId = 1;
-    const match = message.match(/(?:^|\\D)(\\d{6})(?:\\D|$)/);
-    const normalized = phone.replace(/[\\s()-]/g, '').replace(/^\\+/, '');
+    const match = message.match(/(?:^|\D)(\d{6})(?:\D|$)/);
+    const normalized = phone.replace(/[\s()-]/g, '').replace(/^\+/, '');
 
     if (
       !apiKey ||
@@ -30,7 +30,7 @@ export class MsgPlusSmsProvider implements SmsProvider {
       !Number.isInteger(senderId) ||
       senderId <= 0 ||
       !match ||
-      !/^9639\\d{8}$/.test(normalized)
+      !/^9639\d{8}$/.test(normalized)
     ) {
       throw new InternalServerErrorException('إعدادات إرسال رمز التحقق غير مكتملة أو معرّف المرسل غير رقمي');
     }
@@ -40,7 +40,7 @@ export class MsgPlusSmsProvider implements SmsProvider {
       response = await fetch('https://sms.msgplus.tech/api/v1/send', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${apiKey}`,
+          Authorization: \`Bearer \${apiKey}\`,
           'X-Timestamp': String(Math.floor(Date.now() / 1000)),
           'Content-Type': 'application/json',
           Accept: 'application/json',
@@ -60,7 +60,7 @@ export class MsgPlusSmsProvider implements SmsProvider {
     if (response.status !== 202) {
       const status = response.status;
       // لا نسجل نص رد المزود لأنه قد يحتوي على أرقام أو رموز تحقق أو بيانات حساب.
-      this.logger.error(`MsgPlus rejected OTP request: HTTP ${status}`);
+      this.logger.error(\`MsgPlus rejected OTP request: HTTP \${status}\`);
 
       const reason = status === 400 ? 'توقيت طلب MsgPlus غير صحيح أو ترويسة X-Timestamp مفقودة'
         : status === 401 ? 'مفتاح MsgPlus غير صحيح أو غير مفعّل'
@@ -90,7 +90,7 @@ export class HttpSmsProvider implements SmsProvider {
   async send(phone: string, message: string): Promise<void> {
     const res = await fetch(this.config.getOrThrow<string>('SMS_API_URL'), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${this.config.getOrThrow<string>('SMS_API_KEY')}` },
+      headers: { 'Content-Type': 'application/json', Authorization: \`Bearer \${this.config.getOrThrow<string>('SMS_API_KEY')}\` },
       body: JSON.stringify({ to: phone, message }),
       signal: AbortSignal.timeout(10000),
     });
