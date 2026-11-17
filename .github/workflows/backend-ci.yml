@@ -91,6 +91,7 @@ jobs:
           cp backend-overrides/unique-delivery-zone-per-city.migration.sql extracted/darb-project/backend/prisma/migrations/20261117190000_unique_delivery_zone_per_city/migration.sql
           cp backend-overrides/otp.service.spec.ts extracted/darb-project/backend/src/modules/auth/otp.service.spec.ts
           cp backend-overrides/auth.service.spec.ts extracted/darb-project/backend/src/modules/auth/auth.service.spec.ts
+          cp backend-overrides/orders.service.spec.ts extracted/darb-project/backend/src/modules/orders/orders.service.spec.ts
           cp backend-overrides/orders.tracking.service.spec.ts extracted/darb-project/backend/src/modules/orders/orders.tracking.service.spec.ts
           cp backend-overrides/driver-location.service.spec.ts extracted/darb-project/backend/src/modules/drivers/driver-location.service.spec.ts
           cp backend-overrides/notifications.service.spec.ts extracted/darb-project/backend/src/modules/notifications/notifications.service.spec.ts
