@@ -36,7 +36,6 @@ services:
         value: msgplus
       - key: MSGPLUS_API_KEY
         sync: false
+      # Configure the numeric sender ID or exact approved sender name from GET /api/v1/senders.
       - key: MSGPLUS_SENDER_ID
-        value: Msgplus
-      - key: MSGPLUS_TEMPLATE_ID
-        value: "3"
+        sync: false
