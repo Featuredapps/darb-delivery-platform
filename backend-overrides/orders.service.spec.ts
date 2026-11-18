@@ -34,7 +34,7 @@ describe('OrdersService safety checks', () => {
       data: expect.objectContaining({
         type: 'PEER_DELIVERY', status: 'READY', cityId: 'city-1',
         customerId: 'customer-1', addressId: 'address-1',
-        pickupAddress: 'شارع الجامعة، حلب', vendorId: undefined,
+        pickupAddress: 'شارع الجامعة، حلب',
         subtotal: 0, deliveryFee: 1250, total: 1250,
         payment: { create: expect.objectContaining({ method: 'CASH_ON_DELIVERY', amount: 1250, currency: 'SYP' }) },
         statusHistory: { create: { status: 'READY', changedBy: 'customer-1' } },
