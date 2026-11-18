@@ -83,27 +83,22 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           p = Path("pubspec.yaml")
-          s = p.read_text()
-          lines = s.splitlines()
-          found = False
-          for i, line in enumerate(lines):
-              if line.strip().startswith("intl:"):
-                  lines[i] = "  intl: ^0.20.3"
-                  found = True
-          if not found:
-              for i, line in enumerate(lines):
-                  if line.strip() == "dependencies:":
-                      lines.insert(i + 1, "  intl: ^0.20.3")
-                      break
+          lines = p.read_text().splitlines()
+          # Normalize intl: remove duplicate/old constraints and insert one compatible constraint.
+          lines = [line for line in lines if not line.strip().startswith("intl:")]
+          dep = next((i for i, line in enumerate(lines) if line.strip() == "dependencies:"), None)
+          if dep is None:
+              raise SystemExit("pubspec.yaml: dependencies section missing")
+          lines.insert(dep + 1, "  intl: ^0.20.3")
           if not any(line.strip().startswith("google_sign_in:") for line in lines):
-              for i, line in enumerate(lines):
-                  if line.strip() == "dependencies:":
-                      lines.insert(i + 1, "  google_sign_in: ^6.2.1")
-                      break
+              lines.insert(dep + 2, "  google_sign_in: ^6.2.1")
           p.write_text("\\n".join(lines) + "\\n")
-          print("Patched dependencies:")
-          print("\\n".join(line for line in lines if "intl:" in line or "google_sign_in:" in line))
+          effective = [line.strip() for line in lines if line.strip().startswith(("intl:", "google_sign_in:"))]
+          print("Effective dependencies:", effective)
+          if "intl: ^0.20.3" not in effective:
+              raise SystemExit("intl constraint patch failed")
           PY
+          grep -nE '^  (intl|google_sign_in):' pubspec.yaml
           flutter pub get
       - name: Analyze and build
         working-directory: extracted/darb-project/mobile
