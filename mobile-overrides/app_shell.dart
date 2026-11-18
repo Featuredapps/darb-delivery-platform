@@ -145,7 +145,6 @@ class _CustomerHomeState extends State<CustomerHome> {
   Widget build(BuildContext context) {
     final query = search.text.trim().toLowerCase();
     final visibleVendors = vendors.where((v) => _vendorName(v).toLowerCase().contains(query)).toList();
-    final selectedCity = cities.where((c) => c['id'].toString() == cityId).firstOrNull;
     return RefreshIndicator(
       onRefresh: _load,
       color: green,
@@ -174,8 +173,7 @@ class _CustomerHomeState extends State<CustomerHome> {
                   ),
                 )
               else
-                Text(selectedCity == null ? 'حدد المدينة' : _cityName(selectedCity),
-                  style: const TextStyle(color: ink, fontWeight: FontWeight.w800)),
+                const Text('حدد المدينة', style: TextStyle(color: ink, fontWeight: FontWeight.w800)),
             ],
           ),
           const SizedBox(height: 14),
