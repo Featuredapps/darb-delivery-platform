@@ -58,6 +58,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       if (mounted) setState(() => sent = true);
     } on ApiException catch (e) {
       _fail(e.message);
+    } on ApiException catch (e) {
+      _fail(e.message);
     } catch (_) {
       _fail(l.t('networkError'));
     } finally {
