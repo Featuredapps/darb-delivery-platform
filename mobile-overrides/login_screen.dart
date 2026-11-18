@@ -110,9 +110,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       await Api.instance.saveTokens(Map<String, dynamic>.from(result['tokens'] as Map));
       if (mounted) Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const AppShell()));
     } catch (e) {
-      final detail = e.toString().replaceAll(RegExp(r'[\\r\\n]+'), ' ').trim();
+      final detail = e.toString().replaceAll(RegExp(r'[\r\n]+'), ' ').trim();
       final safeDetail = detail.length > 220 ? detail.substring(0, 220) : detail;
-      _fail('فشل تسجيل Google عند المرحلة $stage\\n$safeDetail');
+      _fail('فشل تسجيل Google عند المرحلة $stage\n$safeDetail');
     } finally {
       if (mounted) setState(() => googleLoading = false);
     }
