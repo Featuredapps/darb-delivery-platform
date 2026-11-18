@@ -31,6 +31,13 @@ describe('OtpService atomic verification', () => {
     expect(redis.multi).toHaveBeenCalledTimes(1);
     expect(sms.send).toHaveBeenCalledWith('+963994000000', expect.stringMatching(/^رمز التحقق الخاص بك: \d{6}$/));
   });
+  it('releases the hourly quota and invalidates the code when SMS delivery fails', async () => {
+    redis.eval.mockResolvedValueOnce(1).mockResolvedValueOnce(1);
+    sms.send.mockRejectedValueOnce(new Error('SMS provider unavailable'));
+    await expect(service.issue('+963994000000')).rejects.toThrow('SMS provider unavailable');
+    expect(redis.eval).toHaveBeenCalledTimes(2);
+    expect(redis.eval.mock.calls[1][0]).toContain("redis.call('DECR',KEYS[2])");
+  });
   it('does not accept malformed OTP input', async () => {
     await expect(service.verify('+963994000000', '123')).rejects.toThrow('الرمز غير صحيح');
     expect(redis.eval).not.toHaveBeenCalled();
