@@ -31,8 +31,10 @@ export class OrdersController {
     return order;
   }
   @Post('peer-delivery') @Roles(UserRole.CUSTOMER)
-  createPeerDelivery(@CurrentUser() user: {id:string}, @Body() dto: CreatePeerDeliveryDto) {
-    return this.orders.createPeerDelivery(user.id, dto);
+  async createPeerDelivery(@CurrentUser() user: {id:string}, @Body() dto: CreatePeerDeliveryDto) {
+    const order = await this.orders.createPeerDelivery(user.id, dto);
+    await this.notifications.notifyDriversInCity(dto.cityId, 'طلب توصيل جديد', 'يوجد طلب توصيل مستقل متاح في مدينتك', { type: 'PEER_DELIVERY_AVAILABLE', orderId: order.id });
+    return order;
   }
   @Get('mine') @Roles(UserRole.CUSTOMER) mine(@CurrentUser() user: {id:string}) { return this.orders.mine(user.id); }
   @Get('vendor') @Roles(UserRole.VENDOR) vendorOrders(@CurrentUser() user: {id:string}) { return this.orders.vendorOrders(user.id); }
