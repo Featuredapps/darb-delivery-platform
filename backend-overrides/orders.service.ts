@@ -18,7 +18,7 @@ export class OrdersService {
       if (!address) throw new BadRequestException('عنوان التسليم غير صالح');
       if (!city) throw new BadRequestException('المدينة غير متاحة');
       if (!zone) throw new BadRequestException('لم يتم إعداد رسوم التوصيل لهذه المدينة بعد');
-      let distanceKm = 0;
+      let distanceKm: number | null = 0;
       if (Number(zone.feePerKm) > 0) {
         const distances = await tx.$queryRaw<Array<{ distanceKm: number | null }>>`
           SELECT CASE WHEN a."point" IS NULL THEN NULL
