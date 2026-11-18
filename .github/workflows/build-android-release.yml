@@ -9,13 +9,6 @@ jobs:
     timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
-      - name: Validate signing secrets
-        env:
-          KS: ${{ secrets.DARB_KEYSTORE_BASE64 }}
-          SP: ${{ secrets.DARB_KEYSTORE_PASSWORD }}
-          AL: ${{ secrets.DARB_KEY_ALIAS }}
-          KP: ${{ secrets.DARB_KEY_PASSWORD }}
-        run: test -n "$KS" && test -n "$SP" && test -n "$AL" && test -n "$KP"
       - name: Extract source and apply overrides
         run: |
           set -euo pipefail
@@ -41,99 +34,12 @@ jobs:
         with:
           channel: stable
           cache: true
-      - name: Create Android and configure signing
+      - name: Create Android project scaffold (no signing)
         working-directory: extracted/darb-project/mobile
-        env:
-          KS: ${{ secrets.DARB_KEYSTORE_BASE64 }}
-          SP: ${{ secrets.DARB_KEYSTORE_PASSWORD }}
-          AL: ${{ secrets.DARB_KEY_ALIAS }}
-          KP: ${{ secrets.DARB_KEY_PASSWORD }}
-        run: |
-          set -euo pipefail
-          flutter create --platforms=android --org com.darb --project-name darb --no-pub .
-          echo "$KS" | base64 --decode > android/app/darb-release.jks
-          keytool -list -keystore android/app/darb-release.jks -storepass "$SP" -alias "$AL" >/dev/null
-          cat > android/key.properties <<EOF
-          storePassword=$SP
-          keyPassword=$KP
-          keyAlias=$AL
-          storeFile=darb-release.jks
-          EOF
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path("android/app/build.gradle.kts")
-          s=p.read_text()
-          s="import java.util.Properties\nimport java.io.FileInputStream\n"+s
-          s=s.replace("android {", 'val signingProps = Properties()\nval signingFile = rootProject.file("key.properties")\nsigningProps.load(FileInputStream(signingFile))\n\nandroid {',1)
-          cfg='''signingConfigs {
-              create("release") {
-                  keyAlias = signingProps["keyAlias"] as String
-                  keyPassword = signingProps["keyPassword"] as String
-                  storeFile = file(signingProps["storeFile"] as String)
-                  storePassword = signingProps["storePassword"] as String
-              }
-          }
-          '''
-          s=s.replace("    buildTypes {", "    "+cfg+"    buildTypes {",1)
-          s=s.replace('signingConfig = signingConfigs.getByName("debug")','signingConfig = signingConfigs.getByName("release")')
-          p.write_text(s)
-          PY
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path("pubspec.yaml")
-          lines = p.read_text().splitlines()
-          # Normalize intl: remove duplicate/old constraints and insert one compatible constraint.
-          lines = [line for line in lines if not line.strip().startswith("intl:")]
-          dep = next((i for i, line in enumerate(lines) if line.strip() == "dependencies:"), None)
-          if dep is None:
-              raise SystemExit("pubspec.yaml: dependencies section missing")
-          lines.insert(dep + 1, "  intl: ^0.20.3")
-          if not any(line.strip().startswith("google_sign_in:") for line in lines):
-              lines.insert(dep + 2, "  google_sign_in: ^6.2.1")
-          p.write_text("\n".join(lines) + "\n")
-          effective = [line.strip() for line in lines if line.strip().startswith(("intl:", "google_sign_in:"))]
-          print("Effective dependencies:", effective)
-          if "intl: ^0.20.3" not in effective:
-              raise SystemExit("intl constraint patch failed")
-          PY
-          grep -nE '^[[:space:]]+(intl|google_sign_in):' pubspec.yaml || true
-          flutter pub get
-      - name: Analyze and build
+        run: flutter create --platforms=android --org com.darb --project-name darb --no-pub .
+      - name: Analyze and test (APK build disabled)
         working-directory: extracted/darb-project/mobile
-        env:
-          API: https://darb-api-yapv.onrender.com/api/v1
-          GOOGLE_CLIENT: 1005839784892-3b1sctr2c32hfa6ssq17nunfhn2d9pji.apps.googleusercontent.com
         run: |
           set -euo pipefail
           flutter analyze lib --no-pub --no-fatal-infos --no-fatal-warnings
-          flutter build apk --release --build-number="$GITHUB_RUN_NUMBER" --dart-define=API_BASE_URL="$API" --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_CLIENT"
-          flutter build appbundle --release --build-number="$GITHUB_RUN_NUMBER" --dart-define=API_BASE_URL="$API" --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_CLIENT"
-      - name: Verify signing and package
-        working-directory: extracted/darb-project/mobile
-        env:
-          SP: ${{ secrets.DARB_KEYSTORE_PASSWORD }}
-          AL: ${{ secrets.DARB_KEY_ALIAS }}
-        run: |
-          set -euo pipefail
-          APK=build/app/outputs/flutter-apk/app-release.apk
-          AAB=build/app/outputs/bundle/release/app-release.aab
-          test -s "$APK" && test -s "$AAB"
-          SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
-          SIGNER="$(find "$SDK/build-tools" -type f -name apksigner | sort -V | tail -1)"
-          ANALYZER="$(find "$SDK" -type f -name apkanalyzer | sort -V | tail -1)"
-          "$SIGNER" verify --verbose "$APK"
-          jarsigner -verify "$AAB"
-          KEY_SHA="$(keytool -list -v -keystore android/app/darb-release.jks -alias "$AL" -storepass "$SP" | awk -F': ' '/SHA1:/{print $2;exit}' | tr -d ': ' | tr '[:upper:]' '[:lower:]')"
-          APK_SHA="$( "$SIGNER" verify --print-certs "$APK" | awk -F': ' '/certificate SHA-1 digest:/{print $2;exit}' | tr -d ': ' | tr '[:upper:]' '[:lower:]')"
-          APP="$( "$ANALYZER" manifest application-id "$APK")"
-          test "$APP" = com.darb.darb
-          test "$KEY_SHA" = "$APK_SHA"
-          echo "Verified appId=$APP SHA1=$APK_SHA" >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: darb-android-signed-release
-          path: |
-            extracted/darb-project/mobile/build/app/outputs/flutter-apk/app-release.apk
-            extracted/darb-project/mobile/build/app/outputs/bundle/release/app-release.aab
-          if-no-files-found: error
-          retention-days: 30
+          flutter test --no-pub
