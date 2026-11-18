@@ -96,7 +96,7 @@ export class OrdersService {
       return order;
     });
   }
-  mine(userId: string) { return this.prisma.order.findMany({ where: { customerId: userId }, orderBy: { createdAt: 'desc' }, include: { items: true, payment: true, statusHistory: { orderBy: { createdAt: 'asc' } } } }); }
+  mine(userId: string) { return this.prisma.order.findMany({ where: { customerId: userId }, orderBy: { createdAt: 'desc' }, include: { items: true, address: true, payment: true, statusHistory: { orderBy: { createdAt: 'asc' } } } }); }
   async vendorOrders(userId: string) {
     const vendor = await this.prisma.vendor.findUnique({ where: { userId }, select: { id: true } });
     if (!vendor) throw new ForbiddenException();
