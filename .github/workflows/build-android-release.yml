@@ -82,17 +82,27 @@ jobs:
           PY
           python3 - <<'PY'
           from pathlib import Path
-          import re
           p = Path("pubspec.yaml")
           s = p.read_text()
-          s, n = re.subn(r"^\s*intl\s*:.*$", "  intl: ^0.20.3", s, count=1, flags=re.M)
-          if not n:
-              s = s.replace("  flutter_localizations:\n", "  intl: ^0.20.3\n  flutter_localizations:\n", 1)
-          if "google_sign_in:" not in s:
-              s = s.replace("  flutter_localizations:\n", "  google_sign_in: ^6.2.1\n  flutter_localizations:\n", 1)
-          p.write_text(s)
-          print("Updated pubspec dependency constraints:")
-          print("\n".join(x for x in s.splitlines() if "intl:" in x or "google_sign_in:" in x))
+          lines = s.splitlines()
+          found = False
+          for i, line in enumerate(lines):
+              if line.strip().startswith("intl:"):
+                  lines[i] = "  intl: ^0.20.3"
+                  found = True
+          if not found:
+              for i, line in enumerate(lines):
+                  if line.strip() == "dependencies:":
+                      lines.insert(i + 1, "  intl: ^0.20.3")
+                      break
+          if not any(line.strip().startswith("google_sign_in:") for line in lines):
+              for i, line in enumerate(lines):
+                  if line.strip() == "dependencies:":
+                      lines.insert(i + 1, "  google_sign_in: ^6.2.1")
+                      break
+          p.write_text("\\n".join(lines) + "\\n")
+          print("Patched dependencies:")
+          print("\\n".join(line for line in lines if "intl:" in line or "google_sign_in:" in line))
           PY
           flutter pub get
       - name: Analyze and build
