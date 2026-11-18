@@ -5,6 +5,29 @@ import { PrismaService } from '../../prisma/prisma.service';
 @Injectable()
 export class OrdersService {
   constructor(private readonly prisma: PrismaService) {}
+  async createPeerDelivery(customerId: string, dto: {cityId:string;addressId:string;pickupAddress:string;notes?:string}) {
+    const pickupAddress = dto.pickupAddress.trim();
+    if (pickupAddress.length < 5 || pickupAddress.length > 500) throw new BadRequestException('عنوان الاستلام غير صالح');
+    return this.prisma.$transaction(async tx => {
+      const [address, city, zone] = await Promise.all([
+        tx.address.findFirst({ where: { id: dto.addressId, userId: customerId }, select: { id: true } }),
+        tx.city.findFirst({ where: { id: dto.cityId, isActive: true }, select: { id: true, defaultCurrency: true } }),
+        tx.deliveryZone.findUnique({ where: { cityId: dto.cityId } }),
+      ]);
+      if (!address) throw new BadRequestException('عنوان التسليم غير صالح');
+      if (!city) throw new BadRequestException('المدينة غير متاحة');
+      if (!zone) throw new BadRequestException('لم يتم إعداد رسوم التوصيل لهذه المدينة بعد');
+      const fee = Number(zone.feeBase);
+      return tx.order.create({ data: {
+        orderNumber: `DRB-${Date.now().toString(36).toUpperCase()}-${randomBytes(2).toString('hex').toUpperCase()}`,
+        type: 'PEER_DELIVERY', status: 'READY', cityId: city.id, customerId,
+        addressId: address.id, pickupAddress, currency: city.defaultCurrency,
+        subtotal: 0, deliveryFee: fee, total: fee, notes: dto.notes,
+        payment: { create: { method: 'CASH_ON_DELIVERY', amount: fee, currency: city.defaultCurrency } },
+        statusHistory: { create: { status: 'READY', changedBy: customerId } },
+      }, include: { payment: true, address: true } });
+    });
+  }
   async create(customerId: string, dto: {cityId:string;addressId:string;vendorId:string;items:{productId:string;quantity:number}[];notes?:string}) {
     if (!dto.items?.length || dto.items.length > 30) throw new BadRequestException('قائمة المنتجات غير صالحة');
     const ids = [...new Set(dto.items.map(x => x.productId))];
