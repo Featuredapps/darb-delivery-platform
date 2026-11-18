@@ -5,6 +5,7 @@ on:
     paths:
       - "DARB-source.zip"
       - ".github/workflows/validate-source.yml"
+      - ".github/workflows/build-android-release.yml"
       - "mobile-overrides/**"
       - "backend-overrides/**"
   workflow_dispatch:
