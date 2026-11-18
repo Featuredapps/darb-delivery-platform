@@ -20,6 +20,18 @@ The mobile app and NestJS API already contain the Google ID-token sign-in flow. 
 
 Save the Render environment change and wait for the service to redeploy. The Render Blueprint declares this variable as manually supplied; it cannot be populated safely by the repository.
 
+
+## 2A. Configure Firebase push notifications
+
+The Android build workflow also accepts these optional repository secrets:
+
+- `FIREBASE_API_KEY`
+- `FIREBASE_APP_ID`
+- `FIREBASE_MESSAGING_SENDER_ID`
+- `FIREBASE_PROJECT_ID`
+
+Add all four from the Firebase project used by the Android app. If any are missing, the APK can still be built, but the app intentionally leaves Firebase push notifications disabled. The backend must also have its Firebase service-account configuration set on Render for sending notifications.
+
 ## 3. Build and verify
 
 1. Run **Build signed DARB Android release** from GitHub Actions (or merge this change to `main`, which triggers it).
