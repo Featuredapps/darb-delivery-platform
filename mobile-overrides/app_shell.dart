@@ -424,14 +424,17 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
           actions: [
             TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('إلغاء')),
             FilledButton(
-              onPressed: position == null || details.text.trim().length < 3 ? null : () => Navigator.pop(dialogContext, true),
+              onPressed: position == null ? null : () => Navigator.pop(dialogContext, true),
               child: const Text('حفظ العنوان'),
             ),
           ],
         ),
       ),
     );
-    if (saved == true) {
+    if (saved == true && details.text.trim().length < 3) {
+      if (mounted) setState(() => error = 'اكتب تفاصيل عنوان التسليم بشكل أوضح');
+    }
+    if (saved == true && details.text.trim().length >= 3) {
       setState(() { savingAddress = true; error = null; });
       try {
         final created = await Api.instance.post('/addresses', {
