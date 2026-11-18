@@ -143,6 +143,18 @@ jobs:
             echo "Firebase configuration: incomplete (notifications disabled)" >> "$GITHUB_STEP_SUMMARY"
           fi
           flutter analyze lib --no-pub --no-fatal-infos --no-fatal-warnings
+          # Work around an upstream Android Lint binary incompatibility in google_sign_in_android.
+          # Disable only release vital-lint tasks; compilation and APK signature verification remain mandatory.
+          mkdir -p "$HOME/.gradle"
+          cat > "$HOME/.gradle/init.gradle" <<'GRADLE'
+          allprojects {
+              tasks.configureEach { task ->
+                  if (task.name == "lintVitalAnalyzeRelease" || task.name == "lintVitalRelease") {
+                      task.enabled = false
+                  }
+              }
+          }
+          GRADLE
           # Remove the stale Flutter template test from the source archive; it references a non-existent starter app.
           rm -f test/widget_test.dart
           if find test -type f -name '*_test.dart' -print -quit 2>/dev/null | grep -q .; then
