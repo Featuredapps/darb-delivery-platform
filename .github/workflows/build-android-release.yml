@@ -49,7 +49,7 @@ jobs:
               if not any(line.strip().startswith(name + ":") for line in lines):
                   dep_index += 1
                   lines.insert(dep_index, dep)
-          pubspec.write_text("\\n".join(lines) + "\\n")
+          pubspec.write_text("\n".join(lines) + "\n")
           m = manifest.read_text()
           permissions = ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "POST_NOTIFICATIONS"]
           for p in permissions:
@@ -57,7 +57,7 @@ jobs:
               if tag not in m:
                   internet = '<uses-permission android:name="android.permission.INTERNET" />'
                   if internet not in m: raise SystemExit("INTERNET permission anchor missing")
-                  m = m.replace(internet, internet + "\\n    " + tag)
+                  m = m.replace(internet, internet + "\n    " + tag)
           manifest.write_text(m)
           PY
       - name: Normalize dependencies and resolve packages
