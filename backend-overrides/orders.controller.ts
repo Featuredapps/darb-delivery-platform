@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
-import { IsArray, IsInt, IsOptional, IsEnum, IsString, IsUUID, Max, Min, ValidateNested } from 'class-validator';
+import { IsArray, IsInt, IsOptional, IsEnum, IsString, IsUUID, IsLatitude, IsLongitude, Max, Min, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { OrderStatus, UserRole } from '@prisma/client';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -13,6 +13,8 @@ class CreatePeerDeliveryDto {
   @IsUUID() cityId!: string;
   @IsUUID() addressId!: string;
   @IsString() pickupAddress!: string;
+  @Type(() => Number) @IsLatitude() pickupLatitude!: number;
+  @Type(() => Number) @IsLongitude() pickupLongitude!: number;
   @IsOptional() @IsString() notes?: string;
 }
 class CreateOrderDto {
