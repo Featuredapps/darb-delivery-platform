@@ -35,6 +35,14 @@ export class NotificationsService {
     const vendor = await this.prisma.vendor.findUnique({ where: { id: vendorId }, select: { userId: true } });
     if (vendor) await this.notifyUser(vendor.userId, title, body, data);
   }
+  async notifyDriversInCity(cityId: string, title: string, body: string, data: Record<string,string>) {
+    const drivers = await this.prisma.driver.findMany({
+      where: { cityId, status: 'APPROVED', isOnline: true },
+      select: { userId: true },
+    });
+    await Promise.all(drivers.map(driver => this.notifyUser(driver.userId, title, body, data)));
+    return { targetedDrivers: drivers.length };
+  }
   async notifyCustomer(customerId: string, title: string, body: string, data: Record<string,string>) {
     await this.notifyUser(customerId, title, body, data);
   }
