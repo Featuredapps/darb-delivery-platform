@@ -85,14 +85,14 @@ jobs:
           import re
           p = Path("pubspec.yaml")
           s = p.read_text()
-          s, n = re.subn(r"^\\s*intl\\s*:\\s*.*$", "  intl: ^0.20.3", s, count=1, flags=re.M)
+          s, n = re.subn(r"^\s*intl\s*:.*$", "  intl: ^0.20.3", s, count=1, flags=re.M)
           if not n:
-              s = s.replace("  flutter_localizations:\\n", "  intl: ^0.20.3\\n  flutter_localizations:\\n", 1)
+              s = s.replace("  flutter_localizations:\n", "  intl: ^0.20.3\n  flutter_localizations:\n", 1)
           if "google_sign_in:" not in s:
-              s = s.replace("  flutter_localizations:\\n", "  google_sign_in: ^6.2.1\\n  flutter_localizations:\\n", 1)
+              s = s.replace("  flutter_localizations:\n", "  google_sign_in: ^6.2.1\n  flutter_localizations:\n", 1)
           p.write_text(s)
           print("Updated pubspec dependency constraints:")
-          print("\\n".join(x for x in s.splitlines() if "intl:" in x or "google_sign_in:" in x))
+          print("\n".join(x for x in s.splitlines() if "intl:" in x or "google_sign_in:" in x))
           PY
           flutter pub get
       - name: Analyze and build
