@@ -21,19 +21,20 @@ jobs:
         run: |
           set -euo pipefail
           unzip -q DARB-source.zip -d extracted
-          M=extracted/darb-project/mobile
+          ROOT="$GITHUB_WORKSPACE"
+          M="$ROOT/extracted/darb-project/mobile"
           cd "$M"
           flutter create --platforms=android --org com.darb --project-name darb --no-pub .
           D="$M/lib/screens/app_shell.dart"
           if grep -Fq "cityId:cityId))));}}" "$D"; then sed -i "s/cityId:cityId))));}}/cityId:cityId)))));}}/" "$D"; fi
-          cp mobile-overrides/login_screen.dart "$M/lib/screens/login_screen.dart"
-          cp mobile-overrides/main.dart "$M/lib/main.dart"
-          cp mobile-overrides/localizations.dart "$M/lib/localizations.dart"
-          cp mobile-overrides/api.dart "$M/lib/core/api.dart"
-          cp mobile-overrides/app_shell.dart "$M/lib/screens/app_shell.dart"
-          cp mobile-overrides/notifications.dart "$M/lib/notifications.dart"
+          cp "$ROOT/mobile-overrides/login_screen.dart" "$M/lib/screens/login_screen.dart"
+          cp "$ROOT/mobile-overrides/main.dart" "$M/lib/main.dart"
+          cp "$ROOT/mobile-overrides/localizations.dart" "$M/lib/localizations.dart"
+          cp "$ROOT/mobile-overrides/api.dart" "$M/lib/core/api.dart"
+          cp "$ROOT/mobile-overrides/app_shell.dart" "$M/lib/screens/app_shell.dart"
+          cp "$ROOT/mobile-overrides/notifications.dart" "$M/lib/notifications.dart"
           mkdir -p "$M/android/app/src/main/res/drawable"
-          cp mobile-overrides/ic_launcher.xml "$M/android/app/src/main/res/drawable/ic_launcher.xml"
+          cp "$ROOT/mobile-overrides/ic_launcher.xml" "$M/android/app/src/main/res/drawable/ic_launcher.xml"
           sed -i 's|android:icon="@mipmap/ic_launcher"|android:icon="@drawable/ic_launcher"|' "$M/android/app/src/main/AndroidManifest.xml"
       - name: Normalize dependencies and resolve packages
         working-directory: extracted/darb-project/mobile
