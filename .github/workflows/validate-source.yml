@@ -47,6 +47,7 @@ jobs:
           cp mobile-overrides/api.dart extracted/darb-project/mobile/lib/core/api.dart
           cp mobile-overrides/login_screen.dart extracted/darb-project/mobile/lib/screens/login_screen.dart
           cp mobile-overrides/main.dart extracted/darb-project/mobile/lib/main.dart
+          cp mobile-overrides/design_system.dart extracted/darb-project/mobile/lib/design_system.dart
           cp mobile-overrides/localizations.dart extracted/darb-project/mobile/lib/localizations.dart
           mkdir -p extracted/darb-project/backend/src/modules/orders
           mkdir -p extracted/darb-project/backend/src/modules/notifications
