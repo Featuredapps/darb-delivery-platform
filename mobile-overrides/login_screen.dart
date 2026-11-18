@@ -56,6 +56,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     try {
       await Api.instance.post('/auth/otp/request', {'phone': '+963${digits.substring(1)}'});
       if (mounted) setState(() => sent = true);
+    } on ApiException catch (e) {
+      _fail(e.message);
     } catch (_) {
       _fail(l.t('networkError'));
     } finally {
