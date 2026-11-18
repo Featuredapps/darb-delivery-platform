@@ -145,7 +145,12 @@ jobs:
           flutter analyze lib --no-pub --no-fatal-infos --no-fatal-warnings
           # Remove the stale Flutter template test from the source archive; it references a non-existent starter app.
           rm -f test/widget_test.dart
-          flutter test --no-pub
+          if find test -type f -name '*_test.dart' -print -quit 2>/dev/null | grep -q .; then
+            flutter test --no-pub
+          else
+            echo "::notice::No Flutter test files are present in this source archive; test execution skipped."
+            echo "Flutter tests: skipped (no test files supplied)" >> "$GITHUB_STEP_SUMMARY"
+          fi
           flutter build apk "${args[@]}"
           APK="build/app/outputs/flutter-apk/app-release.apk"
           test -s "$APK"
