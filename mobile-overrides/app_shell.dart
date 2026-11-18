@@ -491,6 +491,11 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
         const Text('أرسل غرضاً من موقع إلى موقع', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
         const SizedBox(height: 8),
         const Text('حدد موقع الاستلام واختر عنوان تسليم محفوظاً مع موقع جغرافي.', style: TextStyle(color: Colors.black54)),
+        if (error != null && addresses.isEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 14),
+            child: _ErrorPanel(message: error!, retry: _load),
+          ),
         const SizedBox(height: 22),
         TextField(controller: pickup, maxLines: 3,
           decoration: const InputDecoration(labelText: 'وصف مكان الاستلام', hintText: 'اسم المكان، الشارع، أقرب نقطة دالة')),
