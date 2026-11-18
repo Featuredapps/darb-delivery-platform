@@ -1,7 +1,5 @@
 name: Build signed DARB Android release
 on:
-  push:
-    branches: [main, feat/darb-localized-login-google, fix/google-oauth-release-validation]
   workflow_dispatch:
 permissions:
   contents: read
