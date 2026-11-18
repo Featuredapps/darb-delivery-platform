@@ -97,30 +97,49 @@ class PeerDeliveryScreen extends StatefulWidget {
 }
 class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
   final pickup=TextEditingController(),notes=TextEditingController();
-  List addresses=[]; String? addressId,error; bool loading=true,sending=false;
+  List addresses=[]; String? addressId,error; bool loading=true,sending=false,locating=false;
+  Position? pickupPosition;
   @override void initState(){super.initState();_load();}
   @override void dispose(){pickup.dispose();notes.dispose();super.dispose();}
   Future<void> _load() async {try{addresses=await Api.instance.get('/addresses') as List;if(addresses.isNotEmpty)addressId=addresses.first['id'].toString();}catch(e){error=e.toString();}finally{if(mounted)setState(()=>loading=false);}}
+  Future<void> _locatePickup() async {
+    setState(()=>locating=true); error=null;
+    try {
+      if(!await Geolocator.isLocationServiceEnabled()) throw Exception('فعّل خدمة الموقع على الهاتف');
+      var permission=await Geolocator.checkPermission();
+      if(permission==LocationPermission.denied) permission=await Geolocator.requestPermission();
+      if(permission==LocationPermission.denied||permission==LocationPermission.deniedForever) throw Exception('يلزم السماح بالوصول إلى الموقع لتحديد نقطة الاستلام');
+      pickupPosition=await Geolocator.getCurrentPosition(locationSettings: const LocationSettings(accuracy: LocationAccuracy.high,timeLimit: Duration(seconds:20)));
+    } catch(e){error=e.toString();}
+    finally{if(mounted)setState(()=>locating=false);}
+  }
   Future<void> _submit() async {
     if(pickup.text.trim().length<5){setState(()=>error='اكتب عنوان الاستلام بالتفصيل');return;}
+    if(pickupPosition==null){setState(()=>error='حدد موقع الاستلام أولاً');return;}
     if(addressId==null){setState(()=>error='أضف عنوان التسليم من حسابك أولاً');return;}
     setState(()=>sending=true);error=null;
-    try{final order=await Api.instance.post('/orders/peer-delivery',{'cityId':widget.cityId,'addressId':addressId,'pickupAddress':pickup.text.trim(),'notes':notes.text.trim()});
+    try{
+      final order=await Api.instance.post('/orders/peer-delivery',{
+        'cityId':widget.cityId,'addressId':addressId,'pickupAddress':pickup.text.trim(),
+        'pickupLatitude':pickupPosition!.latitude,'pickupLongitude':pickupPosition!.longitude,'notes':notes.text.trim()
+      });
       if(!mounted)return;
-      await showDialog<void>(context:context,builder:(ctx)=>AlertDialog(title:const Text('تم إرسال طلب التوصيل'),content:Text('رقم الطلب: ${order['orderNumber']??order['id']}\nسيظهر للسائقين المعتمدين والمتصلين في مدينتك.'),actions:[TextButton(onPressed:()=>Navigator.pop(ctx),child:const Text('حسناً'))]));
+      await showDialog<void>(context:context,builder:(ctx)=>AlertDialog(title:const Text('تم إرسال طلب التوصيل'),content:Text('رقم الطلب: ${order['orderNumber']??order['id']}\nتم احتساب الرسوم حسب إعدادات المدينة وموقع التسليم.'),actions:[TextButton(onPressed:()=>Navigator.pop(ctx),child:const Text('حسناً'))]));
       if(mounted)Navigator.pop(context);
     }catch(e){if(mounted)setState(()=>error=e.toString());}
     finally{if(mounted)setState(()=>sending=false);}
   }
   @override Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:const Text('توصيل مستقل')),body:loading?const Center(child:CircularProgressIndicator()):ListView(padding:const EdgeInsets.all(18),children:[
     const Text('أرسل غرضاً من موقع إلى موقع',style:TextStyle(fontSize:22,fontWeight:FontWeight.w900)),
-    const SizedBox(height:8),const Text('اكتب مكان الاستلام واختر عنوان التسليم. سيقبل أحد السائقين المعتمدين الطلب.',style:TextStyle(color:Colors.black54)),
-    const SizedBox(height:22),TextField(controller:pickup,maxLines:3,decoration:const InputDecoration(labelText:'عنوان الاستلام بالتفصيل',hintText:'اسم المكان، الشارع، أقرب نقطة دالة')),
+    const SizedBox(height:8),const Text('حدد موقع الاستلام واختر عنوان التسليم المحفوظ. يحسب النظام رسوم المسافة عندما تكون مفعّلة للمدينة.',style:TextStyle(color:Colors.black54)),
+    const SizedBox(height:22),TextField(controller:pickup,maxLines:3,decoration:const InputDecoration(labelText:'وصف مكان الاستلام',hintText:'اسم المكان، الشارع، أقرب نقطة دالة')),
+    const SizedBox(height:8),
+    OutlinedButton.icon(onPressed:locating?null:_locatePickup,icon:Icon(pickupPosition==null?Icons.my_location:Icons.check_circle_outline),label:Text(locating?'جارٍ تحديد الموقع...':pickupPosition==null?'تحديد موقعي الحالي للاستلام':'تم تحديد موقع الاستلام')),
+    if(pickupPosition!=null)Text('الإحداثيات: ${pickupPosition!.latitude.toStringAsFixed(6)}, ${pickupPosition!.longitude.toStringAsFixed(6)}',style:const TextStyle(fontSize:12,color:Colors.black54)),
     const SizedBox(height:16),const Text('عنوان التسليم',style:TextStyle(fontWeight:FontWeight.bold)),
-    if(addresses.isEmpty)const _EmptyPanel(text:'لا يوجد عنوان محفوظ. أضف عنواناً من صفحة حسابك أولاً.'),
+    if(addresses.isEmpty)const _EmptyPanel(text:'لا يوجد عنوان محفوظ. أضف عنواناً من حسابك أولاً.'),
     if(addresses.isNotEmpty)DropdownButtonFormField<String>(value:addressId,items:[for(final a in addresses)DropdownMenuItem(value:a['id'].toString(),child:Text('${a['label']??'عنوان'} — ${a['details']??''}',maxLines:1,overflow:TextOverflow.ellipsis))],onChanged:(v)=>setState(()=>addressId=v)),
     const SizedBox(height:16),TextField(controller:notes,maxLines:3,decoration:const InputDecoration(labelText:'تفاصيل الغرض أو تعليمات للسائق (اختياري)')),
-    const SizedBox(height:12),const Text('رسوم التوصيل المعروضة حالياً هي الرسوم الأساسية المحددة للمدينة، وقد تتغير بعد إضافة حساب المسافة.',style:TextStyle(fontSize:12,color:Colors.black54)),
     if(error!=null)Padding(padding:const EdgeInsets.symmetric(vertical:10),child:Text(error!,style:const TextStyle(color:Colors.red))),
     const SizedBox(height:18),FilledButton(onPressed:sending||addresses.isEmpty?null:_submit,child:sending?const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2)):const Text('إرسال طلب التوصيل')),
   ]));
