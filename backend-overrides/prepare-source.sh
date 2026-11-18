@@ -25,11 +25,12 @@ deps = [
 ]
 for dep in deps:
     name = dep.split(":")[0].strip()
-    if name + ":" not in s:
-        s = s.replace(
-            "  flutter_secure_storage: ^9.2.2\n",
-            "  flutter_secure_storage: ^9.2.2\n" + dep + "\n",
-        )
+    if name + ":" in s:
+        continue
+    anchor = "dependencies:\\n"
+    if anchor not in s:
+        raise SystemExit("pubspec.yaml: dependencies section missing")
+    s = s.replace(anchor, anchor + dep + "\\n", 1)
 pubspec.write_text(s)
 
 manifest = mobile / "android/app/src/main/AndroidManifest.xml"
