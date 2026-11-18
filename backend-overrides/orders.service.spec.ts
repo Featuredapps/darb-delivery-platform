@@ -16,6 +16,40 @@ describe('OrdersService safety checks', () => {
     service = new OrdersService(prisma);
   });
 
+  it('creates a peer-delivery order without vendor or catalog items', async () => {
+    const create = jest.fn().mockResolvedValue({ id: 'peer-1', type: 'PEER_DELIVERY' });
+    const tx: any = {
+      address: { findFirst: jest.fn().mockResolvedValue({ id: 'address-1' }) },
+      city: { findFirst: jest.fn().mockResolvedValue({ id: 'city-1', defaultCurrency: 'SYP' }) },
+      deliveryZone: { findUnique: jest.fn().mockResolvedValue({ feeBase: 1250 }) },
+      order: { create },
+    };
+    prisma.$transaction.mockImplementation(async (callback: (tx: any) => unknown) => callback(tx));
+
+    await service.createPeerDelivery('customer-1', {
+      cityId: 'city-1', addressId: 'address-1', pickupAddress: 'شارع الجامعة، حلب',
+    });
+
+    expect(create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        type: 'PEER_DELIVERY', status: 'READY', cityId: 'city-1',
+        customerId: 'customer-1', addressId: 'address-1',
+        pickupAddress: 'شارع الجامعة، حلب', vendorId: undefined,
+        subtotal: 0, deliveryFee: 1250, total: 1250,
+        payment: { create: expect.objectContaining({ method: 'CASH_ON_DELIVERY', amount: 1250, currency: 'SYP' }) },
+        statusHistory: { create: { status: 'READY', changedBy: 'customer-1' } },
+      }),
+      include: { payment: true, address: true },
+    }));
+  });
+
+  it('rejects a peer-delivery pickup address that is too short before opening a transaction', async () => {
+    await expect(service.createPeerDelivery('customer-1', {
+      cityId: 'city-1', addressId: 'address-1', pickupAddress: 'abc',
+    })).rejects.toBeInstanceOf(BadRequestException);
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
   it('rejects an empty order before opening a transaction', async () => {
     await expect(service.create('customer-1', {
       cityId: 'city-1', addressId: 'address-1', vendorId: 'vendor-1', items: [],
