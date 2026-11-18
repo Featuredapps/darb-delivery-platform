@@ -60,6 +60,7 @@ jobs:
           cp backend-overrides/orders.service.ts "$B/src/modules/orders/orders.service.ts"
           cp backend-overrides/orders.tracking.controller.ts "$B/src/modules/orders/orders.tracking.controller.ts"
           cp backend-overrides/orders.tracking.service.ts "$B/src/modules/orders/orders.tracking.service.ts"
+          mkdir -p "$B/src/modules/vendors"
           cp backend-overrides/vendor-application.dto.ts "$B/src/modules/vendors/vendor-application.dto.ts"
           cp backend-overrides/vendors.service.ts "$B/src/modules/vendors/vendors.service.ts"
           mkdir -p "$M/android/app/src/main/res/drawable"
