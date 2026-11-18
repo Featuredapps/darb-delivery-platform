@@ -1,74 +1,41 @@
 name: Build signed DARB Android release
-
 on:
   push:
-    branches:
-      - main
-      - feat/darb-localized-login-google
-      - fix/google-oauth-release-validation
+    branches: [main, feat/darb-localized-login-google, fix/google-oauth-release-validation]
   workflow_dispatch:
-    inputs:
-      api_base_url:
-        description: "Production HTTPS API base URL, including /api/v1 and no trailing slash"
-        required: true
-        default: https://darb-api-yapv.onrender.com/api/v1
-        type: string
-
 permissions:
   contents: read
-
 jobs:
   release:
     runs-on: ubuntu-latest
     timeout-minutes: 50
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - name: Validate signing secrets
-        shell: bash
         env:
-          DARB_KEYSTORE_BASE64: ${{ secrets.DARB_KEYSTORE_BASE64 }}
-          DARB_KEYSTORE_PASSWORD: ${{ secrets.DARB_KEYSTORE_PASSWORD }}
-          DARB_KEY_ALIAS: ${{ secrets.DARB_KEY_ALIAS }}
-          DARB_KEY_PASSWORD: ${{ secrets.DARB_KEY_PASSWORD }}
+          KS: ${{ secrets.DARB_KEYSTORE_BASE64 }}
+          SP: ${{ secrets.DARB_KEYSTORE_PASSWORD }}
+          AL: ${{ secrets.DARB_KEY_ALIAS }}
+          KP: ${{ secrets.DARB_KEY_PASSWORD }}
+        run: test -n "$KS" && test -n "$SP" && test -n "$AL" && test -n "$KP"
+      - name: Extract source and apply overrides
         run: |
           set -euo pipefail
-          for name in DARB_KEYSTORE_BASE64 DARB_KEYSTORE_PASSWORD DARB_KEY_ALIAS DARB_KEY_PASSWORD; do
-            if [ -z "${!name:-}" ]; then
-              echo "::error::Missing required GitHub Actions secret: $name"
-              exit 1
-            fi
-          done
-
-      - name: Extract and repair source
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -s DARB-source.zip
           unzip -q DARB-source.zip -d extracted
-          dart_file="extracted/darb-project/mobile/lib/screens/app_shell.dart"
-          if grep -Fq "cityId:cityId))));}}" "$dart_file"; then
-            sed -i "s/cityId:cityId))));}}/cityId:cityId)))));}}/" "$dart_file"
-          fi
-          if grep -Fq "cityId:cityId))));}}" "$dart_file"; then
-            echo "::error::Vendor navigation syntax patch did not apply"
-            exit 1
-          fi
-          # Apply the reviewed login UI and launcher artwork overrides.
-          cp mobile-overrides/login_screen.dart extracted/darb-project/mobile/lib/screens/login_screen.dart
-          cp mobile-overrides/main.dart extracted/darb-project/mobile/lib/main.dart
-          cp mobile-overrides/localizations.dart extracted/darb-project/mobile/lib/localizations.dart
-          cp mobile-overrides/api.dart extracted/darb-project/mobile/lib/core/api.dart
-          cp mobile-overrides/app_shell.dart extracted/darb-project/mobile/lib/screens/app_shell.dart
-          cp mobile-overrides/notifications.dart extracted/darb-project/mobile/lib/notifications.dart
+          M=extracted/darb-project/mobile
+          D="$M/lib/screens/app_shell.dart"
+          if grep -Fq "cityId:cityId))));}}" "$D"; then sed -i "s/cityId:cityId))));}}/cityId:cityId)))));}}/" "$D"; fi
+          cp mobile-overrides/login_screen.dart "$M/lib/screens/login_screen.dart"
+          cp mobile-overrides/main.dart "$M/lib/main.dart"
+          cp mobile-overrides/localizations.dart "$M/lib/localizations.dart"
+          cp mobile-overrides/api.dart "$M/lib/core/api.dart"
+          cp mobile-overrides/app_shell.dart "$M/lib/screens/app_shell.dart"
+          cp mobile-overrides/notifications.dart "$M/lib/notifications.dart"
           bash backend-overrides/prepare-source.sh extracted/darb-project
-          mkdir -p extracted/darb-project/mobile/android/app/src/main/res/drawable
-          cp mobile-overrides/ic_launcher.xml extracted/darb-project/mobile/android/app/src/main/res/drawable/ic_launcher.xml
-          sed -i 's|android:icon="@mipmap/ic_launcher"|android:icon="@drawable/ic_launcher"|' extracted/darb-project/mobile/android/app/src/main/AndroidManifest.xml
-
-      - name: Set up Java 17 and Flutter
-        uses: actions/setup-java@v4
+          mkdir -p "$M/android/app/src/main/res/drawable"
+          cp mobile-overrides/ic_launcher.xml "$M/android/app/src/main/res/drawable/ic_launcher.xml"
+          sed -i 's|android:icon="@mipmap/ic_launcher"|android:icon="@drawable/ic_launcher"|' "$M/android/app/src/main/AndroidManifest.xml"
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "21"
@@ -76,337 +43,85 @@ jobs:
         with:
           channel: stable
           cache: true
-
-      - name: Generate Android platform and configure release signing
+      - name: Create Android and configure signing
         working-directory: extracted/darb-project/mobile
-        shell: bash
         env:
-          DARB_KEYSTORE_BASE64: ${{ secrets.DARB_KEYSTORE_BASE64 }}
-          DARB_KEYSTORE_PASSWORD: ${{ secrets.DARB_KEYSTORE_PASSWORD }}
-          DARB_KEY_ALIAS: ${{ secrets.DARB_KEY_ALIAS }}
-          DARB_KEY_PASSWORD: ${{ secrets.DARB_KEY_PASSWORD }}
+          KS: ${{ secrets.DARB_KEYSTORE_BASE64 }}
+          SP: ${{ secrets.DARB_KEYSTORE_PASSWORD }}
+          AL: ${{ secrets.DARB_KEY_ALIAS }}
+          KP: ${{ secrets.DARB_KEY_PASSWORD }}
         run: |
           set -euo pipefail
           flutter create --platforms=android --org com.darb --project-name darb .
-          mkdir -p android/app
-          printf '%s' "$DARB_KEYSTORE_BASE64" | base64 --decode > android/app/darb-release.jks
-          test -s android/app/darb-release.jks
-          keytool -list -keystore android/app/darb-release.jks -storepass "$DARB_KEYSTORE_PASSWORD" -alias "$DARB_KEY_ALIAS" >/dev/null
+          echo "$KS" | base64 --decode > android/app/darb-release.jks
+          keytool -list -keystore android/app/darb-release.jks -storepass "$SP" -alias "$AL" >/dev/null
           cat > android/key.properties <<EOF
-          storePassword=$DARB_KEYSTORE_PASSWORD
-          keyPassword=$DARB_KEY_PASSWORD
-          keyAlias=$DARB_KEY_ALIAS
+          storePassword=$SP
+          keyPassword=$KP
+          keyAlias=$AL
           storeFile=darb-release.jks
           EOF
-
-          python3 - <<'PYCODE'
+          python3 - <<'PY'
           from pathlib import Path
-          groovy = Path("android/app/build.gradle")
-          kotlin = Path("android/app/build.gradle.kts")
-          is_kotlin = kotlin.exists()
-          p = kotlin if is_kotlin else groovy
-          if not p.exists():
-              raise SystemExit("Missing Android Gradle app build file after flutter create")
-          s = p.read_text()
-          if is_kotlin:
-              if "import java.util.Properties" not in s:
-                  s = "import java.util.Properties\nimport java.io.FileInputStream\n" + s
-              props = """
-          val keystoreProperties = Properties()
-          val keystorePropertiesFile = rootProject.file("key.properties")
-          if (!keystorePropertiesFile.exists()) throw GradleException("Release signing properties missing")
-          keystoreProperties.load(FileInputStream(keystorePropertiesFile))
-          """
-              if "keystorePropertiesFile" not in s:
-                  s = s.replace("android {", props + "\nandroid {", 1)
-              signing = """
-          signingConfigs {
+          p=Path("android/app/build.gradle.kts")
+          s=p.read_text()
+          s="import java.util.Properties\nimport java.io.FileInputStream\n"+s
+          s=s.replace("android {", 'val signingProps = Properties()\nval signingFile = rootProject.file("key.properties")\nsigningProps.load(FileInputStream(signingFile))\n\nandroid {',1)
+          cfg='''signingConfigs {
               create("release") {
-                  keyAlias = keystoreProperties["keyAlias"] as String
-                  keyPassword = keystoreProperties["keyPassword"] as String
-                  storeFile = file(keystoreProperties["storeFile"] as String)
-                  storePassword = keystoreProperties["storePassword"] as String
+                  keyAlias = signingProps["keyAlias"] as String
+                  keyPassword = signingProps["keyPassword"] as String
+                  storeFile = file(signingProps["storeFile"] as String)
+                  storePassword = signingProps["storePassword"] as String
               }
           }
-          """
-              if 'create("release")' not in s:
-                  s = s.replace("    buildTypes {", "    " + signing + "    buildTypes {", 1)
-              s = s.replace('signingConfig = signingConfigs.getByName("debug")', 'signingConfig = signingConfigs.getByName("release")')
-              if 'signingConfig = signingConfigs.getByName("release")' not in s:
-                  s = s.replace("    buildTypes {", '    buildTypes {\n        release {\n            signingConfig = signingConfigs.getByName("release")\n        }', 1)
-              if 'signingConfig = signingConfigs.getByName("release")' not in s:
-                  raise SystemExit("Release buildType is not configured for release signing")
-          else:
-              if "import java.util.Properties" not in s:
-                  s = "import java.util.Properties\nimport java.io.FileInputStream\n" + s
-              props = """
-          def keystoreProperties = new Properties()
-          def keystorePropertiesFile = rootProject.file('key.properties')
-          if (!keystorePropertiesFile.exists()) throw new GradleException("Release signing properties missing")
-          keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-          """
-              if "keystorePropertiesFile" not in s:
-                  s = s.replace("android {", props + "\nandroid {", 1)
-              signing = """
-          signingConfigs {
-              release {
-                  keyAlias keystoreProperties['keyAlias']
-                  keyPassword keystoreProperties['keyPassword']
-                  storeFile file(keystoreProperties['storeFile'])
-                  storePassword keystoreProperties['storePassword']
-              }
-          }
-          """
-              if "signingConfigs {" not in s:
-                  s = s.replace("    buildTypes {", "    " + signing + "    buildTypes {", 1)
-              s = s.replace('signingConfig signingConfigs.debug', 'signingConfig signingConfigs.release')
-              if "signingConfig signingConfigs.release" not in s:
-                  s = s.replace("    buildTypes {", "    buildTypes {\n        release {\n            signingConfig signingConfigs.release\n        }", 1)
-              if "signingConfig signingConfigs.release" not in s:
-                  raise SystemExit("Release buildType is not configured for release signing")
+          '''
+          s=s.replace("    buildTypes {", "    "+cfg+"    buildTypes {",1)
+          s=s.replace('signingConfig = signingConfigs.getByName("debug")','signingConfig = signingConfigs.getByName("release")')
           p.write_text(s)
-          print("Release keystore configured", p)
-          PYCODE
-
-          sed -i 's/^  intl: .*/  intl: ^0.20.3/' pubspec.yaml
-          if ! grep -q '^  intl: \\^0.20.3
-
-      - name: Analyze and build signed APK and AAB
-        working-directory: extracted/darb-project/mobile
-        env:
-          DARB_API_BASE_URL: ${{ inputs.api_base_url || 'https://darb-api-yapv.onrender.com/api/v1' }}
-          GOOGLE_SERVER_CLIENT_ID: '1005839784892-3b1sctr2c32hfa6ssq17nunfhn2d9pji.apps.googleusercontent.com'
-          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
-          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
-          FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
-          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
-        run: |
-          set -euo pipefail
-          if [[ "$DARB_API_BASE_URL" != https://* || "$DARB_API_BASE_URL" == */ ]]; then
-            echo "::error::A production HTTPS API URL is required; refusing to package the emulator fallback URL."
-            exit 1
-          fi
-          flutter analyze lib --no-pub --no-fatal-infos --no-fatal-warnings
-          flutter build apk --release --build-number="$GITHUB_RUN_NUMBER" --dart-define=API_BASE_URL="$DARB_API_BASE_URL" --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_SERVER_CLIENT_ID" --dart-define=FIREBASE_API_KEY="$FIREBASE_API_KEY" --dart-define=FIREBASE_APP_ID="$FIREBASE_APP_ID" --dart-define=FIREBASE_MESSAGING_SENDER_ID="$FIREBASE_MESSAGING_SENDER_ID" --dart-define=FIREBASE_PROJECT_ID="$FIREBASE_PROJECT_ID"
-          flutter build appbundle --release --build-number="$GITHUB_RUN_NUMBER" --dart-define=API_BASE_URL="$DARB_API_BASE_URL" --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_SERVER_CLIENT_ID" --dart-define=FIREBASE_API_KEY="$FIREBASE_API_KEY" --dart-define=FIREBASE_APP_ID="$FIREBASE_APP_ID" --dart-define=FIREBASE_MESSAGING_SENDER_ID="$FIREBASE_MESSAGING_SENDER_ID" --dart-define=FIREBASE_PROJECT_ID="$FIREBASE_PROJECT_ID"
-
-      - name: Verify release outputs and signing identity
-        working-directory: extracted/darb-project/mobile
-        shell: bash
-        env:
-          DARB_KEYSTORE_PASSWORD: ${{ secrets.DARB_KEYSTORE_PASSWORD }}
-          DARB_KEY_ALIAS: ${{ secrets.DARB_KEY_ALIAS }}
-        run: |
-          set -euo pipefail
-          APK="build/app/outputs/flutter-apk/app-release.apk"
-          AAB="build/app/outputs/bundle/release/app-release.aab"
-          KEYSTORE="android/app/darb-release.jks"
-          test -s "$APK"
-          test -s "$AAB"
-          test -s "$KEYSTORE"
-          APKSIGNER="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name apksigner 2>/dev/null | sort -V | tail -n 1)"
-          APKANALYZER="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}" -type f -name apkanalyzer 2>/dev/null | sort -V | tail -n 1)"
-          if [ -z "$APKSIGNER" ] || [ -z "$APKANALYZER" ]; then
-            echo "::error::Android SDK signing/package inspection tools were not found"
-            exit 1
-          fi
-          "$APKSIGNER" verify --verbose "$APK"
-          jarsigner -verify -verbose -certs "$AAB"
-          KEY_SHA1="$(keytool -list -v -keystore "$KEYSTORE" -alias "$DARB_KEY_ALIAS" -storepass "$DARB_KEYSTORE_PASSWORD" | awk -F': ' '/SHA1:/{print $2; exit}' | tr -d ': ' | tr '[:upper:]' '[:lower:]')"
-          APK_SHA1="$( "$APKSIGNER" verify --print-certs "$APK" | awk -F': ' '/certificate SHA-1 digest:/{print $2; exit}' | tr -d ': ' | tr '[:upper:]' '[:lower:]')"
-          APP_ID="$("$APKANALYZER" manifest application-id "$APK")"
-          if [ -z "$KEY_SHA1" ] || [ -z "$APK_SHA1" ] || [ "$KEY_SHA1" != "$APK_SHA1" ]; then
-            echo "::error::APK signer does not match the configured DARB release keystore. Refusing to publish."
-            echo "Keystore SHA-1: $KEY_SHA1"
-            echo "APK SHA-1: $APK_SHA1"
-            exit 1
-          fi
-          if [ "$APP_ID" != "com.darb.darb" ]; then
-            echo "::error::Unexpected Android applicationId: $APP_ID"
-            exit 1
-          fi
-          {
-            echo "## Verified Android release"
-            echo
-            echo "- Application ID: $APP_ID"
-            echo "- APK signing SHA-1: $APK_SHA1"
-            echo "- APK signature matches configured release keystore: YES"
-            echo "- AAB signature verification: PASSED"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Publish Google OAuth Android registration details
-        working-directory: extracted/darb-project/mobile
-        shell: bash
-        run: |
-          set -euo pipefail
-          APK="build/app/outputs/flutter-apk/app-release.apk"
-          APKANALYZER="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}" -type f -name apkanalyzer 2>/dev/null | sort -V | tail -n 1)"
-          APKSIGNER="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name apksigner 2>/dev/null | sort -V | tail -n 1)"
-          if [ -z "$APKANALYZER" ] || [ -z "$APKSIGNER" ]; then
-            echo "::error::Android package or signing certificate inspection tools were not found."
-            exit 1
-          fi
-          APPLICATION_ID="$("$APKANALYZER" manifest application-id "$APK")"
-          CERT_LINE="$("$APKSIGNER" verify --print-certs "$APK" | grep -m1 'certificate SHA-1 digest')"
-          SHA1="${CERT_LINE##*: }"
-          if [ -z "$APPLICATION_ID" ] || [ -z "$SHA1" ]; then
-            echo "::error::Could not extract Android package name and release SHA-1 fingerprint."
-            exit 1
-          fi
-          {
-            echo "## Google OAuth setup for this Android release"
-            echo
-            echo "- Android package name: $APPLICATION_ID"
-            echo "- Release signing certificate SHA-1: $SHA1"
-            echo "- Web OAuth client ID: configured via GitHub Actions secret or public client-ID fallback"
-            echo "- Backend audience: configure the same Web OAuth client ID as Render environment variable GOOGLE_SERVER_CLIENT_ID"
-          } >> "$GITHUB_STEP_SUMMARY"
-          echo "::notice title=Android OAuth SHA-1::$SHA1"
-          echo "::notice title=Android application ID::$APPLICATION_ID"
-
-      - name: Check Google OAuth configuration
-        env:
-          GOOGLE_SERVER_CLIENT_ID: '1005839784892-3b1sctr2c32hfa6ssq17nunfhn2d9pji.apps.googleusercontent.com'
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [[ -z "${GOOGLE_SERVER_CLIENT_ID//[[:space:]]/}" ]]; then
-            echo "::warning::GOOGLE_SERVER_CLIENT_ID is not configured. The APK will be uploaded, but Google sign-in will remain unavailable until the Web OAuth client ID is configured in GitHub and Render."
-            echo "Google sign-in: NOT CONFIGURED (OTP login remains available)." >> "$GITHUB_STEP_SUMMARY"
-          elif [[ "$GOOGLE_SERVER_CLIENT_ID" != *.apps.googleusercontent.com ]]; then
-            echo "::warning::GOOGLE_SERVER_CLIENT_ID does not look like a Google OAuth Web client ID. Verify it before testing Google sign-in."
-            echo "Google sign-in: CLIENT ID FORMAT NEEDS REVIEW." >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "Google sign-in: Web client ID is configured; a real-device sign-in test is still required." >> "$GITHUB_STEP_SUMMARY"
-          fi
-
-      - name: Upload signed Android release
-        uses: actions/upload-artifact@v4
-        with:
-          name: darb-android-signed-release
-          path: |
-            extracted/darb-project/mobile/build/app/outputs/flutter-apk/app-release.apk
-            extracted/darb-project/mobile/build/app/outputs/bundle/release/app-release.aab
-          if-no-files-found: error
-          retention-days: 30
- pubspec.yaml; then
-            echo "::error::intl dependency patch did not apply"
-            grep -n 'intl:' pubspec.yaml || true
-            exit 1
-          fi
+          PY
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path("pubspec.yaml"); s=p.read_text()
+          import re
+          s=re.sub(r"^  intl:.*$", "  intl: ^0.20.3", s, count=1, flags=re.M)
+          if "google_sign_in:" not in s:
+              s=s.replace("  flutter_localizations:\n", "  google_sign_in: ^6.2.1\n  flutter_localizations:\n",1)
+          p.write_text(s)
+          PY
           flutter pub get
-
-      - name: Analyze and build signed APK and AAB
+      - name: Analyze and build
         working-directory: extracted/darb-project/mobile
         env:
-          DARB_API_BASE_URL: ${{ inputs.api_base_url || 'https://darb-api-yapv.onrender.com/api/v1' }}
-          GOOGLE_SERVER_CLIENT_ID: '1005839784892-3b1sctr2c32hfa6ssq17nunfhn2d9pji.apps.googleusercontent.com'
-          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
-          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
-          FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
-          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          API: https://darb-api-yapv.onrender.com/api/v1
+          GOOGLE_CLIENT: 1005839784892-3b1sctr2c32hfa6ssq17nunfhn2d9pji.apps.googleusercontent.com
         run: |
           set -euo pipefail
-          if [[ "$DARB_API_BASE_URL" != https://* || "$DARB_API_BASE_URL" == */ ]]; then
-            echo "::error::A production HTTPS API URL is required; refusing to package the emulator fallback URL."
-            exit 1
-          fi
           flutter analyze lib --no-pub --no-fatal-infos --no-fatal-warnings
-          flutter build apk --release --build-number="$GITHUB_RUN_NUMBER" --dart-define=API_BASE_URL="$DARB_API_BASE_URL" --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_SERVER_CLIENT_ID" --dart-define=FIREBASE_API_KEY="$FIREBASE_API_KEY" --dart-define=FIREBASE_APP_ID="$FIREBASE_APP_ID" --dart-define=FIREBASE_MESSAGING_SENDER_ID="$FIREBASE_MESSAGING_SENDER_ID" --dart-define=FIREBASE_PROJECT_ID="$FIREBASE_PROJECT_ID"
-          flutter build appbundle --release --build-number="$GITHUB_RUN_NUMBER" --dart-define=API_BASE_URL="$DARB_API_BASE_URL" --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_SERVER_CLIENT_ID" --dart-define=FIREBASE_API_KEY="$FIREBASE_API_KEY" --dart-define=FIREBASE_APP_ID="$FIREBASE_APP_ID" --dart-define=FIREBASE_MESSAGING_SENDER_ID="$FIREBASE_MESSAGING_SENDER_ID" --dart-define=FIREBASE_PROJECT_ID="$FIREBASE_PROJECT_ID"
-
-      - name: Verify release outputs and signing identity
+          flutter build apk --release --build-number="$GITHUB_RUN_NUMBER" --dart-define=API_BASE_URL="$API" --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_CLIENT"
+          flutter build appbundle --release --build-number="$GITHUB_RUN_NUMBER" --dart-define=API_BASE_URL="$API" --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_CLIENT"
+      - name: Verify signing and package
         working-directory: extracted/darb-project/mobile
-        shell: bash
         env:
-          DARB_KEYSTORE_PASSWORD: ${{ secrets.DARB_KEYSTORE_PASSWORD }}
-          DARB_KEY_ALIAS: ${{ secrets.DARB_KEY_ALIAS }}
+          SP: ${{ secrets.DARB_KEYSTORE_PASSWORD }}
+          AL: ${{ secrets.DARB_KEY_ALIAS }}
         run: |
           set -euo pipefail
-          APK="build/app/outputs/flutter-apk/app-release.apk"
-          AAB="build/app/outputs/bundle/release/app-release.aab"
-          KEYSTORE="android/app/darb-release.jks"
-          test -s "$APK"
-          test -s "$AAB"
-          test -s "$KEYSTORE"
-          APKSIGNER="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name apksigner 2>/dev/null | sort -V | tail -n 1)"
-          APKANALYZER="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}" -type f -name apkanalyzer 2>/dev/null | sort -V | tail -n 1)"
-          if [ -z "$APKSIGNER" ] || [ -z "$APKANALYZER" ]; then
-            echo "::error::Android SDK signing/package inspection tools were not found"
-            exit 1
-          fi
-          "$APKSIGNER" verify --verbose "$APK"
-          jarsigner -verify -verbose -certs "$AAB"
-          KEY_SHA1="$(keytool -list -v -keystore "$KEYSTORE" -alias "$DARB_KEY_ALIAS" -storepass "$DARB_KEYSTORE_PASSWORD" | awk -F': ' '/SHA1:/{print $2; exit}' | tr -d ': ' | tr '[:upper:]' '[:lower:]')"
-          APK_SHA1="$( "$APKSIGNER" verify --print-certs "$APK" | awk -F': ' '/certificate SHA-1 digest:/{print $2; exit}' | tr -d ': ' | tr '[:upper:]' '[:lower:]')"
-          APP_ID="$("$APKANALYZER" manifest application-id "$APK")"
-          if [ -z "$KEY_SHA1" ] || [ -z "$APK_SHA1" ] || [ "$KEY_SHA1" != "$APK_SHA1" ]; then
-            echo "::error::APK signer does not match the configured DARB release keystore. Refusing to publish."
-            echo "Keystore SHA-1: $KEY_SHA1"
-            echo "APK SHA-1: $APK_SHA1"
-            exit 1
-          fi
-          if [ "$APP_ID" != "com.darb.darb" ]; then
-            echo "::error::Unexpected Android applicationId: $APP_ID"
-            exit 1
-          fi
-          {
-            echo "## Verified Android release"
-            echo
-            echo "- Application ID: $APP_ID"
-            echo "- APK signing SHA-1: $APK_SHA1"
-            echo "- APK signature matches configured release keystore: YES"
-            echo "- AAB signature verification: PASSED"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Publish Google OAuth Android registration details
-        working-directory: extracted/darb-project/mobile
-        shell: bash
-        run: |
-          set -euo pipefail
-          APK="build/app/outputs/flutter-apk/app-release.apk"
-          APKANALYZER="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}" -type f -name apkanalyzer 2>/dev/null | sort -V | tail -n 1)"
-          APKSIGNER="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name apksigner 2>/dev/null | sort -V | tail -n 1)"
-          if [ -z "$APKANALYZER" ] || [ -z "$APKSIGNER" ]; then
-            echo "::error::Android package or signing certificate inspection tools were not found."
-            exit 1
-          fi
-          APPLICATION_ID="$("$APKANALYZER" manifest application-id "$APK")"
-          CERT_LINE="$("$APKSIGNER" verify --print-certs "$APK" | grep -m1 'certificate SHA-1 digest')"
-          SHA1="${CERT_LINE##*: }"
-          if [ -z "$APPLICATION_ID" ] || [ -z "$SHA1" ]; then
-            echo "::error::Could not extract Android package name and release SHA-1 fingerprint."
-            exit 1
-          fi
-          {
-            echo "## Google OAuth setup for this Android release"
-            echo
-            echo "- Android package name: $APPLICATION_ID"
-            echo "- Release signing certificate SHA-1: $SHA1"
-            echo "- Web OAuth client ID: configured via GitHub Actions secret or public client-ID fallback"
-            echo "- Backend audience: configure the same Web OAuth client ID as Render environment variable GOOGLE_SERVER_CLIENT_ID"
-          } >> "$GITHUB_STEP_SUMMARY"
-          echo "::notice title=Android OAuth SHA-1::$SHA1"
-          echo "::notice title=Android application ID::$APPLICATION_ID"
-
-      - name: Check Google OAuth configuration
-        env:
-          GOOGLE_SERVER_CLIENT_ID: '1005839784892-3b1sctr2c32hfa6ssq17nunfhn2d9pji.apps.googleusercontent.com'
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [[ -z "${GOOGLE_SERVER_CLIENT_ID//[[:space:]]/}" ]]; then
-            echo "::warning::GOOGLE_SERVER_CLIENT_ID is not configured. The APK will be uploaded, but Google sign-in will remain unavailable until the Web OAuth client ID is configured in GitHub and Render."
-            echo "Google sign-in: NOT CONFIGURED (OTP login remains available)." >> "$GITHUB_STEP_SUMMARY"
-          elif [[ "$GOOGLE_SERVER_CLIENT_ID" != *.apps.googleusercontent.com ]]; then
-            echo "::warning::GOOGLE_SERVER_CLIENT_ID does not look like a Google OAuth Web client ID. Verify it before testing Google sign-in."
-            echo "Google sign-in: CLIENT ID FORMAT NEEDS REVIEW." >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "Google sign-in: Web client ID is configured; a real-device sign-in test is still required." >> "$GITHUB_STEP_SUMMARY"
-          fi
-
-      - name: Upload signed Android release
-        uses: actions/upload-artifact@v4
+          APK=build/app/outputs/flutter-apk/app-release.apk
+          AAB=build/app/outputs/bundle/release/app-release.aab
+          test -s "$APK" && test -s "$AAB"
+          SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          SIGNER="$(find "$SDK/build-tools" -type f -name apksigner | sort -V | tail -1)"
+          ANALYZER="$(find "$SDK" -type f -name apkanalyzer | sort -V | tail -1)"
+          "$SIGNER" verify --verbose "$APK"
+          jarsigner -verify "$AAB"
+          KEY_SHA="$(keytool -list -v -keystore android/app/darb-release.jks -alias "$AL" -storepass "$SP" | awk -F': ' '/SHA1:/{print $2;exit}' | tr -d ': ' | tr '[:upper:]' '[:lower:]')"
+          APK_SHA="$( "$SIGNER" verify --print-certs "$APK" | awk -F': ' '/certificate SHA-1 digest:/{print $2;exit}' | tr -d ': ' | tr '[:upper:]' '[:lower:]')"
+          APP="$( "$ANALYZER" manifest application-id "$APK")"
+          test "$APP" = com.darb.darb
+          test "$KEY_SHA" = "$APK_SHA"
+          echo "Verified appId=$APP SHA1=$APK_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
         with:
           name: darb-android-signed-release
           path: |
