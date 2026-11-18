@@ -34,7 +34,7 @@ Add all four from the Firebase project used by the Android app. If any are missi
 
 ## 3. Build and verify
 
-1. Run **Build signed DARB Android release** from GitHub Actions (or merge this change to `main`, which triggers it).
+1. Run **Build signed DARB Android release** manually from GitHub Actions → Actions → Build signed DARB Android release → Run workflow. This workflow is intentionally manual and is not triggered by a push to `main`.
 2. Confirm the run succeeds and its summary prints the Android package name and release signing SHA-1.
 3. Install the APK from the `darb-android-signed-release` artifact on a device and select **Continue with Google**.
 4. Confirm the API returns tokens and the app opens the customer shell. A build passing is not a substitute for this real-account device test.
