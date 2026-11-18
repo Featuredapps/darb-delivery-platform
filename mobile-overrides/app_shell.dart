@@ -340,58 +340,205 @@ class _CustomerHomeState extends State<CustomerHome> {
 
 class PeerDeliveryScreen extends StatefulWidget {
   final String cityId;
-  const PeerDeliveryScreen({super.key,required this.cityId});
-  @override State<PeerDeliveryScreen> createState()=>_PeerDeliveryScreenState();
+  const PeerDeliveryScreen({super.key, required this.cityId});
+  @override
+  State<PeerDeliveryScreen> createState() => _PeerDeliveryScreenState();
 }
+
 class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
-  final pickup=TextEditingController(),notes=TextEditingController();
-  List addresses=[]; String? addressId,error; bool loading=true,sending=false,locating=false;
+  final pickup = TextEditingController(), notes = TextEditingController();
+  List<Map<String, dynamic>> addresses = [];
+  String? addressId, error;
+  bool loading = true, sending = false, locating = false, savingAddress = false;
   Position? pickupPosition;
-  @override void initState(){super.initState();_load();}
-  @override void dispose(){pickup.dispose();notes.dispose();super.dispose();}
-  Future<void> _load() async {try{addresses=await Api.instance.get('/addresses') as List;if(addresses.isNotEmpty)addressId=addresses.first['id'].toString();}catch(e){error=e.toString();}finally{if(mounted)setState(()=>loading=false);}}
-  Future<void> _locatePickup() async {
-    setState(()=>locating=true); error=null;
+
+  @override
+  void initState() { super.initState(); _load(); }
+  @override
+  void dispose() { pickup.dispose(); notes.dispose(); super.dispose(); }
+
+  Future<void> _load() async {
+    if (mounted) setState(() { loading = true; error = null; });
     try {
-      if(!await Geolocator.isLocationServiceEnabled()) throw Exception('فعّل خدمة الموقع على الهاتف');
-      var permission=await Geolocator.checkPermission();
-      if(permission==LocationPermission.denied) permission=await Geolocator.requestPermission();
-      if(permission==LocationPermission.denied||permission==LocationPermission.deniedForever) throw Exception('يلزم السماح بالوصول إلى الموقع لتحديد نقطة الاستلام');
-      pickupPosition=await Geolocator.getCurrentPosition(locationSettings: const LocationSettings(accuracy: LocationAccuracy.high,timeLimit: Duration(seconds:20)));
-    } catch(e){error=e.toString();}
-    finally{if(mounted)setState(()=>locating=false);}
+      final result = await Api.instance.get('/addresses') as List;
+      addresses = result.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      if (addressId == null || !addresses.any((a) => a['id'].toString() == addressId)) {
+        addressId = addresses.isEmpty ? null : addresses.first['id'].toString();
+      }
+    } catch (e) { error = e.toString(); }
+    finally { if (mounted) setState(() => loading = false); }
   }
+
+  Future<Position> _currentPosition() async {
+    if (!await Geolocator.isLocationServiceEnabled()) throw Exception('فعّل خدمة الموقع على الهاتف');
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+      throw Exception('يلزم السماح بالوصول إلى الموقع');
+    }
+    return Geolocator.getCurrentPosition(locationSettings: const LocationSettings(
+      accuracy: LocationAccuracy.high, timeLimit: Duration(seconds: 20),
+    ));
+  }
+
+  Future<void> _locatePickup() async {
+    setState(() { locating = true; error = null; });
+    try { pickupPosition = await _currentPosition(); }
+    catch (e) { error = e.toString(); }
+    finally { if (mounted) setState(() => locating = false); }
+  }
+
+  Future<void> _addAddress() async {
+    final label = TextEditingController(), details = TextEditingController();
+    Position? position;
+    String? dialogError;
+    bool locatingAddress = false;
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          title: const Text('عنوان تسليم جديد'),
+          content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
+            TextField(controller: label, decoration: const InputDecoration(labelText: 'اسم العنوان (اختياري)')),
+            const SizedBox(height: 10),
+            TextField(controller: details, maxLines: 3, decoration: const InputDecoration(labelText: 'العنوان بالتفصيل')),
+            const SizedBox(height: 10),
+            OutlinedButton.icon(
+              onPressed: locatingAddress ? null : () async {
+                setDialogState(() { locatingAddress = true; dialogError = null; });
+                try { position = await _currentPosition(); }
+                catch (e) { dialogError = e.toString(); }
+                finally { setDialogState(() => locatingAddress = false); }
+              },
+              icon: Icon(position == null ? Icons.my_location : Icons.check_circle),
+              label: Text(locatingAddress ? 'جارٍ تحديد الموقع...' : position == null ? 'تحديد موقع عنوان التسليم' : 'تم تحديد موقع العنوان'),
+            ),
+            if (position != null)
+              Text(position!.latitude.toStringAsFixed(5) + ', ' + position!.longitude.toStringAsFixed(5),
+                style: const TextStyle(fontSize: 11, color: Colors.black54)),
+            if (dialogError != null) Text(dialogError!, style: const TextStyle(color: Colors.red, fontSize: 12)),
+            const SizedBox(height: 6),
+            const Text('حدد الموقع وأنت موجود في مكان التسليم نفسه. لا تستخدم موقعك الحالي إذا كان العنوان في مكان آخر.',
+              style: TextStyle(fontSize: 11, color: Colors.black54)),
+          ])),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('إلغاء')),
+            FilledButton(
+              onPressed: position == null || details.text.trim().length < 3 ? null : () => Navigator.pop(dialogContext, true),
+              child: const Text('حفظ العنوان'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (saved == true) {
+      setState(() { savingAddress = true; error = null; });
+      try {
+        final created = await Api.instance.post('/addresses', {
+          'label': label.text.trim(), 'details': details.text.trim(),
+          'latitude': position!.latitude, 'longitude': position!.longitude,
+        });
+        final address = Map<String, dynamic>.from(created as Map);
+        address['hasLocation'] = true;
+        if (mounted) setState(() { addresses.insert(0, address); addressId = address['id'].toString(); });
+      } catch (e) { if (mounted) setState(() => error = e.toString()); }
+      finally { if (mounted) setState(() => savingAddress = false); }
+    }
+    label.dispose(); details.dispose();
+  }
+
   Future<void> _submit() async {
-    if(pickup.text.trim().length<5){setState(()=>error='اكتب عنوان الاستلام بالتفصيل');return;}
-    if(pickupPosition==null){setState(()=>error='حدد موقع الاستلام أولاً');return;}
-    if(addressId==null){setState(()=>error='أضف عنوان التسليم من حسابك أولاً');return;}
-    setState(()=>sending=true);error=null;
-    try{
-      final order=await Api.instance.post('/orders/peer-delivery',{
-        'cityId':widget.cityId,'addressId':addressId,'pickupAddress':pickup.text.trim(),
-        'pickupLatitude':pickupPosition!.latitude,'pickupLongitude':pickupPosition!.longitude,'notes':notes.text.trim()
+    if (pickup.text.trim().length < 5) { setState(() => error = 'اكتب عنوان الاستلام بالتفصيل'); return; }
+    if (pickupPosition == null) { setState(() => error = 'حدد موقع الاستلام أولاً'); return; }
+    Map<String, dynamic>? selected;
+    for (final address in addresses) {
+      if (address['id'].toString() == addressId) selected = address;
+    }
+    if (selected == null) { setState(() => error = 'أضف عنوان التسليم أولاً'); return; }
+    if (selected['hasLocation'] != true) {
+      setState(() => error = 'عنوان التسليم لا يحتوي على موقع جغرافي. أضف عنواناً جديداً وحدد موقعه.');
+      return;
+    }
+    setState(() { sending = true; error = null; });
+    try {
+      final order = await Api.instance.post('/orders/peer-delivery', {
+        'cityId': widget.cityId, 'addressId': addressId,
+        'pickupAddress': pickup.text.trim(),
+        'pickupLatitude': pickupPosition!.latitude,
+        'pickupLongitude': pickupPosition!.longitude,
+        'notes': notes.text.trim(),
       });
-      if(!mounted)return;
-      await showDialog<void>(context:context,builder:(ctx)=>AlertDialog(title:const Text('تم إرسال طلب التوصيل'),content:Text('رقم الطلب: ${order['orderNumber']??order['id']}\nتم احتساب الرسوم حسب إعدادات المدينة وموقع التسليم.'),actions:[TextButton(onPressed:()=>Navigator.pop(ctx),child:const Text('حسناً'))]));
-      if(mounted)Navigator.pop(context);
-    }catch(e){if(mounted)setState(()=>error=e.toString());}
-    finally{if(mounted)setState(()=>sending=false);}
+      if (!mounted) return;
+      await showDialog<void>(context: context, builder: (ctx) => AlertDialog(
+        title: const Text('تم إرسال طلب التوصيل'),
+        content: Text('رقم الطلب: ' + (order['orderNumber'] ?? order['id']).toString() +
+          '\nتم احتساب الرسوم حسب إعدادات المدينة وموقع التسليم.'),
+        actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('حسناً'))],
+      ));
+      if (mounted) Navigator.pop(context);
+    } catch (e) { if (mounted) setState(() => error = e.toString()); }
+    finally { if (mounted) setState(() => sending = false); }
   }
-  @override Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:const Text('توصيل مستقل')),body:loading?const Center(child:CircularProgressIndicator()):ListView(padding:const EdgeInsets.all(18),children:[
-    const Text('أرسل غرضاً من موقع إلى موقع',style:TextStyle(fontSize:22,fontWeight:FontWeight.w900)),
-    const SizedBox(height:8),const Text('حدد موقع الاستلام واختر عنوان التسليم المحفوظ. يحسب النظام رسوم المسافة عندما تكون مفعّلة للمدينة.',style:TextStyle(color:Colors.black54)),
-    const SizedBox(height:22),TextField(controller:pickup,maxLines:3,decoration:const InputDecoration(labelText:'وصف مكان الاستلام',hintText:'اسم المكان، الشارع، أقرب نقطة دالة')),
-    const SizedBox(height:8),
-    OutlinedButton.icon(onPressed:locating?null:_locatePickup,icon:Icon(pickupPosition==null?Icons.my_location:Icons.check_circle_outline),label:Text(locating?'جارٍ تحديد الموقع...':pickupPosition==null?'تحديد موقعي الحالي للاستلام':'تم تحديد موقع الاستلام')),
-    if(pickupPosition!=null)Text('الإحداثيات: ${pickupPosition!.latitude.toStringAsFixed(6)}, ${pickupPosition!.longitude.toStringAsFixed(6)}',style:const TextStyle(fontSize:12,color:Colors.black54)),
-    const SizedBox(height:16),const Text('عنوان التسليم',style:TextStyle(fontWeight:FontWeight.bold)),
-    if(addresses.isEmpty)const _EmptyPanel(text:'لا يوجد عنوان محفوظ. أضف عنواناً من حسابك أولاً.'),
-    if(addresses.isNotEmpty)DropdownButtonFormField<String>(value:addressId,items:[for(final a in addresses)DropdownMenuItem(value:a['id'].toString(),child:Text('${a['label']??'عنوان'} — ${a['details']??''}',maxLines:1,overflow:TextOverflow.ellipsis))],onChanged:(v)=>setState(()=>addressId=v)),
-    const SizedBox(height:16),TextField(controller:notes,maxLines:3,decoration:const InputDecoration(labelText:'تفاصيل الغرض أو تعليمات للسائق (اختياري)')),
-    if(error!=null)Padding(padding:const EdgeInsets.symmetric(vertical:10),child:Text(error!,style:const TextStyle(color:Colors.red))),
-    const SizedBox(height:18),FilledButton(onPressed:sending||addresses.isEmpty?null:_submit,child:sending?const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2)):const Text('إرسال طلب التوصيل')),
-  ]));
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('توصيل مستقل')),
+    body: loading ? const Center(child: CircularProgressIndicator()) : ListView(
+      padding: const EdgeInsets.all(18), children: [
+        const Text('أرسل غرضاً من موقع إلى موقع', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
+        const SizedBox(height: 8),
+        const Text('حدد موقع الاستلام واختر عنوان تسليم محفوظاً مع موقع جغرافي.', style: TextStyle(color: Colors.black54)),
+        const SizedBox(height: 22),
+        TextField(controller: pickup, maxLines: 3,
+          decoration: const InputDecoration(labelText: 'وصف مكان الاستلام', hintText: 'اسم المكان، الشارع، أقرب نقطة دالة')),
+        const SizedBox(height: 8),
+        OutlinedButton.icon(
+          onPressed: locating ? null : _locatePickup,
+          icon: Icon(pickupPosition == null ? Icons.my_location : Icons.check_circle_outline),
+          label: Text(locating ? 'جارٍ تحديد الموقع...' : pickupPosition == null ? 'تحديد موقعي الحالي للاستلام' : 'تم تحديد موقع الاستلام'),
+        ),
+        if (pickupPosition != null)
+          Text(pickupPosition!.latitude.toStringAsFixed(5) + ', ' + pickupPosition!.longitude.toStringAsFixed(5),
+            style: const TextStyle(fontSize: 11, color: Colors.black54)),
+        const SizedBox(height: 18),
+        Row(children: [
+          const Expanded(child: Text('عنوان التسليم', style: TextStyle(fontWeight: FontWeight.w900))),
+          TextButton.icon(onPressed: savingAddress ? null : _addAddress,
+            icon: const Icon(Icons.add_location_alt_outlined), label: const Text('إضافة عنوان')),
+        ]),
+        if (addresses.isEmpty) const _EmptyPanel(text: 'لا يوجد عنوان محفوظ. أضف عنواناً وحدد موقعه الجغرافي.'),
+        if (addresses.isNotEmpty) DropdownButtonFormField<String>(
+          value: addressId, isExpanded: true,
+          items: [for (final a in addresses) DropdownMenuItem(
+            value: a['id'].toString(),
+            child: Row(children: [
+              Expanded(child: Text((a['label'] ?? 'عنوان').toString() + ' — ' + (a['details'] ?? '').toString(),
+                maxLines: 1, overflow: TextOverflow.ellipsis)),
+              const SizedBox(width: 6),
+              Icon(a['hasLocation'] == true ? Icons.location_on : Icons.location_off,
+                size: 16, color: a['hasLocation'] == true ? green : Colors.red),
+            ]),
+          )],
+          onChanged: (v) => setState(() => addressId = v),
+        ),
+        if (addresses.any((a) => a['id'].toString() == addressId && a['hasLocation'] != true))
+          const Padding(padding: EdgeInsets.only(top: 7),
+            child: Text('هذا العنوان لا يحتوي على إحداثيات. أضف عنواناً جديداً بموقع محدد لإكمال الطلب.',
+              style: TextStyle(color: Colors.red, fontSize: 12))),
+        const SizedBox(height: 16),
+        TextField(controller: notes, maxLines: 3,
+          decoration: const InputDecoration(labelText: 'تفاصيل الغرض أو تعليمات للسائق (اختياري)')),
+        if (error != null) Padding(padding: const EdgeInsets.symmetric(vertical: 10),
+          child: Text(error!, style: const TextStyle(color: Colors.red))),
+        const SizedBox(height: 18),
+        FilledButton(onPressed: sending || savingAddress || addresses.isEmpty ? null : _submit,
+          child: sending ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+            : const Text('إرسال طلب التوصيل')),
+      ],
+    ),
+  );
 }
+
 class _VendorTile extends StatelessWidget {final Map<String,dynamic> vendor;final String cityId;const _VendorTile({required this.vendor,required this.cityId});@override Widget build(BuildContext context){final t=(vendor['translations'] as List? ?? []);final name=t.isEmpty?'متجر':t.first['name']?.toString()??'متجر';return Card(child:ListTile(contentPadding:const EdgeInsets.all(12),leading:Container(width:54,height:54,decoration:BoxDecoration(color:const Color(0xFFE7F1EC),borderRadius:BorderRadius.circular(16)),child:const Icon(Icons.storefront,color:green,size:28)),title:Text(name,style:const TextStyle(fontWeight:FontWeight.bold)),subtitle:Text('${vendor['_count']?['products']??0} منتج متاح'),trailing:const Icon(Icons.chevron_left),onTap:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>VendorCatalog(vendorId:vendor['id'].toString(),name:name,cityId:cityId)))));}}
 class VendorCatalog extends StatefulWidget {final String vendorId,name,cityId;const VendorCatalog({super.key,required this.vendorId,required this.name,required this.cityId});@override State<VendorCatalog> createState()=>_VendorCatalogState();}
 String _productName(dynamic p){final translations=p['translations'] as List? ?? [];return translations.isEmpty?'منتج':translations.first['name']?.toString()??'منتج';}
