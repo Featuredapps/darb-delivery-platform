@@ -1,23 +1,24 @@
-name: Validate Android source (APK disabled)
+name: Build signed DARB Android release
 on:
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
-  release:
+  android-release:
     runs-on: ubuntu-latest
-    timeout-minutes: 50
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "21"
+          java-version: "17"
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
-      - name: Extract source and apply overrides
+      - name: Extract source and apply DARB overrides
+        shell: bash
         run: |
           set -euo pipefail
           unzip -q DARB-source.zip -d extracted
@@ -51,8 +52,7 @@ jobs:
                   lines.insert(dep_index, dep)
           pubspec.write_text("\n".join(lines) + "\n")
           m = manifest.read_text()
-          permissions = ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "POST_NOTIFICATIONS"]
-          for p in permissions:
+          for p in ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "POST_NOTIFICATIONS"]:
               tag = f'<uses-permission android:name="android.permission.{p}" />'
               if tag not in m:
                   internet = '<uses-permission android:name="android.permission.INTERNET" />'
@@ -60,27 +60,102 @@ jobs:
                   m = m.replace(internet, internet + "\n    " + tag)
           manifest.write_text(m)
           PY
-      - name: Normalize dependencies and resolve packages
-        working-directory: extracted/darb-project/mobile
-        run: |
-          set -euo pipefail
+          cd "$M"
           python3 - <<'PY'
           from pathlib import Path
           p=Path("pubspec.yaml")
           lines=p.read_text().splitlines()
           lines=[line for line in lines if not line.strip().startswith("intl:")]
           dep=next((i for i,line in enumerate(lines) if line.strip()=="dependencies:"),None)
-          if dep is None:
-              raise SystemExit("pubspec.yaml dependencies section missing")
+          if dep is None: raise SystemExit("pubspec.yaml dependencies section missing")
           lines.insert(dep+1,"  intl: ^0.20.3")
           if not any(line.strip().startswith("google_sign_in:") for line in lines):
               lines.insert(dep+2,"  google_sign_in: ^6.2.1")
           p.write_text("\n".join(lines)+"\n")
           PY
           flutter pub get
-      - name: Analyze and test (APK build disabled)
+      - name: Configure release signing and print OAuth fingerprint
         working-directory: extracted/darb-project/mobile
+        env:
+          DARB_KEYSTORE_BASE64: ${{ secrets.DARB_KEYSTORE_BASE64 }}
+          DARB_KEYSTORE_PASSWORD: ${{ secrets.DARB_KEYSTORE_PASSWORD }}
+          DARB_KEY_PASSWORD: ${{ secrets.DARB_KEY_PASSWORD }}
+          DARB_KEY_ALIAS: ${{ secrets.DARB_KEY_ALIAS }}
+        shell: bash
         run: |
           set -euo pipefail
+          for name in DARB_KEYSTORE_BASE64 DARB_KEYSTORE_PASSWORD DARB_KEY_PASSWORD DARB_KEY_ALIAS; do
+            if [ -z "${!name:-}" ]; then echo "::error::Missing required repository secret: $name"; exit 1; fi
+          done
+          printf '%s' "$DARB_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/darb-release.jks"
+          test -s "$RUNNER_TEMP/darb-release.jks"
+          keytool -list -v -keystore "$RUNNER_TEMP/darb-release.jks" -storepass "$DARB_KEYSTORE_PASSWORD" -alias "$DARB_KEY_ALIAS" > "$RUNNER_TEMP/keystore-info.txt"
+          SHA1="$(awk -F': ' '/SHA1:/{print $2; exit}' "$RUNNER_TEMP/keystore-info.txt")"
+          if [ -z "$SHA1" ]; then echo "::error::Could not read release SHA-1"; exit 1; fi
+          echo "## Google OAuth setup for this Android release" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Android package: com.darb.darb" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Release signing SHA-1: `$SHA1`" >> "$GITHUB_STEP_SUMMARY"
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path("android/app/build.gradle.kts")
+          if not p.exists(): raise SystemExit("Expected android/app/build.gradle.kts was not generated")
+          s=p.read_text()
+          if 'create("release")' not in s:
+              marker='    buildTypes {'
+              block='''    signingConfigs {
+                  create("release") {
+                      storeFile = file(System.getenv("DARB_KEYSTORE_PATH"))
+                      storePassword = System.getenv("DARB_KEYSTORE_PASSWORD")
+                      keyAlias = System.getenv("DARB_KEY_ALIAS")
+                      keyPassword = System.getenv("DARB_KEY_PASSWORD")
+                  }
+              }
+
+          '''
+              if marker not in s: raise SystemExit("Could not locate Android buildTypes block")
+              s=s.replace(marker,block+marker,1)
+          s=s.replace('signingConfig = signingConfigs.getByName("debug")','signingConfig = signingConfigs.getByName("release")')
+          if 'signingConfig = signingConfigs.getByName("release")' not in s: raise SystemExit("Release signing config not applied")
+          p.write_text(s)
+          PY
+      - name: Build and test signed release APK
+        working-directory: extracted/darb-project/mobile
+        env:
+          DARB_KEYSTORE_PATH: ${{ runner.temp }}/darb-release.jks
+          DARB_KEYSTORE_PASSWORD: ${{ secrets.DARB_KEYSTORE_PASSWORD }}
+          DARB_KEY_PASSWORD: ${{ secrets.DARB_KEY_PASSWORD }}
+          DARB_KEY_ALIAS: ${{ secrets.DARB_KEY_ALIAS }}
+          GOOGLE_SERVER_CLIENT_ID: ${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
+          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "$GOOGLE_SERVER_CLIENT_ID" ]; then echo "::error::Missing GOOGLE_SERVER_CLIENT_ID"; exit 1; fi
+          args=(--release --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_SERVER_CLIENT_ID")
+          if [ -n "$FIREBASE_API_KEY" ] && [ -n "$FIREBASE_APP_ID" ] && [ -n "$FIREBASE_MESSAGING_SENDER_ID" ] && [ -n "$FIREBASE_PROJECT_ID" ]; then
+            args+=(--dart-define=FIREBASE_API_KEY="$FIREBASE_API_KEY" --dart-define=FIREBASE_APP_ID="$FIREBASE_APP_ID" --dart-define=FIREBASE_MESSAGING_SENDER_ID="$FIREBASE_MESSAGING_SENDER_ID" --dart-define=FIREBASE_PROJECT_ID="$FIREBASE_PROJECT_ID")
+            echo "Firebase configuration: present" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::warning::Firebase secrets incomplete; notifications will be disabled in this APK."
+            echo "Firebase configuration: incomplete (notifications disabled)" >> "$GITHUB_STEP_SUMMARY"
+          fi
           flutter analyze lib --no-pub --no-fatal-infos --no-fatal-warnings
           flutter test --no-pub
+          flutter build apk "${args[@]}"
+          APK="build/app/outputs/flutter-apk/app-release.apk"
+          test -s "$APK"
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
+          test -n "$APKSIGNER"
+          "$APKSIGNER" verify --verbose "$APK"
+          "$APKSIGNER" verify --print-certs "$APK" | tee "$RUNNER_TEMP/apk-cert.txt"
+          echo "APK SHA-256: $(sha256sum "$APK" | cut -d' ' -f1)" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload signed APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: darb-android-signed-release
+          path: extracted/darb-project/mobile/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 7
