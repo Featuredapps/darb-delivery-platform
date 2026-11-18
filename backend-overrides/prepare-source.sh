@@ -27,10 +27,12 @@ for dep in deps:
     name = dep.split(":")[0].strip()
     if name + ":" in s:
         continue
-    anchor = "dependencies:\\n"
-    if anchor not in s:
+    lines = s.splitlines()
+    dep_index = next((idx for idx, line in enumerate(lines) if line.strip() == "dependencies:"), None)
+    if dep_index is None:
         raise SystemExit("pubspec.yaml: dependencies section missing")
-    s = s.replace(anchor, anchor + dep + "\\n", 1)
+    lines.insert(dep_index + 1, dep)
+    s = "\n".join(lines) + "\n"
 pubspec.write_text(s)
 
 manifest = mobile / "android/app/src/main/AndroidManifest.xml"
