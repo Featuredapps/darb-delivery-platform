@@ -15,7 +15,13 @@ export class OtpService {
     if (sends > MAX_SENDS_PER_HOUR) throw new HttpException('تم تجاوز عدد طلبات الرمز، حاول لاحقاً', HttpStatus.TOO_MANY_REQUESTS);
     const code = randomInt(0, 1_000_000).toString().padStart(6, '0');
     await this.redis.multi().set(this.codeKey(phone), this.hash(phone, code), 'EX', OTP_TTL_SECONDS).del(this.attemptsKey(phone)).exec();
-    await this.sms.send(phone, `رمز التحقق الخاص بك: ${code}`);
+    try {
+      await this.sms.send(phone, `رمز التحقق الخاص بك: ${code}`);
+    } catch (error) {
+      // Failed delivery must not consume the hourly quota or leave a usable OTP behind.
+      await this.redis.eval("redis.call('DEL',KEYS[1]); if redis.call('EXISTS',KEYS[2]) == 1 then local n=redis.call('DECR',KEYS[2]); if n<=0 then redis.call('DEL',KEYS[2]); end; end; return 1", 2, this.codeKey(phone), `otp:sends:${phone}`);
+      throw error;
+    }
   }
   async verify(phone: string, code: string): Promise<void> {
     if (!/^\d{6}$/.test(code)) throw new UnauthorizedException('الرمز غير صحيح');
