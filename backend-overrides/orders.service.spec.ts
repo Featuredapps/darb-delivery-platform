@@ -121,6 +121,35 @@ describe('OrdersService safety checks', () => {
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 
+  it('restores reserved finite stock exactly when a vendor cancellation succeeds', async () => {
+    prisma.order.findUnique.mockResolvedValue({
+      id: 'order-1', status: 'PENDING',
+      vendor: { userId: 'vendor-user-1' }, driver: null,
+      items: [{ productId: 'product-1', quantity: 3 }, { productId: 'product-2', quantity: 1 }],
+    });
+    const productUpdateMany = jest.fn().mockResolvedValue({ count: 1 });
+    const tx = {
+      order: { updateMany: jest.fn().mockResolvedValue({ count: 1 }), findUnique: jest.fn().mockResolvedValue({ id: 'order-1', status: 'CANCELLED' }) },
+      product: { updateMany: productUpdateMany },
+      orderStatusHistory: { create: jest.fn() },
+    };
+    prisma.$transaction.mockImplementation(async (callback: (tx: any) => unknown) => callback(tx));
+
+    await service.updateStatus('vendor-user-1', 'VENDOR', 'order-1', OrderStatus.CANCELLED);
+
+    expect(productUpdateMany).toHaveBeenNthCalledWith(1, {
+      where: { id: 'product-1', stockQty: { not: null } },
+      data: { stockQty: { increment: 3 } },
+    });
+    expect(productUpdateMany).toHaveBeenNthCalledWith(2, {
+      where: { id: 'product-2', stockQty: { not: null } },
+      data: { stockQty: { increment: 1 } },
+    });
+    expect(tx.orderStatusHistory.create).toHaveBeenCalledWith({
+      data: { orderId: 'order-1', status: OrderStatus.CANCELLED, changedBy: 'vendor-user-1' },
+    });
+  });
+
   it('rejects stale concurrent status updates', async () => {
     prisma.order.findUnique.mockResolvedValue({
       id: 'order-1', status: 'PENDING',
