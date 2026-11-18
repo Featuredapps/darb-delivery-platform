@@ -96,7 +96,7 @@ jobs:
           if "intl: ^0.20.3" not in effective:
               raise SystemExit("intl constraint patch failed")
           PY
-          grep -nE '^  (intl|google_sign_in):' pubspec.yaml
+          grep -nE '^[[:space:]]+(intl|google_sign_in):' pubspec.yaml || true
           flutter pub get
       - name: Analyze and build
         working-directory: extracted/darb-project/mobile
