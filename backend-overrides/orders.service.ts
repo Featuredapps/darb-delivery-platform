@@ -97,7 +97,7 @@ export class OrdersService {
       DRIVER: [OrderStatus.PICKED_UP, OrderStatus.DELIVERED],
     };
     if (!allowed[role]?.includes(status)) throw new BadRequestException('انتقال الحالة غير مسموح');
-    const order = await this.prisma.order.findUnique({ where: { id: orderId }, include: { vendor: true, driver: true } });
+    const order = await this.prisma.order.findUnique({ where: { id: orderId }, include: { vendor: true, driver: true, items: { select: { productId: true, quantity: true } } } });
     if (!order) throw new NotFoundException('الطلب غير موجود');
     if (role === 'VENDOR' && order.vendor?.userId !== userId) throw new ForbiddenException();
     if (role === 'DRIVER' && order.driver?.userId !== userId) throw new ForbiddenException();
@@ -109,6 +109,15 @@ export class OrdersService {
     return this.prisma.$transaction(async tx => {
       const changed = await tx.order.updateMany({ where: { id: orderId, status: order.status }, data: { status } });
       if (!changed.count) throw new BadRequestException('تم تحديث الطلب من مستخدم آخر؛ أعد تحميله');
+      if (status === OrderStatus.CANCELLED) {
+        // Restore only finite stock reserved when the order was created.
+        for (const item of order.items) {
+          await tx.product.updateMany({
+            where: { id: item.productId, stockQty: { not: null } },
+            data: { stockQty: { increment: item.quantity } },
+          });
+        }
+      }
       await tx.orderStatusHistory.create({ data: { orderId, status, changedBy: userId } });
       return tx.order.findUnique({ where: { id: orderId } });
     });
