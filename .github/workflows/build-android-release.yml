@@ -30,6 +30,7 @@ jobs:
           if grep -Fq "cityId:cityId))));}}" "$D"; then sed -i "s/cityId:cityId))));}}/cityId:cityId)))));}}/" "$D"; fi
           cp "$ROOT/mobile-overrides/login_screen.dart" "$M/lib/screens/login_screen.dart"
           cp "$ROOT/mobile-overrides/main.dart" "$M/lib/main.dart"
+          cp "$ROOT/mobile-overrides/design_system.dart" "$M/lib/design_system.dart"
           cp "$ROOT/mobile-overrides/localizations.dart" "$M/lib/localizations.dart"
           cp "$ROOT/mobile-overrides/api.dart" "$M/lib/core/api.dart"
           cp "$ROOT/mobile-overrides/app_shell.dart" "$M/lib/screens/app_shell.dart"
