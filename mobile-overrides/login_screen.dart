@@ -58,8 +58,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       if (mounted) setState(() => sent = true);
     } on ApiException catch (e) {
       _fail(e.message);
-    } on ApiException catch (e) {
-      _fail(e.message);
     } catch (_) {
       _fail(l.t('networkError'));
     } finally {
@@ -80,6 +78,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       });
       await Api.instance.saveTokens(Map<String, dynamic>.from(result['tokens'] as Map));
       if (mounted) Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const AppShell()));
+    } on ApiException catch (e) {
+      _fail(e.message);
     } catch (_) {
       _fail(l.t('networkError'));
     } finally {
