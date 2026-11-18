@@ -21,20 +21,20 @@ describe('OrdersService safety checks', () => {
     const tx: any = {
       address: { findFirst: jest.fn().mockResolvedValue({ id: 'address-1' }) },
       city: { findFirst: jest.fn().mockResolvedValue({ id: 'city-1', defaultCurrency: 'SYP' }) },
-      deliveryZone: { findUnique: jest.fn().mockResolvedValue({ feeBase: 1250 }) },
+      deliveryZone: { findUnique: jest.fn().mockResolvedValue({ feeBase: 1250, feePerKm: 0 }) },
       order: { create },
     };
     prisma.$transaction.mockImplementation(async (callback: (tx: any) => unknown) => callback(tx));
 
     await service.createPeerDelivery('customer-1', {
-      cityId: 'city-1', addressId: 'address-1', pickupAddress: 'شارع الجامعة، حلب',
+      cityId: 'city-1', addressId: 'address-1', pickupAddress: 'شارع الجامعة، حلب', pickupLatitude: 36.2021, pickupLongitude: 37.1343,
     });
 
     expect(create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
         type: 'PEER_DELIVERY', status: 'READY', cityId: 'city-1',
         customerId: 'customer-1', addressId: 'address-1',
-        pickupAddress: 'شارع الجامعة، حلب',
+        pickupAddress: 'شارع الجامعة، حلب', pickupLatitude: 36.2021, pickupLongitude: 37.1343,
         subtotal: 0, deliveryFee: 1250, total: 1250,
         payment: { create: expect.objectContaining({ method: 'CASH_ON_DELIVERY', amount: 1250, currency: 'SYP' }) },
         statusHistory: { create: { status: 'READY', changedBy: 'customer-1' } },
@@ -45,7 +45,7 @@ describe('OrdersService safety checks', () => {
 
   it('rejects a peer-delivery pickup address that is too short before opening a transaction', async () => {
     await expect(service.createPeerDelivery('customer-1', {
-      cityId: 'city-1', addressId: 'address-1', pickupAddress: 'abc',
+      cityId: 'city-1', addressId: 'address-1', pickupAddress: 'abc', pickupLatitude: 36.2, pickupLongitude: 37.1,
     })).rejects.toBeInstanceOf(BadRequestException);
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });
