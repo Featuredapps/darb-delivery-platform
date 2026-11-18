@@ -90,7 +90,7 @@ jobs:
           lines.insert(dep + 1, "  intl: ^0.20.3")
           if not any(line.strip().startswith("google_sign_in:") for line in lines):
               lines.insert(dep + 2, "  google_sign_in: ^6.2.1")
-          p.write_text("\\n".join(lines) + "\\n")
+          p.write_text("\n".join(lines) + "\n")
           effective = [line.strip() for line in lines if line.strip().startswith(("intl:", "google_sign_in:"))]
           print("Effective dependencies:", effective)
           if "intl: ^0.20.3" not in effective:
