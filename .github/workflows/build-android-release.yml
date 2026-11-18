@@ -9,11 +9,20 @@ jobs:
     timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
       - name: Extract source and apply overrides
         run: |
           set -euo pipefail
           unzip -q DARB-source.zip -d extracted
           M=extracted/darb-project/mobile
+          flutter create --platforms=android --org com.darb --project-name darb --no-pub .
           D="$M/lib/screens/app_shell.dart"
           if grep -Fq "cityId:cityId))));}}" "$D"; then sed -i "s/cityId:cityId))));}}/cityId:cityId)))));}}/" "$D"; fi
           cp mobile-overrides/login_screen.dart "$M/lib/screens/login_screen.dart"
@@ -26,17 +35,6 @@ jobs:
           mkdir -p "$M/android/app/src/main/res/drawable"
           cp mobile-overrides/ic_launcher.xml "$M/android/app/src/main/res/drawable/ic_launcher.xml"
           sed -i 's|android:icon="@mipmap/ic_launcher"|android:icon="@drawable/ic_launcher"|' "$M/android/app/src/main/AndroidManifest.xml"
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "21"
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-      - name: Create Android project scaffold (no signing)
-        working-directory: extracted/darb-project/mobile
-        run: flutter create --platforms=android --org com.darb --project-name darb --no-pub .
       - name: Normalize dependencies and resolve packages
         working-directory: extracted/darb-project/mobile
         run: |
