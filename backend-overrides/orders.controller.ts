@@ -9,6 +9,12 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { OrdersService } from './orders.service';
 import { NotificationsService } from '../notifications/notifications.service';
 class OrderLineDto { @IsUUID() productId!: string; @Type(() => Number) @IsInt() @Min(1) @Max(50) quantity!: number; }
+class CreatePeerDeliveryDto {
+  @IsUUID() cityId!: string;
+  @IsUUID() addressId!: string;
+  @IsString() pickupAddress!: string;
+  @IsOptional() @IsString() notes?: string;
+}
 class CreateOrderDto {
   @IsUUID() cityId!: string; @IsUUID() addressId!: string; @IsUUID() vendorId!: string;
   @IsArray() @ValidateNested({ each: true }) @Type(() => OrderLineDto) items!: OrderLineDto[];
@@ -23,6 +29,10 @@ export class OrdersController {
     const order = await this.orders.create(user.id, dto);
     await this.notifications.notifyVendor(dto.vendorId, 'طلب جديد', 'لديك طلب جديد بانتظار المراجعة', { type: 'ORDER_CREATED', orderId: order.id });
     return order;
+  }
+  @Post('peer-delivery') @Roles(UserRole.CUSTOMER)
+  createPeerDelivery(@CurrentUser() user: {id:string}, @Body() dto: CreatePeerDeliveryDto) {
+    return this.orders.createPeerDelivery(user.id, dto);
   }
   @Get('mine') @Roles(UserRole.CUSTOMER) mine(@CurrentUser() user: {id:string}) { return this.orders.mine(user.id); }
   @Get('vendor') @Roles(UserRole.VENDOR) vendorOrders(@CurrentUser() user: {id:string}) { return this.orders.vendorOrders(user.id); }
