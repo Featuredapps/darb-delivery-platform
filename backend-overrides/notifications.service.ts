@@ -36,12 +36,21 @@ export class NotificationsService {
     if (vendor) await this.notifyUser(vendor.userId, title, body, data);
   }
   async notifyDriversInCity(cityId: string, title: string, body: string, data: Record<string,string>) {
-    const drivers = await this.prisma.driver.findMany({
-      where: { cityId, status: 'APPROVED', isOnline: true },
-      select: { userId: true },
-    });
-    await Promise.all(drivers.map(driver => this.notifyUser(driver.userId, title, body, data)));
-    return { targetedDrivers: drivers.length };
+    try {
+      const drivers = await this.prisma.driver.findMany({
+        where: { cityId, status: 'APPROVED', isOnline: true },
+        select: { userId: true },
+      });
+      const results = await Promise.allSettled(
+        drivers.map(driver => this.notifyUser(driver.userId, title, body, data)),
+      );
+      const failed = results.filter(result => result.status === 'rejected').length;
+      if (failed) this.logger.warn(`Push notification failed for ${failed} of ${drivers.length} drivers.`);
+      return { targetedDrivers: drivers.length, failed };
+    } catch (error) {
+      this.logger.error('Could not notify drivers; peer-delivery order remains created.');
+      return { targetedDrivers: 0, failed: 0, skipped: true };
+    }
   }
   async notifyCustomer(customerId: string, title: string, body: string, data: Record<string,string>) {
     await this.notifyUser(customerId, title, body, data);
