@@ -67,7 +67,7 @@ export class OrdersService {
           productId: p.id, quantity: line.quantity, unitPrice: p.basePrice, currency: p.currency,
           nameSnapshot: p.translations[0]?.name ?? 'منتج',
         }; }) },
-        payment: { create: { method: 'CASH_ON_DELIVERY', amount: subtotal + Number(deliveryZone.feeBase), currency: city.defaultCurrency } },
+        payment: { create: { method: 'CASH_ON_DELIVERY', amount: subtotal + deliveryFee, currency: city.defaultCurrency } },
         statusHistory: { create: { status: 'PENDING', changedBy: customerId } },
       }, include: { items: true, payment: true } });
       return order;
