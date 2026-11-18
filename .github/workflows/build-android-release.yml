@@ -52,7 +52,7 @@ jobs:
           KP: ${{ secrets.DARB_KEY_PASSWORD }}
         run: |
           set -euo pipefail
-          flutter create --platforms=android --org com.darb --project-name darb .
+          flutter create --platforms=android --org com.darb --project-name darb --no-pub .
           echo "$KS" | base64 --decode > android/app/darb-release.jks
           keytool -list -keystore android/app/darb-release.jks -storepass "$SP" -alias "$AL" >/dev/null
           cat > android/key.properties <<EOF
