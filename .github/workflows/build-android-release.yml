@@ -168,12 +168,22 @@ jobs:
           print("Release keystore configured", p)
           PYCODE
 
-          if ! grep -q '^  google_sign_in:' pubspec.yaml; then
-            sed -i '/^  flutter_localizations:/i\  google_sign_in: ^6.2.1' pubspec.yaml
-          fi
-          sed -i 's/^  intl:.*/  intl: ^0.20.3/' pubspec.yaml
-          grep -F '  intl: ^0.20.3' pubspec.yaml
-          grep -F '  google_sign_in:' pubspec.yaml
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("pubspec.yaml")
+          s = p.read_text()
+          if "google_sign_in:" not in s:
+              s = s.replace("  flutter_localizations:\n", "  google_sign_in: ^6.2.1\n  flutter_localizations:\n", 1)
+          import re
+          s, count = re.subn(r"^  intl:.*$", "  intl: ^0.20.3", s, count=1, flags=re.M)
+          if count == 0:
+              s = s.replace("  flutter_localizations:\n", "  intl: ^0.20.3\n  flutter_localizations:\n", 1)
+          p.write_text(s)
+          print("Patched dependencies:")
+          for line in s.splitlines():
+              if line.startswith("  intl:") or line.startswith("  google_sign_in:"):
+                  print(line)
+          PYCODE
           flutter pub get
 
       - name: Analyze and build signed APK and AAB
