@@ -37,6 +37,24 @@ jobs:
       - name: Create Android project scaffold (no signing)
         working-directory: extracted/darb-project/mobile
         run: flutter create --platforms=android --org com.darb --project-name darb --no-pub .
+      - name: Normalize dependencies and resolve packages
+        working-directory: extracted/darb-project/mobile
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path("pubspec.yaml")
+          lines=p.read_text().splitlines()
+          lines=[line for line in lines if not line.strip().startswith("intl:")]
+          dep=next((i for i,line in enumerate(lines) if line.strip()=="dependencies:"),None)
+          if dep is None:
+              raise SystemExit("pubspec.yaml dependencies section missing")
+          lines.insert(dep+1,"  intl: ^0.20.3")
+          if not any(line.strip().startswith("google_sign_in:") for line in lines):
+              lines.insert(dep+2,"  google_sign_in: ^6.2.1")
+          p.write_text("\\n".join(lines)+"\\n")
+          PY
+          flutter pub get
       - name: Analyze and test (APK build disabled)
         working-directory: extracted/darb-project/mobile
         run: |
