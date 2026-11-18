@@ -1,4 +1,4 @@
-name: Build signed DARB Android release
+name: Validate Android source (APK disabled)
 on:
   workflow_dispatch:
 permissions:
@@ -22,6 +22,7 @@ jobs:
           set -euo pipefail
           unzip -q DARB-source.zip -d extracted
           M=extracted/darb-project/mobile
+          cd "$M"
           flutter create --platforms=android --org com.darb --project-name darb --no-pub .
           D="$M/lib/screens/app_shell.dart"
           if grep -Fq "cityId:cityId))));}}" "$D"; then sed -i "s/cityId:cityId))));}}/cityId:cityId)))));}}/" "$D"; fi
@@ -31,38 +32,6 @@ jobs:
           cp mobile-overrides/api.dart "$M/lib/core/api.dart"
           cp mobile-overrides/app_shell.dart "$M/lib/screens/app_shell.dart"
           cp mobile-overrides/notifications.dart "$M/lib/notifications.dart"
-          bash backend-overrides/prepare-source.sh extracted/darb-project
-          B=extracted/darb-project/backend
-          cp backend-overrides/app.module.ts "$B/src/app.module.ts"
-          cp backend-overrides/schema.prisma "$B/prisma/schema.prisma"
-          cp backend-overrides/auth.controller.ts "$B/src/modules/auth/auth.controller.ts"
-          cp backend-overrides/auth.service.ts "$B/src/modules/auth/auth.service.ts"
-          cp backend-overrides/otp.service.ts "$B/src/modules/auth/otp.service.ts"
-          mkdir -p "$B/src/modules/auth/sms"
-          cp backend-overrides/sms.providers.ts "$B/src/modules/auth/sms/sms.providers.ts"
-          mkdir -p "$B/src/modules/addresses"
-          cp backend-overrides/addresses.controller.ts "$B/src/modules/addresses/addresses.controller.ts"
-          cp backend-overrides/addresses.service.ts "$B/src/modules/addresses/addresses.service.ts"
-          mkdir -p "$B/src/modules/admin"
-          cp backend-overrides/admin.controller.ts "$B/src/modules/admin/admin.controller.ts"
-          mkdir -p "$B/src/modules/drivers"
-          cp backend-overrides/drivers.service.ts "$B/src/modules/drivers/drivers.service.ts"
-          cp backend-overrides/drivers.module.ts "$B/src/modules/drivers/drivers.module.ts"
-          cp backend-overrides/driver-location.controller.ts "$B/src/modules/drivers/driver-location.controller.ts"
-          cp backend-overrides/driver-location.service.ts "$B/src/modules/drivers/driver-location.service.ts"
-          mkdir -p "$B/src/modules/notifications"
-          cp backend-overrides/notifications.controller.ts "$B/src/modules/notifications/notifications.controller.ts"
-          cp backend-overrides/notifications.module.ts "$B/src/modules/notifications/notifications.module.ts"
-          cp backend-overrides/notifications.service.ts "$B/src/modules/notifications/notifications.service.ts"
-          mkdir -p "$B/src/modules/orders"
-          cp backend-overrides/orders.controller.ts "$B/src/modules/orders/orders.controller.ts"
-          cp backend-overrides/orders.module.ts "$B/src/modules/orders/orders.module.ts"
-          cp backend-overrides/orders.service.ts "$B/src/modules/orders/orders.service.ts"
-          cp backend-overrides/orders.tracking.controller.ts "$B/src/modules/orders/orders.tracking.controller.ts"
-          cp backend-overrides/orders.tracking.service.ts "$B/src/modules/orders/orders.tracking.service.ts"
-          mkdir -p "$B/src/modules/vendors"
-          cp backend-overrides/vendor-application.dto.ts "$B/src/modules/vendors/vendor-application.dto.ts"
-          cp backend-overrides/vendors.service.ts "$B/src/modules/vendors/vendors.service.ts"
           mkdir -p "$M/android/app/src/main/res/drawable"
           cp mobile-overrides/ic_launcher.xml "$M/android/app/src/main/res/drawable/ic_launcher.xml"
           sed -i 's|android:icon="@mipmap/ic_launcher"|android:icon="@drawable/ic_launcher"|' "$M/android/app/src/main/AndroidManifest.xml"
