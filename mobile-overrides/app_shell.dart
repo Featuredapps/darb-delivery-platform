@@ -82,14 +82,264 @@ class _AdminQueueState extends State<AdminQueue> {
   }
 }
 
-class CustomerHome extends StatefulWidget { const CustomerHome({super.key}); @override State<CustomerHome> createState()=>_CustomerHomeState(); }
-class _CustomerHomeState extends State<CustomerHome> {
-  bool loading=true; String? error; List<dynamic> cities=[], vendors=[]; String? cityId;
-  @override void initState(){super.initState();_load();}
-  Future<void> _load() async {setState(()=>loading=true);try{cities=await Api.instance.get('/cities') as List; if(cities.isNotEmpty){cityId ??= cities.first['id'].toString(); vendors=await Api.instance.get('/vendors?cityId=$cityId&locale=ar') as List;}}catch(e){error=e.toString();}finally{if(mounted)setState(()=>loading=false);}}
-  @override Widget build(BuildContext context)=>RefreshIndicator(onRefresh:_load,child:ListView(padding:const EdgeInsets.all(18),children:[Container(padding:const EdgeInsets.all(22),decoration:BoxDecoration(color:ink,borderRadius:BorderRadius.circular(24)),child:const Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('أهلاً بك في دَرْب',style:TextStyle(color:Colors.white70)),SizedBox(height:8),Text('طلبك يبدأ من هنا',style:TextStyle(color:Colors.white,fontSize:25,fontWeight:FontWeight.w900)),SizedBox(height:6),Text('متاجر قريبة، طلبات واضحة وتوصيل حتى بابك',style:TextStyle(color:Colors.white70))])),const SizedBox(height:22),const Text('اختر مدينتك',style:TextStyle(fontSize:17,fontWeight:FontWeight.bold)),const SizedBox(height:10),if(cities.isNotEmpty) DropdownButtonFormField<String>(value:cityId,decoration:const InputDecoration(),items:[for(final c in cities) DropdownMenuItem(value:c['id'].toString(),child:Text(_cityName(c)))],onChanged:(v)async{if(v==null)return;setState(()=>cityId=v);await _load();}),const SizedBox(height:18),FilledButton.icon(onPressed:cityId==null?null:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>PeerDeliveryScreen(cityId:cityId!))),icon:const Icon(Icons.local_shipping_outlined),label:const Text('اطلب توصيلاً مستقلاً')),const SizedBox(height:22),const Text('المتاجر المتاحة',style:TextStyle(fontSize:19,fontWeight:FontWeight.w900)),const SizedBox(height:12),if(loading)const Center(child:Padding(padding:EdgeInsets.all(28),child:CircularProgressIndicator())),if(error!=null) _ErrorPanel(message:error!,retry:_load),if(!loading&&error==null&&vendors.isEmpty)const _EmptyPanel(text:'لا توجد متاجر متاحة في هذه المدينة حالياً'),for(final v in vendors) _VendorTile(vendor:Map<String,dynamic>.from(v),cityId:cityId ?? ''),const SizedBox(height:24),const Text('الخرائط والتتبع المباشر سيظهران بعد ضبط مفتاح مزود الخرائط ونشر خدمة الموقع.',style:TextStyle(color:Colors.black45,fontSize:12))]));
-  String _cityName(dynamic c){final names=(c['names'] as List? ?? []);return names.isEmpty?c['code'].toString():names.first['name'].toString();}
+class CustomerHome extends StatefulWidget {
+  const CustomerHome({super.key});
+  @override
+  State<CustomerHome> createState() => _CustomerHomeState();
 }
+
+class _CustomerHomeState extends State<CustomerHome> {
+  final search = TextEditingController();
+  bool loading = true;
+  String? error;
+  List<dynamic> cities = [], vendors = [];
+  String? cityId;
+
+  @override
+  void initState() {
+    super.initState();
+    search.addListener(() { if (mounted) setState(() {}); });
+    _load();
+  }
+
+  @override
+  void dispose() {
+    search.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    if (mounted) setState(() { loading = true; error = null; });
+    try {
+      cities = await Api.instance.get('/cities') as List;
+      if (cities.isNotEmpty) {
+        cityId ??= cities.first['id'].toString();
+        vendors = await Api.instance.get('/vendors?cityId=$cityId&locale=ar') as List;
+      } else {
+        vendors = [];
+      }
+    } catch (e) {
+      error = e.toString();
+    } finally {
+      if (mounted) setState(() => loading = false);
+    }
+  }
+
+  String _cityName(dynamic city) {
+    final names = city['names'] as List? ?? [];
+    for (final item in names) {
+      if (item is Map && item['locale'] == 'ar') return item['name'].toString();
+    }
+    return names.isEmpty ? city['code'].toString() : names.first['name'].toString();
+  }
+
+  String _vendorName(dynamic vendor) {
+    final translations = vendor['translations'] as List? ?? [];
+    for (final item in translations) {
+      if (item is Map && item['locale'] == 'ar') return item['name'].toString();
+    }
+    return translations.isEmpty ? 'متجر' : translations.first['name']?.toString() ?? 'متجر';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final query = search.text.trim().toLowerCase();
+    final visibleVendors = vendors.where((v) => _vendorName(v).toLowerCase().contains(query)).toList();
+    final selectedCity = cities.where((c) => c['id'].toString() == cityId).firstOrNull;
+    return RefreshIndicator(
+      onRefresh: _load,
+      color: green,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(18, 8, 18, 28),
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.location_on_rounded, color: green, size: 19),
+              const SizedBox(width: 6),
+              const Text('التوصيل إلى', style: TextStyle(color: Colors.black54, fontSize: 12)),
+              const Spacer(),
+              if (cities.isNotEmpty)
+                DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: cityId,
+                    icon: const Icon(Icons.keyboard_arrow_down_rounded, color: green),
+                    style: const TextStyle(color: ink, fontSize: 13, fontWeight: FontWeight.w800),
+                    items: [for (final c in cities) DropdownMenuItem(value: c['id'].toString(), child: Text(_cityName(c)))],
+                    onChanged: (value) async {
+                      if (value == null || value == cityId) return;
+                      setState(() => cityId = value);
+                      await _load();
+                    },
+                  ),
+                )
+              else
+                Text(selectedCity == null ? 'حدد المدينة' : _cityName(selectedCity),
+                  style: const TextStyle(color: ink, fontWeight: FontWeight.w800)),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Container(
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topRight,
+                end: Alignment.bottomLeft,
+                colors: [Color(0xFF244D40), Color(0xFF102B26), Color(0xFF0B211D)],
+              ),
+              borderRadius: BorderRadius.circular(28),
+            ),
+            child: Stack(
+              children: [
+                Positioned(left: -38, top: -52, child: Container(
+                  width: 190, height: 190,
+                  decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(.045)),
+                )),
+                Positioned(left: 32, bottom: -72, child: Container(
+                  width: 160, height: 160,
+                  decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Colors.white.withOpacity(.08), width: 24)),
+                )),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(22, 24, 22, 22),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+                        decoration: BoxDecoration(color: Colors.white.withOpacity(.10), borderRadius: BorderRadius.circular(30)),
+                        child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                          Icon(Icons.bolt_rounded, color: Color(0xFFC8F169), size: 15),
+                          SizedBox(width: 5),
+                          Text('كل مشاويرك في مكان واحد', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+                        ]),
+                      ),
+                      const SizedBox(height: 18),
+                      const Text('من وين بدك\nنوصّل لك؟',
+                        style: TextStyle(color: Colors.white, fontSize: 29, height: 1.22, fontWeight: FontWeight.w900, letterSpacing: -.4)),
+                      const SizedBox(height: 9),
+                      const Text('اطلب من متجرك المفضل أو أرسل غرضك لأي مكان.',
+                        style: TextStyle(color: Color(0xFFD0DED7), fontSize: 13, height: 1.55)),
+                      const SizedBox(height: 22),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: FilledButton(
+                              style: FilledButton.styleFrom(
+                                backgroundColor: const Color(0xFFC8F169),
+                                foregroundColor: ink,
+                                minimumSize: const Size(0, 52),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                              ),
+                              onPressed: cityId == null ? null : () => Navigator.push(context,
+                                MaterialPageRoute(builder: (_) => PeerDeliveryScreen(cityId: cityId!))),
+                              child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                                Icon(Icons.near_me_rounded, size: 18),
+                                SizedBox(width: 7),
+                                Text('أرسل غرضاً', style: TextStyle(fontWeight: FontWeight.w900)),
+                              ]),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Container(
+                            width: 52, height: 52,
+                            decoration: BoxDecoration(color: Colors.white.withOpacity(.10), borderRadius: BorderRadius.circular(15)),
+                            child: const Icon(Icons.local_shipping_rounded, color: Colors.white, size: 23),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Text('اكتشف المتاجر', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w900, color: ink)),
+          const SizedBox(height: 5),
+          const Text('خيارات قريبة منك، وطلبك يوصل لبابك', style: TextStyle(fontSize: 12, color: Colors.black54)),
+          const SizedBox(height: 15),
+          TextField(
+            controller: search,
+            textInputAction: TextInputAction.search,
+            decoration: InputDecoration(
+              hintText: 'ابحث عن متجر...',
+              prefixIcon: const Icon(Icons.search_rounded, color: green),
+              suffixIcon: search.text.isEmpty ? null : IconButton(
+                onPressed: search.clear, icon: const Icon(Icons.close_rounded)),
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(17), borderSide: BorderSide.none),
+              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(17), borderSide: const BorderSide(color: Color(0xFFE7ECE7))),
+            ),
+          ),
+          const SizedBox(height: 16),
+          if (loading)
+            const Padding(padding: EdgeInsets.symmetric(vertical: 34), child: Center(child: CircularProgressIndicator()))
+          else if (error != null)
+            _ErrorPanel(message: error!, retry: _load)
+          else if (visibleVendors.isEmpty)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 28),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(22), border: Border.all(color: const Color(0xFFE7ECE7))),
+              child: Column(children: [
+                Container(width: 58, height: 58,
+                  decoration: BoxDecoration(color: const Color(0xFFEAF2EC), borderRadius: BorderRadius.circular(18)),
+                  child: const Icon(Icons.storefront_rounded, color: green, size: 28)),
+                const SizedBox(height: 13),
+                Text(query.isEmpty ? 'لا توجد متاجر متاحة حالياً' : 'لم نعثر على متجر بهذا الاسم',
+                  style: const TextStyle(fontWeight: FontWeight.w800, color: ink)),
+                const SizedBox(height: 5),
+                const Text('يمكنك تحديث القائمة أو استخدام خدمة التوصيل المستقل.',
+                  textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Colors.black54, height: 1.5)),
+                const SizedBox(height: 14),
+                OutlinedButton.icon(onPressed: _load, icon: const Icon(Icons.refresh_rounded), label: const Text('تحديث المتاجر')),
+              ]),
+            )
+          else
+            ...visibleVendors.map((v) {
+              final name = _vendorName(v);
+              final count = v['_count']?['products'] ?? 0;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 11),
+                child: Material(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(21),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(21),
+                    onTap: () => Navigator.push(context, MaterialPageRoute(
+                      builder: (_) => VendorCatalog(vendorId: v['id'].toString(), name: name, cityId: cityId ?? ''))),
+                    child: Container(
+                      padding: const EdgeInsets.all(13),
+                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(21),
+                        border: Border.all(color: const Color(0xFFE7ECE7))),
+                      child: Row(children: [
+                        Container(width: 58, height: 58,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(colors: [Color(0xFFE6F1E9), Color(0xFFF4F7E9)]),
+                            borderRadius: BorderRadius.circular(17)),
+                          child: const Icon(Icons.storefront_rounded, color: green, size: 27)),
+                        const SizedBox(width: 13),
+                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text(name, maxLines: 1, overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: ink, fontSize: 15, fontWeight: FontWeight.w900)),
+                          const SizedBox(height: 5),
+                          Text('$count منتج متاح', style: const TextStyle(color: Colors.black54, fontSize: 12)),
+                        ])),
+                        Container(width: 34, height: 34,
+                          decoration: BoxDecoration(color: const Color(0xFFF4F6F2), borderRadius: BorderRadius.circular(12)),
+                          child: const Icon(Icons.arrow_forward_ios_rounded, textDirection: TextDirection.ltr, color: green, size: 14)),
+                      ]),
+                    ),
+                  ),
+                ),
+              );
+            }),
+        ],
+      ),
+    );
+  }
+}
+
 class PeerDeliveryScreen extends StatefulWidget {
   final String cityId;
   const PeerDeliveryScreen({super.key,required this.cityId});
