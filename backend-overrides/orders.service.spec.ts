@@ -199,3 +199,74 @@ describe('OrdersService safety checks', () => {
     expect(tx.orderStatusHistory.create).not.toHaveBeenCalled();
   });
 });
+
+describe('Peer delivery offers', () => {
+  const prisma: any = {
+    $transaction: jest.fn(),
+    driver: { findUnique: jest.fn() },
+  };
+  let service: OrdersService;
+  beforeEach(() => { jest.clearAllMocks(); service = new OrdersService(prisma); });
+
+  it('allows only an approved online driver to submit a positive offer', async () => {
+    prisma.driver.findUnique.mockResolvedValue({ id: 'driver-1', cityId: 'city-1', status: 'APPROVED', isOnline: true });
+    const upsert = jest.fn().mockResolvedValue({ id: 'offer-1', amount: 75 });
+    const tx: any = {
+      order: { findFirst: jest.fn().mockResolvedValue({ id: 'order-1', currency: 'SYP' }) },
+      deliveryOffer: { upsert },
+    };
+    prisma.$transaction.mockImplementation(async (callback: (tx: any) => unknown) => callback(tx));
+
+    await service.submitDeliveryOffer('driver-user-1', 'order-1', 75);
+
+    expect(upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: { orderId_driverId: { orderId: 'order-1', driverId: 'driver-1' } },
+      create: expect.objectContaining({ orderId: 'order-1', driverId: 'driver-1', amount: 75, currency: 'SYP', status: 'PENDING' }),
+    }));
+  });
+
+  it('rejects an offer with zero or negative amount before database access', async () => {
+    await expect(service.submitDeliveryOffer('driver-user-1', 'order-1', 0)).rejects.toBeInstanceOf(BadRequestException);
+    expect(prisma.driver.findUnique).not.toHaveBeenCalled();
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('assigns a peer order to exactly the selected driver and closes other pending offers', async () => {
+    const orderUpdateMany = jest.fn().mockResolvedValue({ count: 1 });
+    const offerUpdate = jest.fn();
+    const offerUpdateMany = jest.fn();
+    const historyCreate = jest.fn();
+    const tx: any = {
+      order: { findFirst: jest.fn().mockResolvedValue({ id: 'order-1' }), updateMany: orderUpdateMany, findUnique: jest.fn().mockResolvedValue({ id: 'order-1', status: 'ASSIGNED' }) },
+      deliveryOffer: {
+        findFirst: jest.fn().mockResolvedValue({ id: 'offer-1', driverId: 'driver-1', amount: 75, currency: 'SYP' }),
+        update: offerUpdate, updateMany: offerUpdateMany,
+      },
+      payment: { updateMany: jest.fn() },
+      orderStatusHistory: { create: historyCreate },
+    };
+    prisma.$transaction.mockImplementation(async (callback: (tx: any) => unknown) => callback(tx));
+
+    await service.selectDeliveryOffer('customer-1', 'order-1', 'offer-1');
+
+    expect(orderUpdateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'order-1', customerId: 'customer-1', status: 'PENDING', driverId: null },
+      data: { driverId: 'driver-1', status: 'ASSIGNED', deliveryFee: 75, total: 75 },
+    }));
+    expect(offerUpdate).toHaveBeenCalledWith({ where: { id: 'offer-1' }, data: { status: 'ACCEPTED' } });
+    expect(offerUpdateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { orderId: 'order-1', id: { not: 'offer-1' }, status: 'PENDING' },
+      data: { status: 'REJECTED' },
+    }));
+    expect(historyCreate).toHaveBeenCalled();
+  });
+
+  it('rejects a selection if another customer session already claimed the order', async () => {
+    const tx: any = {
+      order: { findFirst: jest.fn().mockResolvedValue({ id: 'order-1' }), updateMany: jest.fn().mockResolvedValue({ count: 0 }) },
+      deliveryOffer: { findFirst: jest.fn().mockResolvedValue({ id: 'offer-1', driverId: 'driver-1', amount: 75, currency: 'SYP' }) },
+    };
+    prisma.$transaction.mockImplementation(async (callback: (tx: any) => unknown) => callback(tx));
+    await expect(service.selectDeliveryOffer('customer-1', 'order-1', 'offer-1')).rejects.toBeInstanceOf(BadRequestException);
+  });
+});
