@@ -241,7 +241,7 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
 
   void _next() {
     if (!_validateCurrentStep()) return;
-    setState(() => step = (step + 1).clamp(0, 2));
+    setState(() => step += 1);
   }
 
   void _back() {
