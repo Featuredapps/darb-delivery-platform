@@ -12,6 +12,7 @@ class AppLocalizations {
   static const Map<String, Map<String, String>> _values = {
     'ar': {
       'welcomeTitle':'أهلاً بك في دَرْب','welcomeSubtitle':'طريقك الأسهل لاكتشاف المتاجر وطلب ما تحتاجه',
+      'featureStores':'متاجر','featureDelivery':'توصيل','featureNearby':'على دربك',
       'phoneTitle':'سجّل الدخول برقم هاتفك','phoneSubtitle':'سنرسل إليك رمز تحقق لمرة واحدة',
       'phoneLabel':'رقم الهاتف السوري','sendOtp':'إرسال رمز التحقق','or':'أو المتابعة عبر',
       'google':'المتابعة باستخدام Google','secure':'بياناتك محمية ونستخدم رقمك لتأكيد هويتك',
@@ -25,6 +26,7 @@ class AppLocalizations {
     },
     'en': {
       'welcomeTitle':'Welcome to DARB','welcomeSubtitle':'Your easier way to discover stores and order what you need',
+      'featureStores':'Stores','featureDelivery':'Delivery','featureNearby':'Nearby',
       'phoneTitle':'Sign in with your phone','phoneSubtitle':'We will send you a one-time verification code',
       'phoneLabel':'Syrian phone number','sendOtp':'Send verification code','or':'Or continue with',
       'google':'Continue with Google','secure':'Your information is protected and your number verifies your identity',
@@ -38,6 +40,7 @@ class AppLocalizations {
     },
     'tr': {
       'welcomeTitle':"DARB'a hoş geldiniz",'welcomeSubtitle':'İhtiyacınız olanı keşfetmenin ve sipariş etmenin kolay yolu',
+      'featureStores':'Mağazalar','featureDelivery':'Teslimat','featureNearby':'Yakınında',
       'phoneTitle':'Telefon numaranızla giriş yapın','phoneSubtitle':'Size tek kullanımlık doğrulama kodu göndereceğiz',
       'phoneLabel':'Suriye telefon numarası','sendOtp':'Doğrulama kodu gönder','or':'Veya şununla devam et',
       'google':"Google ile devam et",'secure':'Bilgileriniz korunur; numaranız kimliğinizi doğrulamak için kullanılır',
