@@ -10,6 +10,7 @@ import 'login_screen.dart';
 
 part 'admin_screens.dart';
 part 'customer_screens.dart';
+part 'peer_delivery_screen.dart';
 part 'vendor_screens.dart';
 part 'driver_screens.dart';
 part 'account_screens.dart';
