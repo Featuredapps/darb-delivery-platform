@@ -88,6 +88,7 @@ jobs:
           cp mobile-overrides/app_shell.dart extracted/darb-project/mobile/lib/screens/app_shell.dart
           cp mobile-overrides/admin_screens.dart extracted/darb-project/mobile/lib/screens/admin_screens.dart
           cp mobile-overrides/customer_screens.dart extracted/darb-project/mobile/lib/screens/customer_screens.dart
+          cp mobile-overrides/peer_delivery_screen.dart extracted/darb-project/mobile/lib/screens/peer_delivery_screen.dart
           cp mobile-overrides/vendor_screens.dart extracted/darb-project/mobile/lib/screens/vendor_screens.dart
           cp mobile-overrides/driver_screens.dart extracted/darb-project/mobile/lib/screens/driver_screens.dart
           cp mobile-overrides/account_screens.dart extracted/darb-project/mobile/lib/screens/account_screens.dart
