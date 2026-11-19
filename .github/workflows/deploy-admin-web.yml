@@ -23,6 +23,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+      - name: Validate admin portal JavaScript
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          html = Path("admin-web/index.html").read_text()
+          scripts = re.findall(r"<script>(.*?)</script>", html, re.S)
+          if len(scripts) != 1:
+              raise SystemExit(f"Expected one inline admin script, found {len(scripts)}")
+          Path("/tmp/admin.js").write_text(scripts[0])
+          required = ["/admin/delivery-zones", "renderZones", "/admin/drivers/pending", "/admin/vendors/pending", "handleGoogleCredential"]
+          missing = [item for item in required if item not in html]
+          if missing:
+              raise SystemExit("Missing admin portal requirements: " + ", ".join(missing))
+          PY
+          node --check /tmp/admin.js
       - name: Assemble public website and admin portal
         shell: bash
         run: |
