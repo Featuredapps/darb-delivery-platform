@@ -31,7 +31,14 @@ enum DriverStatus {
   SUSPENDED
 }
 
-enum OfferStatus {\n  PENDING\n  ACCEPTED\n  REJECTED\n  WITHDRAWN\n}\n\nenum OrderType {
+enum OfferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+enum OrderType {
   VENDOR_ORDER
   PEER_DELIVERY
 }
