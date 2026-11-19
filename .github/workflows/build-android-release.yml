@@ -160,6 +160,8 @@ jobs:
           cat > "$HOME/.gradle/init.gradle" <<'GRADLE'
           settingsEvaluated { settings ->
               settings.pluginManagement.repositories {
+                  gradlePluginPortal()
+                  google()
                   mavenCentral()
               }
           }
