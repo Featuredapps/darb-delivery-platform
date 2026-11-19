@@ -64,6 +64,9 @@ jobs:
       - name: Analyze all mobile Dart sources
         working-directory: extracted/darb-project/mobile
         run: flutter analyze lib --no-pub --no-fatal-infos --no-fatal-warnings
+      - name: Build Android debug APK
+        working-directory: extracted/darb-project/mobile
+        run: flutter build apk --debug --no-pub
       - name: Run Flutter tests
         working-directory: extracted/darb-project/mobile
         shell: bash
