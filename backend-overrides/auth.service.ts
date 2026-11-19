@@ -28,14 +28,29 @@ export class AuthService {
     let payload;
     try { payload = (await this.google.verifyIdToken({ idToken, audience: clientId })).getPayload(); }
     catch { throw new UnauthorizedException('Invalid Google ID token'); }
-    if (!payload?.sub || !payload.email || payload.email_verified !== true) throw new UnauthorizedException('Google account email is not verified');
+    if (!payload?.sub || !payload.email || payload.email_verified !== true) {
+      throw new UnauthorizedException('Google account email is not verified');
+    }
+    const email = payload.email.trim().toLowerCase();
+    const adminEmails = (this.config.get<string>('ADMIN_EMAILS') ?? '')
+      .split(',').map(value => value.trim().toLowerCase()).filter(Boolean);
+    const isConfiguredAdmin = adminEmails.includes(email);
     let user = await this.prisma.user.findUnique({ where: { googleId: payload.sub } });
     if (!user) {
-      const existingEmail = await this.prisma.user.findUnique({ where: { email: payload.email } });
+      const existingEmail = await this.prisma.user.findUnique({ where: { email } });
       if (existingEmail) throw new ConflictException('This email is already linked to another sign-in method');
-      user = await this.prisma.user.create({ data: { googleId: payload.sub, email: payload.email, phone: null, name: payload.name?.slice(0, 120) ?? null, locale: (['ar','en','tr'].includes(locale ?? '') ? locale : 'ar') as Locale, role: UserRole.CUSTOMER } });
+      user = await this.prisma.user.create({ data: {
+        googleId: payload.sub, email, phone: null,
+        name: payload.name?.slice(0, 120) ?? null,
+        locale: (['ar','en','tr'].includes(locale ?? '') ? locale : 'ar') as Locale,
+        role: isConfiguredAdmin ? UserRole.ADMIN : UserRole.CUSTOMER,
+      } });
     } else {
-      user = await this.prisma.user.update({ where: { id: user.id }, data: { email: payload.email, ...(user.name ? {} : { name: payload.name?.slice(0, 120) ?? null }) } });
+      user = await this.prisma.user.update({ where: { id: user.id }, data: {
+        email,
+        ...(user.name ? {} : { name: payload.name?.slice(0, 120) ?? null }),
+        ...(isConfiguredAdmin ? { role: UserRole.ADMIN } : user.role === UserRole.ADMIN ? { role: UserRole.CUSTOMER } : {}),
+      } });
     }
     return { user: this.publicUser(user), tokens: await this.issueTokens(user) };
   }
