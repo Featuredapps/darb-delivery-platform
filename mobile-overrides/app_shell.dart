@@ -36,6 +36,7 @@ class _AppShellState extends State<AppShell> {
   }
 
   Future<void> _load() async {
+    if (mounted) setState(() => loading = true);
     try {
       final data = await Api.instance.get('/auth/me');
       me = Map<String, dynamic>.from(data);
@@ -78,8 +79,13 @@ class _AppShellState extends State<AppShell> {
                 const SizedBox(height: 6),
                 Text(error!, textAlign: TextAlign.center, style: const TextStyle(color: DarbColors.muted)),
                 const SizedBox(height: 18),
-                FilledButton(onPressed: _load, child: const Text('إعادة المحاولة')),
-                TextButton(onPressed: _logout, child: const Text('تسجيل الخروج')),
+                FilledButton(onPressed: loading ? null : _load, child: const Text('إعادة المحاولة')),
+                const SizedBox(height: 10),
+                const Text(
+                  'حسابك محفوظ. لن يتم تسجيل خروجك بسبب تعذر الاتصال.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: DarbColors.muted, fontSize: 12),
+                ),
               ],
             ),
           ),
