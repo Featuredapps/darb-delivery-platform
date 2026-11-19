@@ -11,6 +11,7 @@ services:
       mkdir -p .render-build &&
       unzip -q DARB-source.zip -d .render-build &&
       cp -R backend/src/. .render-build/darb-project/backend/src/ &&
+      cp backend-overrides/main.ts .render-build/darb-project/backend/src/main.ts &&
       cp backend-overrides/sms.providers.ts .render-build/darb-project/backend/src/modules/auth/sms/sms.providers.ts &&
       cp backend-overrides/auth.service.ts .render-build/darb-project/backend/src/modules/auth/auth.service.ts &&
       cp backend-overrides/auth.controller.ts .render-build/darb-project/backend/src/modules/auth/auth.controller.ts &&
