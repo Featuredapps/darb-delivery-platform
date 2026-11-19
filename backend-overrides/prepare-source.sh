@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT="${1:?source root required}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MIGRATION_DIR="$ROOT/backend/prisma/migrations/20261119120000_delivery_offers"
+mkdir -p "$MIGRATION_DIR"
+cp "$SCRIPT_DIR/delivery-offers.migration.sql" "$MIGRATION_DIR/migration.sql"
 python3 - "$ROOT" <<'PY'
 from pathlib import Path
 import json, sys
