@@ -49,6 +49,7 @@ jobs:
           cp mobile-overrides/driver_screens.dart "$M/lib/screens/driver_screens.dart"
           cp mobile-overrides/account_screens.dart "$M/lib/screens/account_screens.dart"
           cp mobile-overrides/notifications.dart "$M/lib/notifications.dart"
+          cp mobile-overrides/design_system_test.dart "$M/test/widget_test.dart"
           mkdir -p "$M/android/app/src/main/res/drawable"
           cp mobile-overrides/ic_launcher.xml "$M/android/app/src/main/res/drawable/ic_launcher.xml"
           sed -i 's|android:icon="@mipmap/ic_launcher"|android:icon="@drawable/ic_launcher"|' "$M/android/app/src/main/AndroidManifest.xml"
