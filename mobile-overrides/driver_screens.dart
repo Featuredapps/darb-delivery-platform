@@ -88,9 +88,15 @@ class _CustomerDeliveryOffersState extends State<_CustomerDeliveryOffers>{
   @override Widget build(BuildContext context){
     if(loading)return const Padding(padding:EdgeInsets.all(12),child:Center(child:CircularProgressIndicator()));
     if(error!=null)return TextButton(onPressed:(){setState(()=>loading=true);_load();},child:Text('تعذر تحميل العروض: $error'));
-    if(offers.isEmpty)return const Padding(padding:EdgeInsets.all(12),child:Text('بانتظار عروض السائقين. اسحب للأسفل لتحديث الطلب.'));
+    if(offers.isEmpty)return Padding(padding:const EdgeInsets.all(12),child:Row(children:[
+      const Expanded(child:Text('بانتظار عروض السائقين.')),
+      TextButton.icon(onPressed:(){setState(()=>loading=true);_load();},icon:const Icon(Icons.refresh),label:const Text('تحديث')),
+    ]));
     return Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-      const Padding(padding:EdgeInsets.symmetric(horizontal:12,vertical:8),child:Text('عروض السائقين',style:TextStyle(fontWeight:FontWeight.w900))),
+      Padding(padding:const EdgeInsets.symmetric(horizontal:12,vertical:8),child:Row(children:[
+        const Expanded(child:Text('عروض السائقين',style:TextStyle(fontWeight:FontWeight.w900))),
+        IconButton(onPressed:selecting?null:(){setState(()=>loading=true);_load();},tooltip:'تحديث العروض',icon:const Icon(Icons.refresh)),
+      ])),
       for(final offer in offers)ListTile(
         leading:const CircleAvatar(child:Icon(Icons.delivery_dining)),
         title:Text(offer['driver']?['user']?['name']?.toString()??'سائق'),
