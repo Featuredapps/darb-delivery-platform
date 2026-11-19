@@ -409,7 +409,7 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
           )
         else
           DropdownButtonFormField<String>(
-            value: addressId,
+            initialValue: addressId,
             isExpanded: true,
             decoration: const InputDecoration(prefixIcon: Icon(Icons.location_on_outlined)),
             items: [
