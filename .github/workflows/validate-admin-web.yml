@@ -39,7 +39,6 @@ jobs:
               "/auth/google",
               "GOOGLE_WEB_CLIENT_ID",
               "/admin/drivers/pending",
-              "ADMIN_EMAILS",
               "/admin/vendors/pending",
               "Authorization='Bearer '+token()",
           ]
