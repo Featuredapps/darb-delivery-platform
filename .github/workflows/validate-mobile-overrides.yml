@@ -58,7 +58,7 @@ jobs:
               if not any(line.strip().startswith(name + ":") for line in lines):
                   dep += 1
                   lines.insert(dep, f"  {name}: {version}")
-          p.write_text("\\n".join(lines)+"\\n")
+          p.write_text("\n".join(lines)+"\n")
           PY
           flutter pub get
       - name: Analyze all mobile Dart sources
