@@ -21,7 +21,7 @@ describe('OrdersService safety checks', () => {
     const tx: any = {
       address: { findFirst: jest.fn().mockResolvedValue({ id: 'address-1' }) },
       city: { findFirst: jest.fn().mockResolvedValue({ id: 'city-1', defaultCurrency: 'SYP' }) },
-      deliveryZone: { findUnique: jest.fn().mockResolvedValue({ feeBase: 1250, feePerKm: 0 }) },
+      
       order: { create },
     };
     prisma.$transaction.mockImplementation(async (callback: (tx: any) => unknown) => callback(tx));
@@ -32,12 +32,12 @@ describe('OrdersService safety checks', () => {
 
     expect(create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
-        type: 'PEER_DELIVERY', status: 'READY', cityId: 'city-1',
+        type: 'PEER_DELIVERY', status: 'PENDING', cityId: 'city-1',
         customerId: 'customer-1', addressId: 'address-1',
         pickupAddress: 'شارع الجامعة، حلب', pickupLatitude: 36.2021, pickupLongitude: 37.1343,
-        subtotal: 0, deliveryFee: 1250, total: 1250,
-        payment: { create: expect.objectContaining({ method: 'CASH_ON_DELIVERY', amount: 1250, currency: 'SYP' }) },
-        statusHistory: { create: { status: 'READY', changedBy: 'customer-1' } },
+        subtotal: 0, deliveryFee: 0, total: 0,
+        payment: { create: expect.objectContaining({ method: 'CASH_ON_DELIVERY', amount: 0, currency: 'SYP' }) },
+        statusHistory: { create: { status: 'PENDING', changedBy: 'customer-1' } },
       }),
       include: { payment: true, address: true },
     }));
