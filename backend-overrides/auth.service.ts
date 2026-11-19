@@ -4,7 +4,6 @@ import { JwtService } from '@nestjs/jwt';
 import { Locale, User, UserRole } from '@prisma/client';
 import { OAuth2Client } from 'google-auth-library';
 import { randomUUID } from 'crypto';
-import { OAuth2Client } from 'google-auth-library';
 import type Redis from 'ioredis';
 import { normalizeSyrianPhone } from '../../common/validators/syrian-phone';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -21,23 +20,6 @@ export class AuthService {
   async verifyOtp(dto: VerifyOtpDto) {
     const phone = this.requireSyrianPhone(dto.phone); await this.otp.verify(phone, dto.code);
     const user = await this.prisma.user.upsert({ where: { phone }, create: { phone, name: dto.name, locale: (dto.locale as Locale) ?? Locale.ar }, update: dto.name ? { name: dto.name } : {} });
-    return { user: this.publicUser(user), tokens: await this.issueTokens(user) };
-  }
-  async googleSignIn(idToken: string, locale?: string) {
-    const clientId = this.config.get<string>('GOOGLE_SERVER_CLIENT_ID');
-    if (!clientId) throw new ServiceUnavailableException('Google sign-in is not configured');
-    let payload;
-    try { payload = (await this.google.verifyIdToken({ idToken, audience: clientId })).getPayload(); }
-    catch { throw new UnauthorizedException('Invalid Google ID token'); }
-    if (!payload?.sub || !payload.email || payload.email_verified !== true) throw new UnauthorizedException('Google account email is not verified');
-    let user = await this.prisma.user.findUnique({ where: { googleId: payload.sub } });
-    if (!user) {
-      const existingEmail = await this.prisma.user.findUnique({ where: { email: payload.email } });
-      if (existingEmail) throw new ConflictException('This email is already linked to another sign-in method');
-      user = await this.prisma.user.create({ data: { googleId: payload.sub, email: payload.email, phone: null, name: payload.name?.slice(0, 120) ?? null, locale: (['ar','en','tr'].includes(locale ?? '') ? locale : 'ar') as Locale, role: UserRole.CUSTOMER } });
-    } else {
-      user = await this.prisma.user.update({ where: { id: user.id }, data: { email: payload.email, ...(user.name ? {} : { name: payload.name?.slice(0, 120) ?? null }) } });
-    }
     return { user: this.publicUser(user), tokens: await this.issueTokens(user) };
   }
   async googleSignIn(idToken: string, locale?: string) {
