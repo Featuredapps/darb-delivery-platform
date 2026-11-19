@@ -6,8 +6,8 @@
 <style>
 :root{font-family:Tahoma,Arial,sans-serif;color:#17231f;background:#f5f6f2;--forest:#102b26;--soft:#1c443b;--mint:#b9e4d2;--line:#e2e8e1;--muted:#77837d;--danger:#b94747}
 *{box-sizing:border-box}body{margin:0}button,input{font:inherit}button{cursor:pointer;border:0;border-radius:13px;padding:12px 17px;font-weight:700;background:var(--forest);color:white}button:disabled{opacity:.5;cursor:wait}.outline{background:white;color:var(--forest);border:1px solid var(--line)}.danger{background:#fff2f0;color:var(--danger);border:1px solid #f1d4d0}
-.shell{min-height:100vh;display:grid;grid-template-columns:260px 1fr}.side{background:var(--forest);color:white;padding:26px 18px;display:flex;flex-direction:column;gap:28px}.brand{display:flex;align-items:center;gap:12px}.mark{width:45px;height:45px;border-radius:15px;background:linear-gradient(140deg,#b9e4d2,#6fb99a);color:var(--forest);display:grid;place-items:center;font-size:27px;font-weight:900}.brand strong{font-size:20px}.brand small{display:block;color:#b9c9c1;margin-top:4px}.nav{display:grid;gap:8px}.nav button{background:transparent;color:#d7e2dc;text-align:right;display:flex;justify-content:space-between}.nav button.active,.nav button:hover{background:#ffffff18;color:white}.side-foot{margin-top:auto;color:#b9c9c1;font-size:12px;line-height:1.7}.main{padding:30px;max-width:1400px;width:100%;margin:auto}.top{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:28px}.top h1{margin:0;font-size:25px}.muted{color:var(--muted)}.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;margin-bottom:22px}.stat,.panel,.request{background:white;border:1px solid var(--line);border-radius:20px;padding:20px}.stat b{display:block;font-size:30px;margin-top:8px;color:var(--forest)}.panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}.panel-head h2{font-size:18px;margin:0}.tabs{display:flex;gap:8px;flex-wrap:wrap}.tabs button{padding:9px 13px}.tabs .active{background:var(--forest)}.list{display:grid;gap:12px}.request{display:flex;justify-content:space-between;gap:20px;align-items:center}.request h3{margin:0 0 7px;font-size:16px}.meta{color:var(--muted);font-size:13px;line-height:1.8}.actions{display:flex;gap:8px;flex-shrink:0}.badge{display:inline-flex;padding:5px 9px;border-radius:30px;background:#fff5df;color:#95620e;font-size:11px;font-weight:700}.empty,.error{text-align:center;padding:38px;color:var(--muted)}.error{color:var(--danger)}.login-wrap{min-height:100vh;display:grid;place-items:center;padding:20px;background:radial-gradient(circle at 80% 10%,#d7eee4,transparent 35%),#f5f6f2}.login{width:min(430px,100%);background:white;border:1px solid var(--line);border-radius:25px;padding:30px;box-shadow:0 20px 70px #102b2612}.login .brand{margin-bottom:25px;color:var(--forest)}.login h1{font-size:22px}.login p{color:var(--muted);line-height:1.7;font-size:13px}.field{display:grid;gap:7px;margin:16px 0}.field label{font-size:13px;font-weight:700}.field input{border:1px solid var(--line);border-radius:13px;padding:14px;background:#fbfcfa;direction:ltr;text-align:left;outline:none}.field input:focus{border-color:var(--soft);box-shadow:0 0 0 3px #b9e4d255}.wide{width:100%}.hidden{display:none!important}.notice{padding:12px 14px;border-radius:12px;background:#eef7f1;color:#246044;font-size:13px;margin:12px 0}.notice.bad{background:#fff0ee;color:var(--danger)}
-@media(max-width:850px){.shell{grid-template-columns:1fr}.side{padding:14px 16px;gap:12px}.side .brand small,.side-foot{display:none}.nav{grid-template-columns:repeat(3,1fr)}.nav button{justify-content:center;text-align:center;padding:10px 5px;font-size:12px}.main{padding:20px 14px}.stats{grid-template-columns:1fr 1fr}.request{align-items:flex-start;flex-direction:column}.actions{width:100%}.actions button{flex:1}}
+.shell{min-height:100vh;display:grid;grid-template-columns:260px 1fr}.side{background:var(--forest);color:white;padding:26px 18px;display:flex;flex-direction:column;gap:28px}.brand{display:flex;align-items:center;gap:12px}.mark{width:45px;height:45px;border-radius:15px;background:linear-gradient(140deg,#b9e4d2,#6fb99a);color:var(--forest);display:grid;place-items:center;font-size:27px;font-weight:900}.brand strong{font-size:20px}.brand small{display:block;color:#b9c9c1;margin-top:4px}.nav{display:grid;gap:8px}.nav button{min-height:46px}.nav button{background:transparent;color:#d7e2dc;text-align:right;display:flex;justify-content:space-between}.nav button.active,.nav button:hover{background:#ffffff18;color:white}.side-foot{margin-top:auto;color:#b9c9c1;font-size:12px;line-height:1.7}.main{padding:30px;max-width:1400px;width:100%;margin:auto}.top{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:28px}.top h1{margin:0;font-size:25px}.muted{color:var(--muted)}.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;margin-bottom:22px}.zone-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}.zone-card{border:1px solid var(--line);border-radius:16px;padding:17px;background:#fff}.zone-card h3{margin:0 0 5px}.zone-fields{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:14px 0}.zone-fields label{display:grid;gap:5px;font-size:12px;color:var(--muted)}.zone-fields input{min-width:0;width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fbfcfa;direction:ltr;text-align:left}.zone-card .zone-save{width:100%}.detail-line{margin-top:7px;padding-top:7px;border-top:1px solid var(--line);font-size:12px;color:#52635b;line-height:1.8}.stat,.panel,.request{background:white;border:1px solid var(--line);border-radius:20px;padding:20px}.stat b{display:block;font-size:30px;margin-top:8px;color:var(--forest)}.panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}.panel-head h2{font-size:18px;margin:0}.tabs{display:flex;gap:8px;flex-wrap:wrap}.tabs button{padding:9px 13px}.tabs .active{background:var(--forest)}.list{display:grid;gap:12px}.request{display:flex;justify-content:space-between;gap:20px;align-items:center}.request h3{margin:0 0 7px;font-size:16px}.meta{color:var(--muted);font-size:13px;line-height:1.8}.actions{display:flex;gap:8px;flex-shrink:0}.badge{display:inline-flex;padding:5px 9px;border-radius:30px;background:#fff5df;color:#95620e;font-size:11px;font-weight:700}.empty,.error{text-align:center;padding:38px;color:var(--muted)}.error{color:var(--danger)}.login-wrap{min-height:100vh;display:grid;place-items:center;padding:20px;background:radial-gradient(circle at 80% 10%,#d7eee4,transparent 35%),#f5f6f2}.login{width:min(430px,100%);background:white;border:1px solid var(--line);border-radius:25px;padding:30px;box-shadow:0 20px 70px #102b2612}.login .brand{margin-bottom:25px;color:var(--forest)}.login h1{font-size:22px}.login p{color:var(--muted);line-height:1.7;font-size:13px}.field{display:grid;gap:7px;margin:16px 0}.field label{font-size:13px;font-weight:700}.field input{border:1px solid var(--line);border-radius:13px;padding:14px;background:#fbfcfa;direction:ltr;text-align:left;outline:none}.field input:focus{border-color:var(--soft);box-shadow:0 0 0 3px #b9e4d255}.wide{width:100%}.hidden{display:none!important}.notice{padding:12px 14px;border-radius:12px;background:#eef7f1;color:#246044;font-size:13px;margin:12px 0}.notice.bad{background:#fff0ee;color:var(--danger)}
+@media(max-width:850px){.shell{grid-template-columns:1fr}.side{padding:14px 16px;gap:12px}.side .brand small,.side-foot{display:none}.nav{grid-template-columns:repeat(2,minmax(0,1fr))}.nav button{justify-content:center;text-align:center;padding:10px 5px;font-size:12px}.main{padding:20px 14px}.stats{grid-template-columns:1fr 1fr}.request{align-items:flex-start;flex-direction:column}.actions{width:100%}.actions button{flex:1}}
 @media(max-width:430px){.stats{grid-template-columns:1fr}.top h1{font-size:20px}}
 </style><script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
@@ -22,17 +22,17 @@
 </div></section>
 <section id="appView" class="shell hidden">
 <aside class="side"><div class="brand"><div class="mark">د</div><div><strong>دَرْب</strong><small>مركز العمليات والإدارة</small></div></div>
-<nav class="nav"><button data-kind="drivers" class="active">طلبات السائقين <span id="driverCount">—</span></button><button data-kind="vendors">طلبات المتاجر <span id="vendorCount">—</span></button><button id="refresh">تحديث البيانات</button></nav>
+<nav class="nav"><button data-kind="drivers" class="active">طلبات السائقين <span id="driverCount">—</span></button><button data-kind="vendors">طلبات المتاجر <span id="vendorCount">—</span></button><button data-kind="zones">مناطق ورسوم التوصيل</button><button id="refresh">تحديث البيانات</button></nav>
 <div class="side-foot">بوابة داخلية محمية<br>لا تمنح الموافقة إلا بعد مراجعة البيانات والمستندات خارج هذه الشاشة.</div>
 </aside>
 <main class="main"><header class="top"><div><h1 id="pageTitle">طلبات انضمام السائقين</h1><div class="muted" style="font-size:13px;margin-top:6px">مراجعة واعتماد شركاء التوصيل في دَرْب</div></div><button id="logout" class="outline">تسجيل الخروج</button></header>
 <div class="stats"><div class="stat"><span class="muted">طلبات السائقين المعلقة</span><b id="driverStat">—</b></div><div class="stat"><span class="muted">طلبات المتاجر المعلقة</span><b id="vendorStat">—</b></div><div class="stat"><span class="muted">صلاحية الجلسة</span><b style="font-size:18px;margin-top:14px">مدير معتمد</b></div></div>
-<section class="panel"><div class="panel-head"><h2 id="listTitle">قائمة المراجعة</h2><span class="badge">تتطلب قرار الإدارة</span></div><div id="list" class="list"><div class="empty">جارٍ تحميل الطلبات…</div></div></section>
+<section class="panel"><div class="panel-head"><h2 id="listTitle">قائمة المراجعة</h2><span id="panelBadge" class="badge">تتطلب قرار الإدارة</span></div><div id="list" class="list"><div class="empty">جارٍ تحميل الطلبات…</div></div></section>
 </main></section>
 <script>
 const API='https://darb-api-yapv.onrender.com/api/v1';
 const GOOGLE_WEB_CLIENT_ID='1005839784892-6iees5memvdalvv2tpanqd25je2d88st.apps.googleusercontent.com';
-const $=id=>document.getElementById(id);let kind='drivers',rows=[];
+const $=id=>document.getElementById(id);let kind='drivers',rows=[],zones=[];
 const token=()=>sessionStorage.getItem('darb_access');
 function message(text,bad=false){$('loginNotice').className='notice'+(bad?' bad':'');$('loginNotice').textContent=text;}
 async function raw(path,method='GET',body=null,auth=true){const headers={'Accept':'application/json'};if(body)headers['Content-Type']='application/json';if(auth&&token())headers.Authorization='Bearer '+token();let res=await fetch(API+path,{method,headers,body:body?JSON.stringify(body):undefined});if(res.status===401&&auth){const refresh=sessionStorage.getItem('darb_refresh');if(refresh){const rr=await fetch(API+'/auth/refresh',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({refreshToken:refresh})});if(rr.ok){const data=await rr.json();sessionStorage.setItem('darb_access',data.accessToken);sessionStorage.setItem('darb_refresh',data.refreshToken);headers.Authorization='Bearer '+data.accessToken;res=await fetch(API+path,{method,headers,body:body?JSON.stringify(body):undefined});}}}const data=await res.json().catch(()=>({message:'استجابة غير مفهومة من الخادم'}));if(!res.ok)throw new Error(Array.isArray(data.message)?data.message.join('، '):(data.message||'فشل الطلب'));return data;}
@@ -55,8 +55,69 @@ function initializeGoogleLogin(){
  window.google.accounts.id.renderButton($('googleButton'),{theme:'outline',size:'large',shape:'pill',text:'signin_with',locale:'ar',width:320});
 }
 window.addEventListener('load',initializeGoogleLogin);
-async function load(){const [drivers,vendors]=await Promise.all([raw('/admin/drivers/pending'),raw('/admin/vendors/pending')]);$('driverCount').textContent=drivers.length;$('vendorCount').textContent=vendors.length;$('driverStat').textContent=drivers.length;$('vendorStat').textContent=vendors.length;rows=kind==='drivers'?drivers:vendors;render();}
-function render(){$('pageTitle').textContent=kind==='drivers'?'طلبات انضمام السائقين':'طلبات انضمام المتاجر';$('listTitle').textContent=kind==='drivers'?'السائقون بانتظار الاعتماد':'المتاجر بانتظار الاعتماد';const list=$('list');list.innerHTML='';if(!rows.length){list.innerHTML='<div class="empty">لا توجد طلبات معلقة حالياً.</div>';return;}for(const r of rows){const user=r.user||{},city=r.city?.names?.find(x=>x.locale==='ar')?.name||r.city?.code||'',translation=r.translations?.find(x=>x.locale==='ar')||r.translations?.[0]||{};const title=kind==='drivers'?(user.name||'سائق جديد'):(translation.name||'متجر جديد');const detail=kind==='drivers'?(r.vehicleType||'نوع المركبة غير محدد'):(r.type||'نوع النشاط غير محدد');const el=document.createElement('article');el.className='request';const info=document.createElement('div');info.innerHTML='<h3></h3><div class="meta"></div>';info.querySelector('h3').textContent=title;info.querySelector('.meta').textContent=[user.phone||user.email||'لا يوجد رقم تواصل',detail,city?'المدينة: '+city:''].filter(Boolean).join(' • ');const actions=document.createElement('div');actions.className='actions';const approve=document.createElement('button');approve.textContent='اعتماد الطلب';approve.onclick=()=>decide(r.id,'APPROVED',approve);const reject=document.createElement('button');reject.className='danger';reject.textContent='رفض الطلب';reject.onclick=()=>decide(r.id,kind==='drivers'?'SUSPENDED':'REJECTED',reject);actions.append(approve,reject);el.append(info,actions);list.append(el);}}
+async function load(){
+ if(kind==='zones'){
+  zones=await raw('/admin/delivery-zones');
+  renderZones();
+  return;
+ }
+ const [drivers,vendors]=await Promise.all([raw('/admin/drivers/pending'),raw('/admin/vendors/pending')]);
+ $('driverCount').textContent=drivers.length;$('vendorCount').textContent=vendors.length;
+ $('driverStat').textContent=drivers.length;$('vendorStat').textContent=vendors.length;
+ rows=kind==='drivers'?drivers:vendors;render();
+}
+function render(){
+ $('pageTitle').textContent=kind==='drivers'?'طلبات انضمام السائقين':'طلبات انضمام المتاجر';
+ $('listTitle').textContent=kind==='drivers'?'السائقون بانتظار الاعتماد':'المتاجر بانتظار الاعتماد';
+ $('panelBadge').textContent='تتطلب قرار الإدارة';
+ const list=$('list');list.innerHTML='';
+ if(!rows.length){list.innerHTML='<div class="empty">لا توجد طلبات معلقة حالياً.</div>';return;}
+ for(const r of rows){
+  const user=r.user||{},city=r.city?.names?.find(x=>x.locale==='ar')?.name||r.city?.code||'',translation=r.translations?.find(x=>x.locale==='ar')||r.translations?.[0]||{};
+  const title=kind==='drivers'?(user.name||'سائق جديد'):(translation.name||'متجر جديد');
+  const detail=kind==='drivers'?(r.vehicleType||'نوع المركبة غير محدد'):(r.type||'نوع النشاط غير محدد');
+  const lines=[user.phone||user.email||'لا يوجد رقم تواصل',detail,city?'المدينة: '+city:'',user.email&&user.phone?'البريد: '+user.email:''];
+  if(kind==='vendors'){
+   if(r.commercialRegNo)lines.push('السجل التجاري: '+r.commercialRegNo);
+   const address=r.location?.address;if(address)lines.push('العنوان: '+address);
+   const cities=(r.cities||[]).map(x=>x.city?.names?.find(n=>n.locale==='ar')?.name||x.city?.code).filter(Boolean);
+   if(cities.length)lines.push('نطاق العمل: '+cities.join('، '));
+   if(translation.description)lines.push('الوصف: '+translation.description);
+  }else if(r.createdAt){lines.push('تاريخ التقديم: '+new Date(r.createdAt).toLocaleDateString('ar'));}
+  const el=document.createElement('article');el.className='request';
+  const info=document.createElement('div');info.style.flex='1';
+  const heading=document.createElement('h3');heading.textContent=title;
+  const meta=document.createElement('div');meta.className='meta';meta.textContent=lines.filter(Boolean).join(' • ');
+  info.append(heading,meta);
+  const actions=document.createElement('div');actions.className='actions';
+  const approve=document.createElement('button');approve.textContent='اعتماد الطلب';approve.onclick=()=>decide(r.id,'APPROVED',approve);
+  const reject=document.createElement('button');reject.className='danger';reject.textContent=kind==='drivers'?'تعليق الطلب':'رفض الطلب';reject.onclick=()=>decide(r.id,kind==='drivers'?'SUSPENDED':'REJECTED',reject);
+  actions.append(approve,reject);el.append(info,actions);list.append(el);
+ }
+}
+function renderZones(){
+ $('pageTitle').textContent='مناطق ورسوم التوصيل';
+ $('listTitle').textContent='إعدادات رسوم المدن';
+ $('panelBadge').textContent='تُطبق على طلبات المتاجر';
+ const list=$('list');list.innerHTML='';
+ if(!zones.length){list.innerHTML='<div class="empty">لا توجد مناطق توصيل مُعدة حالياً. لا يمكن إضافة مدينة من هذه الشاشة لأن واجهة إدارة المدن غير متاحة ضمن الخادم الحالي.</div>';return;}
+ const grid=document.createElement('div');grid.className='zone-grid';
+ for(const zone of zones){
+  const city=zone.city?.names?.find(x=>x.locale==='ar')?.name||zone.city?.code||'مدينة غير معروفة';
+  const card=document.createElement('article');card.className='zone-card';
+  const title=document.createElement('h3');title.textContent=city;
+  const subtitle=document.createElement('div');subtitle.className='muted';subtitle.style.fontSize='12px';subtitle.textContent=zone.name+' · '+(zone.city?.code||'');
+  const fields=document.createElement('div');fields.className='zone-fields';
+  const makeField=(label,value,name)=>{const wrap=document.createElement('label');wrap.textContent=label;const input=document.createElement('input');input.type=name==='name'?'text':'number';if(name!=='name'){input.min='0';input.step='0.01';}input.required=true;input.value=String(value??0);input.dataset.field=name;wrap.append(input);fields.append(wrap);};
+  makeField('اسم المنطقة',zone.name,'name');
+  makeField('الرسوم الأساسية (ل.س)',zone.feeBase,'feeBase');
+  makeField('رسوم كل كم (ل.س)',zone.feePerKm,'feePerKm');
+  const save=document.createElement('button');save.className='zone-save';save.textContent='حفظ التعديلات';
+  save.onclick=async()=>{const inputs=[...fields.querySelectorAll('input')];if(inputs.some(i=>!i.value.trim()||Number(i.value)<0)){alert('أدخل قيماً صحيحة غير سالبة.');return;}save.disabled=true;save.textContent='جارٍ الحفظ…';try{await raw('/admin/delivery-zones/'+zone.id,'PATCH',{name:fields.querySelector('[data-field="name"]').value.trim(),feeBase:Number(fields.querySelector('[data-field="feeBase"]').value),feePerKm:Number(fields.querySelector('[data-field="feePerKm"]').value)});await load();}catch(e){alert(e.message);save.disabled=false;save.textContent='حفظ التعديلات';}};
+  card.append(title,subtitle,fields,save);grid.append(card);
+ }
+ list.append(grid);
+}
 async function decide(id,status,button){const label=button.textContent;if(!confirm(status==='APPROVED'?'تأكيد اعتماد هذا الطلب؟':'تأكيد رفض/تعليق هذا الطلب؟'))return;try{button.disabled=true;await raw('/admin/'+kind+'/'+id+'/status','PATCH',{status});await load();}catch(e){alert(e.message);button.disabled=false;button.textContent=label;}}
 document.querySelectorAll('[data-kind]').forEach(b=>b.onclick=async()=>{kind=b.dataset.kind;document.querySelectorAll('[data-kind]').forEach(x=>x.classList.toggle('active',x===b));try{await load();}catch(e){$('list').innerHTML='<div class="error"></div>';$('list').firstChild.textContent=e.message;}});
 $('refresh').onclick=async()=>{try{await load();}catch(e){alert(e.message);}};
