@@ -30,7 +30,8 @@
 <section class="panel"><div class="panel-head"><h2 id="listTitle">قائمة المراجعة</h2><span class="badge">تتطلب قرار الإدارة</span></div><div id="list" class="list"><div class="empty">جارٍ تحميل الطلبات…</div></div></section>
 </main></section>
 <script>
-const API='https://darb-api-yapv.onrender.com/api/v1';\nconst GOOGLE_WEB_CLIENT_ID='REPLACE_WITH_GOOGLE_WEB_CLIENT_ID';
+const API='https://darb-api-yapv.onrender.com/api/v1';
+const GOOGLE_WEB_CLIENT_ID='1005839784892-6iees5memvdalvv2tpanqd25je2d88st.apps.googleusercontent.com';
 const $=id=>document.getElementById(id);let kind='drivers',rows=[];
 const token=()=>sessionStorage.getItem('darb_access');
 function message(text,bad=false){$('loginNotice').className='notice'+(bad?' bad':'');$('loginNotice').textContent=text;}
