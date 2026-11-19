@@ -77,7 +77,7 @@ TextButton.icon(onPressed:()async{try{if(!await Geolocator.isLocationServiceEnab
   final email=profile?['email']?.toString()??'';
   final phone=profile?['phone']?.toString()??'';
   final role=profile?['role']?.toString()??'CUSTOMER';
-  final initial=name.isNotEmpty?name.characters.first.toUpperCase():'د';
+  final initial=name.isNotEmpty?name.substring(0,1).toUpperCase():'د';
   return ListView(padding:const EdgeInsets.fromLTRB(18,10,18,30),children:[
    Container(
     padding:const EdgeInsets.fromLTRB(20,24,20,20),
