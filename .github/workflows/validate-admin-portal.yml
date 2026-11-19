@@ -1,0 +1,46 @@
+name: Validate DARB admin portal
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "admin-web/**"
+      - ".github/workflows/validate-admin-portal.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate admin portal structure and JavaScript
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          html = Path("admin-web/index.html").read_text()
+          scripts = re.findall(r"<script>(.*?)</script>", html, re.S)
+          if len(scripts) != 1:
+              raise SystemExit(f"Expected one inline admin script, found {len(scripts)}")
+          Path("/tmp/admin.js").write_text(scripts[0])
+          required = [
+              "/auth/google", "/auth/me", "handleGoogleCredential",
+              "/admin/drivers/pending", "/admin/vendors/pending",
+              "/admin/delivery-zones", "renderZones",
+              "data-kind=\"zones\"", "APPROVED", "REJECTED",
+          ]
+          missing = [item for item in required if item not in html]
+          if missing:
+              raise SystemExit("Missing admin portal requirements: " + ", ".join(missing))
+          if "sessionStorage" not in html:
+              raise SystemExit("Admin session storage handling is missing")
+          if "https://darb-api-yapv.onrender.com/api/v1" not in html:
+              raise SystemExit("Unexpected or missing API endpoint")
+          PY
+          node --check /tmp/admin.js
+          git diff --check
