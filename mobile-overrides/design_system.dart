@@ -13,6 +13,38 @@ abstract final class DarbColors {
   static const muted = Color(0xFF77837D);
   static const line = Color(0xFFE4E9E3);
   static const danger = Color(0xFFB94747);
+  static const success = Color(0xFF287A50);
+  static const warning = Color(0xFFB7791F);
+  static const info = Color(0xFF356D9A);
+  static const borderStrong = Color(0xFFCBD5CE);
+  static const scrim = Color(0x990B1713);
+}
+
+abstract final class DarbSpace {
+  static const double xxs = 4, xs = 8, sm = 12, md = 16, lg = 20;
+  static const double xl = 24, xxl = 32, section = 40;
+}
+
+abstract final class DarbRadius {
+  static const double sm = 12, md = 16, lg = 22, xl = 28;
+  static const double hero = 36, pill = 999;
+}
+
+abstract final class DarbMotion {
+  static const Duration fast = Duration(milliseconds: 160);
+  static const Duration standard = Duration(milliseconds: 260);
+  static const Duration expressive = Duration(milliseconds: 420);
+  static const Curve enter = Curves.easeOutCubic;
+  static const Curve exit = Curves.easeInCubic;
+}
+
+abstract final class DarbElevation {
+  static const card = <BoxShadow>[
+    BoxShadow(color: Color(0x080F2B24), blurRadius: 18, offset: Offset(0, 6)),
+  ];
+  static const floating = <BoxShadow>[
+    BoxShadow(color: Color(0x160F2B24), blurRadius: 28, offset: Offset(0, 12)),
+  ];
 }
 
 abstract final class DarbTheme {
@@ -52,6 +84,27 @@ abstract final class DarbTheme {
         },
       ),
       splashFactory: InkSparkle.splashFactory,
+      visualDensity: VisualDensity.standard,
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: DarbColors.forest,
+        linearTrackColor: DarbColors.line,
+        circularTrackColor: DarbColors.line,
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: DarbColors.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(DarbRadius.xl)),
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: DarbColors.surface,
+        surfaceTintColor: Colors.transparent,
+        showDragHandle: true,
+        dragHandleColor: DarbColors.borderStrong,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(DarbRadius.xl)),
+        ),
+      ),
       appBarTheme: const AppBarTheme(
         backgroundColor: DarbColors.canvas,
         foregroundColor: DarbColors.ink,
