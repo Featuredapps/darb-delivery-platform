@@ -36,8 +36,10 @@ jobs:
           html = Path("admin-web/index.html").read_text()
           required = [
               "me.role!=='ADMIN'",
-              "/auth/otp/verify",
+              "/auth/google",
+              "GOOGLE_WEB_CLIENT_ID",
               "/admin/drivers/pending",
+              "ADMIN_EMAILS",
               "/admin/vendors/pending",
               "Authorization='Bearer '+token()",
           ]
