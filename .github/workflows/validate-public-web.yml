@@ -39,14 +39,15 @@ jobs:
               'id="services"',
               'id="how"',
               'id="download"',
-              'href="admin/"',
-              "/releases/tags/latest",
-              "app-release.apk",
-              "سيظهر زر التنزيل المباشر",
+              "https://github.com/anasgdxj/darb-delivery-platform/releases/download/latest/app-release.apk",
+              "تنزيل تطبيق أندرويد",
+              "أحدث إصدار رسمي موقّع",
           ]
           missing = [item for item in required if item not in html]
           if missing:
               raise SystemExit("Missing public website requirements: " + ", ".join(missing))
           if "app-debug.apk" in html:
               raise SystemExit("Debug APK must never be exposed as an official download")
+          if "admin/" in html or "بوابة الإدارة" in html or "دخول الإدارة" in html:
+              raise SystemExit("Admin portal links must not appear on the public website")
           PY

@@ -29,7 +29,7 @@ footer{background:#0b211c;color:#dce7df;padding:32px 0}.foot{display:flex;justif
 <header><div class="wrap nav">
 <a class="brand" href="#"><span class="logo">د</span><span>دَرْب</span></a>
 <nav class="links"><a href="#services">الخدمات</a><a href="#how">كيف يعمل؟</a><a href="#download">تنزيل التطبيق</a></nav>
-<div class="nav-actions"><a class="btn btn-ghost" href="admin/">بوابة الإدارة</a><a class="btn btn-primary" href="#download">حمّل دَرْب <span>↙</span></a></div>
+<div class="nav-actions"><a class="btn btn-primary" href="#download">حمّل دَرْب <span>↙</span></a></div>
 </div></header>
 <main>
 <section class="hero"><div class="wrap hero-grid">
@@ -59,11 +59,14 @@ footer{background:#0b211c;color:#dce7df;padding:32px 0}.foot{display:flex;justif
 </div></section>
 <section class="content download" id="download"><div class="wrap"><div class="download-panel"><div class="download-copy"><div class="kicker">دَرْب معك أينما كنت</div><h2>خلّ مشاويرك أسهل.</h2><p>حمّل تطبيق دَرْب على أندرويد وابدأ باستكشاف خدمات التوصيل. سنعرض هنا أحدث إصدار رسمي موقّع فور نشره.</p></div><div class="download-action"><a id="downloadBtn" class="btn" href="https://github.com/anasgdxj/darb-delivery-platform/releases" target="_blank" rel="noopener">عرض الإصدارات <span>↓</span></a><div id="downloadStatus" class="download-status" aria-live="polite">جارٍ التحقق من أحدث إصدار…</div></div></div></div></section>
 </main>
-<footer><div class="wrap foot"><a class="brand" href="#"><span class="logo">د</span><span>دَرْب</span></a><small>© <span id="year"></span> دَرْب. جميع الحقوق محفوظة.</small><div class="foot-links"><a href="#services">الخدمات</a><a href="#download">التنزيل</a><a href="admin/">دخول الإدارة</a></div></div></footer>
+<footer><div class="wrap foot"><a class="brand" href="#"><span class="logo">د</span><span>دَرْب</span></a><small>© <span id="year"></span> دَرْب. جميع الحقوق محفوظة.</small><div class="foot-links"><a href="#services">الخدمات</a><a href="#download">التنزيل</a></div></div></footer>
 <script>
-const releaseApi='https://api.github.com/repos/anasgdxj/darb-delivery-platform/releases/tags/latest';
-const releasePage='https://github.com/anasgdxj/darb-delivery-platform/releases';
+const directApk='https://github.com/anasgdxj/darb-delivery-platform/releases/download/latest/app-release.apk';
 document.getElementById('year').textContent=new Date().getFullYear();
-(async()=>{const btn=document.getElementById('downloadBtn'),status=document.getElementById('downloadStatus');try{const response=await fetch(releaseApi,{headers:{Accept:'application/vnd.github+json'}});if(!response.ok)throw new Error('no release');const release=await response.json();const apk=(release.assets||[]).find(x=>x.name==='app-release.apk'&&x.state==='uploaded');if(!apk)throw new Error('no signed apk');btn.href=apk.browser_download_url;btn.innerHTML='تنزيل تطبيق أندرويد <span>↓</span>';status.textContent='الإصدار الرسمي: '+(release.name||release.tag_name)+' · ملف APK موقّع';}catch(_){btn.href=releasePage;btn.innerHTML='عرض الإصدارات <span>↗</span>';status.textContent='سيظهر زر التنزيل المباشر بعد نشر أول إصدار رسمي موقّع.';}})();
+const downloadBtn=document.getElementById('downloadBtn');
+downloadBtn.href=directApk;
+downloadBtn.setAttribute('download','darb-app-release.apk');
+downloadBtn.innerHTML='تنزيل تطبيق أندرويد <span>↓</span>';
+document.getElementById('downloadStatus').textContent='أحدث إصدار رسمي موقّع · تنزيل مباشر لملف APK';
 </script>
 </body></html>
