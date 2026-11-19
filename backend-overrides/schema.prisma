@@ -31,7 +31,7 @@ enum DriverStatus {
   SUSPENDED
 }
 
-enum OrderType {
+enum OfferStatus {\n  PENDING\n  ACCEPTED\n  REJECTED\n  WITHDRAWN\n}\n\nenum OrderType {
   VENDOR_ORDER
   PEER_DELIVERY
 }
@@ -243,6 +243,7 @@ model Driver {
   city            City            @relation(fields: [cityId], references: [id])
   currentLocation DriverLocation?
   orders          Order[]
+  deliveryOffers  DeliveryOffer[]
 
   @@index([cityId, isOnline, status])
 }
@@ -298,11 +299,31 @@ model Order {
   payment       Payment?
   statusHistory OrderStatusHistory[]
   reviews       Review[]
+  deliveryOffers DeliveryOffer[]
 
   @@index([customerId, createdAt])
   @@index([vendorId, status])
   @@index([driverId, status])
   @@index([cityId, status])
+}
+
+
+model DeliveryOffer {
+  id        String      @id @default(uuid())
+  orderId   String
+  driverId  String
+  amount    Decimal     @db.Decimal(12, 2)
+  currency  String      @db.VarChar(3)
+  status    OfferStatus @default(PENDING)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  order  Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  driver Driver @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  @@unique([orderId, driverId])
+  @@index([orderId, status, amount])
+  @@index([driverId, status, createdAt])
 }
 
 model OrderItem {
