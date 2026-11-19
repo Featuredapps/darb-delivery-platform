@@ -84,6 +84,8 @@ jobs:
           cp backend-overrides/schema.prisma extracted/darb-project/backend/prisma/schema.prisma
           mkdir -p extracted/darb-project/backend/prisma/migrations/20261118195000_peer_delivery_pickup_coordinates
           cp backend-overrides/pickup-coordinates.migration.sql extracted/darb-project/backend/prisma/migrations/20261118195000_peer_delivery_pickup_coordinates/migration.sql
+          mkdir -p extracted/darb-project/backend/prisma/migrations/20261119120000_delivery_offers
+          cp backend-overrides/delivery-offers.migration.sql extracted/darb-project/backend/prisma/migrations/20261119120000_delivery_offers/migration.sql
           mkdir -p extracted/darb-project/backend/prisma/migrations/20261117160000_google_accounts
           cp backend-overrides/google-accounts.migration.sql extracted/darb-project/backend/prisma/migrations/20261117160000_google_accounts/migration.sql
           mkdir -p extracted/darb-project/backend/prisma/migrations/20261117170000_firebase_devices
