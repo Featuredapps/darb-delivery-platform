@@ -6,6 +6,7 @@ on:
       - "mobile-overrides/**"
       - "DARB-source.zip"
       - ".github/workflows/validate-mobile-overrides.yml"
+      - ".github/workflows/build-android-release.yml"
   push:
     branches: [main]
     paths:

@@ -159,6 +159,15 @@ jobs:
           mkdir -p "$HOME/.gradle"
           cat > "$HOME/.gradle/init.gradle" <<'GRADLE'
           allprojects {
+              // Flutter's included Gradle build resolves Kotlin artifacts from Maven Central.
+              buildscript {
+                  repositories {
+                      mavenCentral()
+                  }
+              }
+              repositories {
+                  mavenCentral()
+              }
               tasks.configureEach { task ->
                   if (task.name == "lintVitalAnalyzeRelease" || task.name == "lintVitalRelease") {
                       task.enabled = false
