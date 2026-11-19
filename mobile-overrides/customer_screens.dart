@@ -8,6 +8,7 @@ class CustomerHome extends StatefulWidget {
 
 class _CustomerHomeState extends State<CustomerHome> {
   final search = TextEditingController();
+  final storesKey = GlobalKey();
   bool loading = true;
   String? error;
   List<dynamic> cities = [], vendors = [];
@@ -29,11 +30,13 @@ class _CustomerHomeState extends State<CustomerHome> {
   Future<void> _load() async {
     if (mounted) setState(() { loading = true; error = null; });
     try {
-      cities = await Api.instance.get('/cities') as List;
+      final loadedCities = await Api.instance.get('/cities') as List;
+      cities = loadedCities;
       if (cities.isNotEmpty) {
         cityId ??= cities.first['id'].toString();
         vendors = await Api.instance.get('/vendors?cityId=$cityId&locale=ar') as List;
       } else {
+        cityId = null;
         vendors = [];
       }
     } catch (e) {
@@ -59,197 +62,378 @@ class _CustomerHomeState extends State<CustomerHome> {
     return translations.isEmpty ? 'متجر' : translations.first['name']?.toString() ?? 'متجر';
   }
 
+  void _openPeerDelivery() {
+    if (cityId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('لا توجد مدينة مفعّلة لخدمة التوصيل حالياً')),
+      );
+      return;
+    }
+    Navigator.push(context, MaterialPageRoute(
+      builder: (_) => PeerDeliveryScreen(cityId: cityId!),
+    ));
+  }
+
+  void _openStores() {
+    Scrollable.ensureVisible(
+      storesKey.currentContext!,
+      duration: const Duration(milliseconds: 520),
+      curve: Curves.easeOutCubic,
+      alignment: .04,
+    );
+  }
+
+  Widget _sectionTitle(String title, String subtitle) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: ink)),
+      const SizedBox(height: 4),
+      Text(subtitle, style: const TextStyle(fontSize: 12, color: DarbColors.muted, height: 1.45)),
+    ],
+  );
+
+  Widget _serviceCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    bool primary = false,
+  }) {
+    final foreground = primary ? Colors.white : ink;
+    return Material(
+      color: primary ? DarbColors.forestSoft : Colors.white,
+      borderRadius: BorderRadius.circular(21),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(21),
+        child: Container(
+          padding: const EdgeInsets.all(15),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(21),
+            border: Border.all(color: primary ? Colors.transparent : DarbColors.line),
+          ),
+          child: Row(children: [
+            Container(
+              width: 48, height: 48,
+              decoration: BoxDecoration(
+                color: primary ? Colors.white.withValues(alpha: .12) : const Color(0xFFEAF2EC),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Icon(icon, color: primary ? const Color(0xFFC8F169) : green, size: 23),
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: TextStyle(color: foreground, fontSize: 14, fontWeight: FontWeight.w900)),
+                const SizedBox(height: 4),
+                Text(subtitle, style: TextStyle(
+                  color: primary ? Colors.white.withValues(alpha: .72) : DarbColors.muted,
+                  fontSize: 11, height: 1.4,
+                )),
+              ],
+            )),
+            Icon(Icons.arrow_forward_ios_rounded, size: 15,
+              color: primary ? Colors.white70 : DarbColors.muted),
+          ]),
+        ),
+      ),
+    );
+  }
+
+  Widget _storeTile(dynamic vendor) {
+    final name = _vendorName(vendor);
+    final count = vendor['_count']?['products'] ?? 0;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(19),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(19),
+          onTap: () => Navigator.push(context, MaterialPageRoute(
+            builder: (_) => VendorCatalog(
+              vendorId: vendor['id'].toString(),
+              name: name,
+              cityId: cityId ?? '',
+            ),
+          )),
+          child: Container(
+            padding: const EdgeInsets.all(13),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(19),
+              border: Border.all(color: DarbColors.line),
+            ),
+            child: Row(children: [
+              Container(
+                width: 54, height: 54,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFE6F1E9), Color(0xFFF4F7E9)],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(Icons.storefront_rounded, color: green, size: 25),
+              ),
+              const SizedBox(width: 12),
+              Expanded(child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(name, maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: ink, fontSize: 14, fontWeight: FontWeight.w900)),
+                  const SizedBox(height: 5),
+                  Text('$count منتج متاح',
+                    style: const TextStyle(color: DarbColors.muted, fontSize: 11)),
+                ],
+              )),
+              const Icon(Icons.chevron_left_rounded, color: green, size: 23),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final query = search.text.trim().toLowerCase();
-    final visibleVendors = vendors.where((v) => _vendorName(v).toLowerCase().contains(query)).toList();
+    final visibleVendors = vendors.where(
+      (v) => _vendorName(v).toLowerCase().contains(query),
+    ).toList();
+
     return RefreshIndicator(
       onRefresh: _load,
       color: green,
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(18, 8, 18, 28),
+        padding: const EdgeInsets.fromLTRB(18, 8, 18, 30),
         children: [
-          Row(
-            children: [
-              const Icon(Icons.location_on_rounded, color: green, size: 19),
-              const SizedBox(width: 6),
-              const Text('التوصيل إلى', style: TextStyle(color: Colors.black54, fontSize: 12)),
-              const Spacer(),
-              if (cities.isNotEmpty)
-                DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: cityId,
-                    icon: const Icon(Icons.keyboard_arrow_down_rounded, color: green),
-                    style: const TextStyle(color: ink, fontSize: 13, fontWeight: FontWeight.w800),
-                    items: [for (final c in cities) DropdownMenuItem(value: c['id'].toString(), child: Text(_cityName(c)))],
-                    onChanged: (value) async {
-                      if (value == null || value == cityId) return;
-                      setState(() => cityId = value);
-                      await _load();
-                    },
-                  ),
-                )
-              else
-                const Text('حدد المدينة', style: TextStyle(color: ink, fontWeight: FontWeight.w800)),
-            ],
-          ),
-          const SizedBox(height: 14),
+          Row(children: [
+            Container(
+              width: 38, height: 38,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE8F0EA),
+                borderRadius: BorderRadius.circular(13),
+              ),
+              child: const Icon(Icons.location_on_rounded, color: green, size: 20),
+            ),
+            const SizedBox(width: 10),
+            Expanded(child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('موقع التوصيل', style: TextStyle(color: DarbColors.muted, fontSize: 10)),
+                const SizedBox(height: 2),
+                if (cities.isNotEmpty)
+                  DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      isDense: true,
+                      value: cityId,
+                      icon: const Icon(Icons.keyboard_arrow_down_rounded, color: green),
+                      style: const TextStyle(color: ink, fontSize: 13, fontWeight: FontWeight.w900),
+                      items: [for (final c in cities)
+                        DropdownMenuItem(value: c['id'].toString(), child: Text(_cityName(c)))],
+                      onChanged: (value) async {
+                        if (value == null || value == cityId) return;
+                        setState(() => cityId = value);
+                        await _load();
+                      },
+                    ),
+                  )
+                else
+                  const Text('المدينة غير متاحة', style: TextStyle(color: ink, fontSize: 13, fontWeight: FontWeight.w800)),
+              ],
+            )),
+            IconButton(
+              tooltip: 'تحديث',
+              onPressed: _load,
+              icon: const Icon(Icons.refresh_rounded, color: DarbColors.muted),
+            ),
+          ]),
+          const SizedBox(height: 17),
           Container(
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 begin: Alignment.topRight,
                 end: Alignment.bottomLeft,
-                colors: [Color(0xFF244D40), Color(0xFF102B26), Color(0xFF0B211D)],
+                colors: [Color(0xFF285647), Color(0xFF102B26), Color(0xFF091D19)],
               ),
-              borderRadius: BorderRadius.circular(28),
-            ),
-            child: Stack(
-              children: [
-                Positioned(left: -38, top: -52, child: Container(
-                  width: 190, height: 190,
-                  decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(.045)),
-                )),
-                Positioned(left: 32, bottom: -72, child: Container(
-                  width: 160, height: 160,
-                  decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Colors.white.withOpacity(.08), width: 24)),
-                )),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(22, 24, 22, 22),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
-                        decoration: BoxDecoration(color: Colors.white.withOpacity(.10), borderRadius: BorderRadius.circular(30)),
-                        child: const Row(mainAxisSize: MainAxisSize.min, children: [
-                          Icon(Icons.bolt_rounded, color: Color(0xFFC8F169), size: 15),
-                          SizedBox(width: 5),
-                          Text('كل مشاويرك في مكان واحد', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
-                        ]),
-                      ),
-                      const SizedBox(height: 18),
-                      const Text('من وين بدك\nنوصّل لك؟',
-                        style: TextStyle(color: Colors.white, fontSize: 29, height: 1.22, fontWeight: FontWeight.w900, letterSpacing: -.4)),
-                      const SizedBox(height: 9),
-                      const Text('اطلب من متجرك المفضل أو أرسل غرضك لأي مكان.',
-                        style: TextStyle(color: Color(0xFFD0DED7), fontSize: 13, height: 1.55)),
-                      const SizedBox(height: 22),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: FilledButton(
-                              style: FilledButton.styleFrom(
-                                backgroundColor: const Color(0xFFC8F169),
-                                foregroundColor: ink,
-                                minimumSize: const Size(0, 52),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                              ),
-                              onPressed: cityId == null ? null : () => Navigator.push(context,
-                                MaterialPageRoute(builder: (_) => PeerDeliveryScreen(cityId: cityId!))),
-                              child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                                Icon(Icons.near_me_rounded, size: 18),
-                                SizedBox(width: 7),
-                                Text('أرسل غرضاً', style: TextStyle(fontWeight: FontWeight.w900)),
-                              ]),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Container(
-                            width: 52, height: 52,
-                            decoration: BoxDecoration(color: Colors.white.withOpacity(.10), borderRadius: BorderRadius.circular(15)),
-                            child: const Icon(Icons.local_shipping_rounded, color: Colors.white, size: 23),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+              borderRadius: BorderRadius.circular(27),
+              boxShadow: const [
+                BoxShadow(color: Color(0x1D102B26), blurRadius: 22, offset: Offset(0, 10)),
               ],
             ),
+            child: Stack(children: [
+              Positioned(left: -48, top: -64, child: Container(
+                width: 190, height: 190,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white.withValues(alpha: .07), width: 27),
+                ),
+              )),
+              Positioned(left: 28, bottom: -95, child: Container(
+                width: 175, height: 175,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: .035),
+                ),
+              )),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(21, 22, 21, 21),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: .10),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                      Icon(Icons.route_rounded, color: Color(0xFFC8F169), size: 14),
+                      SizedBox(width: 6),
+                      Text('توصيل من الباب إلى الباب',
+                        style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800)),
+                    ]),
+                  ),
+                  const SizedBox(height: 17),
+                  const Text('غرضك بأي مكان…\nودَرْب يوصّله.',
+                    style: TextStyle(
+                      color: Colors.white, fontSize: 27, height: 1.22,
+                      fontWeight: FontWeight.w900, letterSpacing: -.35,
+                    )),
+                  const SizedBox(height: 8),
+                  const Text('اطلب سائقاً ليستلم غرضك من موقعك ويوصله إلى العنوان الذي تختاره.',
+                    style: TextStyle(color: Color(0xFFD0DED7), fontSize: 12, height: 1.55)),
+                  const SizedBox(height: 19),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: cityId == null ? null : _openPeerDelivery,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFFC8F169),
+                        foregroundColor: ink,
+                        minimumSize: const Size(0, 52),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                      ),
+                      child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                        Icon(Icons.near_me_rounded, size: 18),
+                        SizedBox(width: 8),
+                        Text('اطلب توصيلاً الآن', style: TextStyle(fontWeight: FontWeight.w900)),
+                      ]),
+                    ),
+                  ),
+                  const SizedBox(height: 11),
+                  const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Icon(Icons.verified_user_outlined, color: Color(0xFFB9D4C5), size: 13),
+                    SizedBox(width: 5),
+                    Text('تتابع حالة طلبك من داخل التطبيق',
+                      style: TextStyle(color: Color(0xFFB9D4C5), fontSize: 10, fontWeight: FontWeight.w600)),
+                  ]),
+                ]),
+              ),
+            ]),
           ),
-          const SizedBox(height: 24),
-          const Text('اكتشف المتاجر', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w900, color: ink)),
-          const SizedBox(height: 5),
-          const Text('خيارات قريبة منك، وطلبك يوصل لبابك', style: TextStyle(fontSize: 12, color: Colors.black54)),
-          const SizedBox(height: 15),
+          const SizedBox(height: 22),
+          _sectionTitle('اختر الخدمة', 'مساران واضحان لكل احتياجات التوصيل'),
+          const SizedBox(height: 12),
+          _serviceCard(
+            icon: Icons.inventory_2_outlined,
+            title: 'إرسال غرض مستقل',
+            subtitle: 'أرسل طرداً أو غرضاً من أي عنوان إلى آخر',
+            onTap: _openPeerDelivery,
+            primary: true,
+          ),
+          const SizedBox(height: 9),
+          _serviceCard(
+            icon: Icons.storefront_outlined,
+            title: 'الطلب من المتاجر',
+            subtitle: 'تصفح المتاجر والمنتجات واطلب إلى بابك',
+            onTap: _openStores,
+          ),
+          const SizedBox(height: 25),
+          Container(key: storesKey),
+          _sectionTitle('المتاجر المتاحة', 'متاجر مدينتك التي يمكنك الطلب منها'),
+          const SizedBox(height: 12),
           TextField(
             controller: search,
             textInputAction: TextInputAction.search,
             decoration: InputDecoration(
-              hintText: 'ابحث عن متجر...',
+              hintText: 'ابحث عن متجر أو نشاط...',
               prefixIcon: const Icon(Icons.search_rounded, color: green),
               suffixIcon: search.text.isEmpty ? null : IconButton(
-                onPressed: search.clear, icon: const Icon(Icons.close_rounded)),
+                onPressed: search.clear,
+                icon: const Icon(Icons.close_rounded),
+              ),
               filled: true,
               fillColor: Colors.white,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(17), borderSide: BorderSide.none),
-              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(17), borderSide: const BorderSide(color: Color(0xFFE7ECE7))),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: DarbColors.line),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: DarbColors.forest, width: 1.4),
+              ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 13),
           if (loading)
-            const Padding(padding: EdgeInsets.symmetric(vertical: 34), child: Center(child: CircularProgressIndicator()))
+            ...List.generate(3, (index) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Container(
+                height: 78,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(19),
+                  border: Border.all(color: DarbColors.line),
+                ),
+                child: const Center(child: LinearProgressIndicator(minHeight: 2)),
+              ),
+            ))
           else if (error != null)
             _ErrorPanel(message: error!, retry: _load)
           else if (visibleVendors.isEmpty)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 28),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(22), border: Border.all(color: const Color(0xFFE7ECE7))),
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 22),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(21),
+                border: Border.all(color: DarbColors.line),
+              ),
               child: Column(children: [
-                Container(width: 58, height: 58,
-                  decoration: BoxDecoration(color: const Color(0xFFEAF2EC), borderRadius: BorderRadius.circular(18)),
-                  child: const Icon(Icons.storefront_rounded, color: green, size: 28)),
+                Container(
+                  width: 55, height: 55,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEAF2EC),
+                    borderRadius: BorderRadius.circular(17),
+                  ),
+                  child: const Icon(Icons.storefront_outlined, color: green, size: 27),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  query.isEmpty ? 'لا توجد متاجر متاحة في هذه المدينة' : 'لم نعثر على نتائج مطابقة',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: 14),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'هذا لا يمنعك من استخدام دَرْب لإرسال غرضك بشكل مستقل.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: DarbColors.muted, fontSize: 11, height: 1.5),
+                ),
                 const SizedBox(height: 13),
-                Text(query.isEmpty ? 'لا توجد متاجر متاحة حالياً' : 'لم نعثر على متجر بهذا الاسم',
-                  style: const TextStyle(fontWeight: FontWeight.w800, color: ink)),
-                const SizedBox(height: 5),
-                const Text('يمكنك تحديث القائمة أو استخدام خدمة التوصيل المستقل.',
-                  textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Colors.black54, height: 1.5)),
-                const SizedBox(height: 14),
-                OutlinedButton.icon(onPressed: _load, icon: const Icon(Icons.refresh_rounded), label: const Text('تحديث المتاجر')),
+                OutlinedButton.icon(
+                  onPressed: _openPeerDelivery,
+                  icon: const Icon(Icons.near_me_rounded, size: 17),
+                  label: const Text('إرسال غرض بدلاً من ذلك'),
+                ),
               ]),
             )
           else
-            ...visibleVendors.map((v) {
-              final name = _vendorName(v);
-              final count = v['_count']?['products'] ?? 0;
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 11),
-                child: Material(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(21),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(21),
-                    onTap: () => Navigator.push(context, MaterialPageRoute(
-                      builder: (_) => VendorCatalog(vendorId: v['id'].toString(), name: name, cityId: cityId ?? ''))),
-                    child: Container(
-                      padding: const EdgeInsets.all(13),
-                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(21),
-                        border: Border.all(color: const Color(0xFFE7ECE7))),
-                      child: Row(children: [
-                        Container(width: 58, height: 58,
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(colors: [Color(0xFFE6F1E9), Color(0xFFF4F7E9)]),
-                            borderRadius: BorderRadius.circular(17)),
-                          child: const Icon(Icons.storefront_rounded, color: green, size: 27)),
-                        const SizedBox(width: 13),
-                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text(name, maxLines: 1, overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(color: ink, fontSize: 15, fontWeight: FontWeight.w900)),
-                          const SizedBox(height: 5),
-                          Text('$count منتج متاح', style: const TextStyle(color: Colors.black54, fontSize: 12)),
-                        ])),
-                        Container(width: 34, height: 34,
-                          decoration: BoxDecoration(color: const Color(0xFFF4F6F2), borderRadius: BorderRadius.circular(12)),
-                          child: const Icon(Icons.arrow_forward_ios_rounded, textDirection: TextDirection.ltr, color: green, size: 14)),
-                      ]),
-                    ),
-                  ),
-                ),
-              );
-            }),
+            ...visibleVendors.map(_storeTile),
         ],
       ),
     );
