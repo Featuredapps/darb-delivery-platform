@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
-import { IsArray, IsInt, IsOptional, IsEnum, IsString, IsUUID, Max, Min, ValidateNested } from 'class-validator';
+import { IsArray, IsInt, IsOptional, IsEnum, IsString, IsUUID, IsLatitude, IsLongitude, Max, Min, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { OrderStatus, UserRole } from '@prisma/client';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -9,6 +9,14 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { OrdersService } from './orders.service';
 import { NotificationsService } from '../notifications/notifications.service';
 class OrderLineDto { @IsUUID() productId!: string; @Type(() => Number) @IsInt() @Min(1) @Max(50) quantity!: number; }
+class CreatePeerDeliveryDto {
+  @IsUUID() cityId!: string;
+  @IsUUID() addressId!: string;
+  @IsString() pickupAddress!: string;
+  @Type(() => Number) @IsLatitude() pickupLatitude!: number;
+  @Type(() => Number) @IsLongitude() pickupLongitude!: number;
+  @IsOptional() @IsString() notes?: string;
+}
 class CreateOrderDto {
   @IsUUID() cityId!: string; @IsUUID() addressId!: string; @IsUUID() vendorId!: string;
   @IsArray() @ValidateNested({ each: true }) @Type(() => OrderLineDto) items!: OrderLineDto[];
@@ -22,6 +30,12 @@ export class OrdersController {
   async create(@CurrentUser() user: {id:string}, @Body() dto: CreateOrderDto) {
     const order = await this.orders.create(user.id, dto);
     await this.notifications.notifyVendor(dto.vendorId, 'طلب جديد', 'لديك طلب جديد بانتظار المراجعة', { type: 'ORDER_CREATED', orderId: order.id });
+    return order;
+  }
+  @Post('peer-delivery') @Roles(UserRole.CUSTOMER)
+  async createPeerDelivery(@CurrentUser() user: {id:string}, @Body() dto: CreatePeerDeliveryDto) {
+    const order = await this.orders.createPeerDelivery(user.id, dto);
+    await this.notifications.notifyDriversInCity(dto.cityId, 'طلب توصيل جديد', 'يوجد طلب توصيل مستقل متاح في مدينتك', { type: 'PEER_DELIVERY_AVAILABLE', orderId: order.id });
     return order;
   }
   @Get('mine') @Roles(UserRole.CUSTOMER) mine(@CurrentUser() user: {id:string}) { return this.orders.mine(user.id); }

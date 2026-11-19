@@ -279,6 +279,8 @@ model Order {
   driverId      String?
   addressId     String
   pickupAddress String?
+  pickupLatitude  Float?
+  pickupLongitude Float?
   currency      String      @default("SYP") @db.VarChar(3)
   subtotal      Decimal     @db.Decimal(12, 2)
   deliveryFee   Decimal     @db.Decimal(12, 2)

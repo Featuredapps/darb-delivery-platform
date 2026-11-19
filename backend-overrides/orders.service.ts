@@ -5,6 +5,45 @@ import { PrismaService } from '../../prisma/prisma.service';
 @Injectable()
 export class OrdersService {
   constructor(private readonly prisma: PrismaService) {}
+  async createPeerDelivery(customerId: string, dto: {cityId:string;addressId:string;pickupAddress:string;pickupLatitude:number;pickupLongitude:number;notes?:string}) {
+    const pickupAddress = dto.pickupAddress.trim();
+    if (pickupAddress.length < 5 || pickupAddress.length > 500) throw new BadRequestException('عنوان الاستلام غير صالح');
+    if (!Number.isFinite(dto.pickupLatitude) || dto.pickupLatitude < -90 || dto.pickupLatitude > 90 || !Number.isFinite(dto.pickupLongitude) || dto.pickupLongitude < -180 || dto.pickupLongitude > 180) throw new BadRequestException('حدد موقع الاستلام على الخريطة');
+    return this.prisma.$transaction(async tx => {
+      const [address, city, zone] = await Promise.all([
+        tx.address.findFirst({ where: { id: dto.addressId, userId: customerId }, select: { id: true } }),
+        tx.city.findFirst({ where: { id: dto.cityId, isActive: true }, select: { id: true, defaultCurrency: true } }),
+        tx.deliveryZone.findUnique({ where: { cityId: dto.cityId } }),
+      ]);
+      if (!address) throw new BadRequestException('عنوان التسليم غير صالح');
+      if (!city) throw new BadRequestException('المدينة غير متاحة');
+      if (!zone) throw new BadRequestException('لم يتم إعداد رسوم التوصيل لهذه المدينة بعد');
+      let distanceKm: number | null = 0;
+      if (Number(zone.feePerKm) > 0) {
+        const distances = await tx.$queryRaw<Array<{ distanceKm: number | null }>>`
+          SELECT CASE WHEN a."point" IS NULL THEN NULL
+            ELSE ST_Distance(
+              ST_SetSRID(ST_MakePoint(${dto.pickupLongitude}, ${dto.pickupLatitude}), 4326)::geography,
+              a."point"
+            ) / 1000.0
+          END AS "distanceKm"
+          FROM "Address" a
+          WHERE a."id" = ${dto.addressId} AND a."userId" = ${customerId}
+        `;
+        distanceKm = distances[0]?.distanceKm ?? null;
+        if (distanceKm === null) throw new BadRequestException('حدد موقع عنوان التسليم لحساب رسوم المسافة');
+      }
+      const fee = Number(zone.feeBase) + Math.ceil(distanceKm) * Number(zone.feePerKm);
+      return tx.order.create({ data: {
+        orderNumber: `DRB-${Date.now().toString(36).toUpperCase()}-${randomBytes(2).toString('hex').toUpperCase()}`,
+        type: 'PEER_DELIVERY', status: 'READY', cityId: city.id, customerId,
+        addressId: address.id, pickupAddress, pickupLatitude: dto.pickupLatitude, pickupLongitude: dto.pickupLongitude, currency: city.defaultCurrency,
+        subtotal: 0, deliveryFee: fee, total: fee, notes: dto.notes,
+        payment: { create: { method: 'CASH_ON_DELIVERY', amount: fee, currency: city.defaultCurrency } },
+        statusHistory: { create: { status: 'READY', changedBy: customerId } },
+      }, include: { payment: true, address: true } });
+    });
+  }
   async create(customerId: string, dto: {cityId:string;addressId:string;vendorId:string;items:{productId:string;quantity:number}[];notes?:string}) {
     if (!dto.items?.length || dto.items.length > 30) throw new BadRequestException('قائمة المنتجات غير صالحة');
     const ids = [...new Set(dto.items.map(x => x.productId))];
@@ -73,7 +112,7 @@ export class OrdersService {
       return order;
     });
   }
-  mine(userId: string) { return this.prisma.order.findMany({ where: { customerId: userId }, orderBy: { createdAt: 'desc' }, include: { items: true, payment: true, statusHistory: { orderBy: { createdAt: 'asc' } } } }); }
+  mine(userId: string) { return this.prisma.order.findMany({ where: { customerId: userId }, orderBy: { createdAt: 'desc' }, include: { items: true, address: true, payment: true, statusHistory: { orderBy: { createdAt: 'asc' } } } }); }
   async vendorOrders(userId: string) {
     const vendor = await this.prisma.vendor.findUnique({ where: { userId }, select: { id: true } });
     if (!vendor) throw new ForbiddenException();
