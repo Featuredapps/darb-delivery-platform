@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/api.dart';
@@ -214,7 +213,7 @@ class _DarbSplashScreenState extends State<DarbSplashScreen>
                       borderRadius: BorderRadius.circular(20),
                       child: const LinearProgressIndicator(
                         minHeight: 3,
-                        backgroundColor: Color(0x334FFFFFF),
+                        backgroundColor: Color(0x334FFFFF),
                         valueColor: AlwaysStoppedAnimation(DarbColors.lime),
                       ),
                     ),
