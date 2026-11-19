@@ -18,10 +18,16 @@ class Api {
   }
 
   Future<void> saveTokens(Map<String, dynamic> tokens) async {
-    _accessToken = tokens['accessToken'] as String?;
-    if (_accessToken != null) await _storage.write(key: 'accessToken', value: _accessToken);
+    final access = tokens['accessToken'] as String?;
     final refresh = tokens['refreshToken'] as String?;
-    if (refresh != null) await _storage.write(key: 'refreshToken', value: refresh);
+    if (access == null || access.isEmpty || refresh == null || refresh.isEmpty) {
+      throw const ApiException('استجابة الجلسة غير مكتملة. أعد المحاولة دون تسجيل الخروج.');
+    }
+    // Persist the rotated refresh token first so an interrupted write cannot
+    // leave the client holding a refresh token that the server already revoked.
+    await _storage.write(key: 'refreshToken', value: refresh);
+    await _storage.write(key: 'accessToken', value: access);
+    _accessToken = access;
   }
 
   Future<void> clear() async {
@@ -60,14 +66,24 @@ class Api {
         headers: const {'Content-Type': 'application/json', 'Accept': 'application/json'},
         body: jsonEncode({'refreshToken': refreshToken}),
       ).timeout(const Duration(seconds: 20));
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        await clear();
+
+      // Only a definitive authentication rejection invalidates the saved
+      // session. A sleeping server, timeout, or 5xx must never erase tokens.
+      if (response.statusCode == 401 || response.statusCode == 403) {
+        _accessToken = null;
+        await _storage.delete(key: 'accessToken');
+        await _storage.delete(key: 'refreshToken');
         return false;
       }
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      await saveTokens(data);
+      if (response.statusCode < 200 || response.statusCode >= 300) return false;
+
+      final decoded = jsonDecode(response.body);
+      if (decoded is! Map<String, dynamic>) return false;
+      await saveTokens(decoded);
       return _accessToken != null;
     } catch (_) {
+      // Keep both saved tokens on network, timeout, or malformed-response
+      // failures; a later retry can recover without forcing another login.
       return false;
     }
   }
