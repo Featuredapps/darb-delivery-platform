@@ -31,7 +31,7 @@ jobs:
           required = [
               "/auth/google", "/auth/me", "handleGoogleCredential",
               "/admin/drivers/pending", "/admin/vendors/pending",
-              "/admin/delivery-zones", "renderZones",
+              "/admin/delivery-zones", "renderZones", "/admin/orders", "renderOrders",
               "data-kind=\"zones\"", "APPROVED", "REJECTED",
           ]
           missing = [item for item in required if item not in html]
