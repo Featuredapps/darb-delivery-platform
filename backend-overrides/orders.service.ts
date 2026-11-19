@@ -10,37 +10,19 @@ export class OrdersService {
     if (pickupAddress.length < 5 || pickupAddress.length > 500) throw new BadRequestException('عنوان الاستلام غير صالح');
     if (!Number.isFinite(dto.pickupLatitude) || dto.pickupLatitude < -90 || dto.pickupLatitude > 90 || !Number.isFinite(dto.pickupLongitude) || dto.pickupLongitude < -180 || dto.pickupLongitude > 180) throw new BadRequestException('حدد موقع الاستلام على الخريطة');
     return this.prisma.$transaction(async tx => {
-      const [address, city, zone] = await Promise.all([
+      const [address, city] = await Promise.all([
         tx.address.findFirst({ where: { id: dto.addressId, userId: customerId }, select: { id: true } }),
         tx.city.findFirst({ where: { id: dto.cityId, isActive: true }, select: { id: true, defaultCurrency: true } }),
-        tx.deliveryZone.findUnique({ where: { cityId: dto.cityId } }),
       ]);
       if (!address) throw new BadRequestException('عنوان التسليم غير صالح');
       if (!city) throw new BadRequestException('المدينة غير متاحة');
-      if (!zone) throw new BadRequestException('لم يتم إعداد رسوم التوصيل لهذه المدينة بعد');
-      let distanceKm: number | null = 0;
-      if (Number(zone.feePerKm) > 0) {
-        const distances = await tx.$queryRaw<Array<{ distanceKm: number | null }>>`
-          SELECT CASE WHEN a."point" IS NULL THEN NULL
-            ELSE ST_Distance(
-              ST_SetSRID(ST_MakePoint(${dto.pickupLongitude}, ${dto.pickupLatitude}), 4326)::geography,
-              a."point"
-            ) / 1000.0
-          END AS "distanceKm"
-          FROM "Address" a
-          WHERE a."id" = ${dto.addressId} AND a."userId" = ${customerId}
-        `;
-        distanceKm = distances[0]?.distanceKm ?? null;
-        if (distanceKm === null) throw new BadRequestException('حدد موقع عنوان التسليم لحساب رسوم المسافة');
-      }
-      const fee = Number(zone.feeBase) + Math.ceil(distanceKm) * Number(zone.feePerKm);
       return tx.order.create({ data: {
         orderNumber: `DRB-${Date.now().toString(36).toUpperCase()}-${randomBytes(2).toString('hex').toUpperCase()}`,
-        type: 'PEER_DELIVERY', status: 'READY', cityId: city.id, customerId,
+        type: 'PEER_DELIVERY', status: 'PENDING', cityId: city.id, customerId,
         addressId: address.id, pickupAddress, pickupLatitude: dto.pickupLatitude, pickupLongitude: dto.pickupLongitude, currency: city.defaultCurrency,
-        subtotal: 0, deliveryFee: fee, total: fee, notes: dto.notes,
-        payment: { create: { method: 'CASH_ON_DELIVERY', amount: fee, currency: city.defaultCurrency } },
-        statusHistory: { create: { status: 'READY', changedBy: customerId } },
+        subtotal: 0, deliveryFee: 0, total: 0, notes: dto.notes,
+        payment: { create: { method: 'CASH_ON_DELIVERY', amount: 0, currency: city.defaultCurrency } },
+        statusHistory: { create: { status: 'PENDING', changedBy: customerId } },
       }, include: { payment: true, address: true } });
     });
   }
@@ -119,7 +101,74 @@ export class OrdersService {
     return this.prisma.order.findMany({ where: { vendorId: vendor.id }, orderBy: { createdAt: 'desc' }, include: { items: true, address: true, customer: { select: { name: true, phone: true } } } });
   }
   async driverMine(userId: string) { const driver = await this.prisma.driver.findUnique({ where: { userId }, select: { id: true } }); if (!driver) throw new ForbiddenException(); return this.prisma.order.findMany({ where: { driverId: driver.id }, orderBy: { createdAt: 'desc' }, include: { items: true, address: true, vendor: { include: { location: true, translations: true } } } }); }
-  async availableForDriver(userId: string) { const driver = await this.prisma.driver.findUnique({ where: { userId }, select: { cityId: true, status: true, isOnline: true } }); if (!driver || driver.status !== 'APPROVED' || !driver.isOnline) throw new ForbiddenException('السائق غير متصل أو غير معتمد'); return this.prisma.order.findMany({ where: { cityId: driver.cityId, status: 'READY', driverId: null }, orderBy: { createdAt: 'asc' }, include: { items: true, vendor: { include: { location: true, translations: true } }, address: true } }); }
+  async availableForDriver(userId: string) {
+    const driver = await this.prisma.driver.findUnique({ where: { userId }, select: { cityId: true, status: true, isOnline: true } });
+    if (!driver || driver.status !== 'APPROVED' || !driver.isOnline) throw new ForbiddenException('السائق غير متصل أو غير معتمد');
+    const orders = await this.prisma.order.findMany({
+      where: { cityId: driver.cityId, driverId: null, OR: [{ type: 'VENDOR_ORDER', status: 'READY' }, { type: 'PEER_DELIVERY', status: 'PENDING' }] },
+      orderBy: { createdAt: 'asc' },
+      include: { items: true, vendor: { include: { location: true, translations: true } }, address: true },
+    });
+    return Promise.all(orders.map(async order => {
+      if (order.type !== 'PEER_DELIVERY' || order.pickupLatitude == null || order.pickupLongitude == null) return order;
+      const rows = await this.prisma.$queryRaw<Array<{ distanceKm: number | null }>>`
+        SELECT CASE WHEN a."point" IS NULL THEN NULL ELSE
+          ST_Distance(
+            ST_SetSRID(ST_MakePoint(${order.pickupLongitude}, ${order.pickupLatitude}), 4326)::geography,
+            a."point"
+          ) / 1000.0 END AS "distanceKm"
+        FROM "Address" a WHERE a."id" = ${order.addressId}
+      `;
+      return { ...order, distanceKm: rows[0]?.distanceKm ?? null };
+    }));
+  }
+  async submitDeliveryOffer(userId: string, orderId: string, amount: number) {
+    if (!Number.isFinite(amount) || amount <= 0 || amount > 10000000) throw new BadRequestException('أدخل أجرة صحيحة أكبر من صفر');
+    const driver = await this.prisma.driver.findUnique({ where: { userId } });
+    if (!driver || driver.status !== 'APPROVED' || !driver.isOnline) throw new ForbiddenException('يجب أن يكون حساب السائق معتمداً ومتصلًا');
+    return this.prisma.$transaction(async tx => {
+      const order = await tx.order.findFirst({ where: { id: orderId, cityId: driver.cityId, type: 'PEER_DELIVERY', status: 'PENDING', driverId: null }, select: { id: true, currency: true } });
+      if (!order) throw new BadRequestException('الطلب لم يعد متاحاً لتقديم عرض');
+      return tx.deliveryOffer.upsert({
+        where: { orderId_driverId: { orderId, driverId: driver.id } },
+        create: { orderId, driverId: driver.id, amount, currency: order.currency, status: 'PENDING' },
+        update: { amount, currency: order.currency, status: 'PENDING', updatedAt: new Date() },
+      });
+    });
+  }
+
+  async deliveryOffersForCustomer(userId: string, orderId: string) {
+    const order = await this.prisma.order.findFirst({ where: { id: orderId, customerId: userId, type: 'PEER_DELIVERY' }, select: { id: true, status: true } });
+    if (!order) throw new NotFoundException('الطلب غير موجود');
+    return this.prisma.deliveryOffer.findMany({
+      where: { orderId, status: { in: ['PENDING', 'ACCEPTED'] } },
+      orderBy: [{ amount: 'asc' }, { createdAt: 'asc' }],
+      include: { driver: { select: { vehicleType: true, user: { select: { name: true } } } } },
+    });
+  }
+
+  async selectDeliveryOffer(userId: string, orderId: string, offerId: string) {
+    return this.prisma.$transaction(async tx => {
+      const order = await tx.order.findFirst({ where: { id: orderId, customerId: userId, type: 'PEER_DELIVERY', status: 'PENDING', driverId: null }, select: { id: true } });
+      if (!order) throw new BadRequestException('لا يمكن اختيار عرض لهذا الطلب');
+      const offer = await tx.deliveryOffer.findFirst({
+        where: { id: offerId, orderId, status: 'PENDING', driver: { status: 'APPROVED', isOnline: true } },
+        select: { id: true, driverId: true, amount: true, currency: true },
+      });
+      if (!offer) throw new BadRequestException('العرض لم يعد متاحاً');
+      const changed = await tx.order.updateMany({
+        where: { id: orderId, customerId: userId, status: 'PENDING', driverId: null },
+        data: { driverId: offer.driverId, status: 'ASSIGNED', deliveryFee: offer.amount, total: offer.amount },
+      });
+      if (!changed.count) throw new BadRequestException('تم حجز الطلب من جلسة أخرى؛ حدّث الصفحة');
+      await tx.payment.updateMany({ where: { orderId }, data: { amount: offer.amount, currency: offer.currency } });
+      await tx.deliveryOffer.update({ where: { id: offer.id }, data: { status: 'ACCEPTED' } });
+      await tx.deliveryOffer.updateMany({ where: { orderId, id: { not: offer.id }, status: 'PENDING' }, data: { status: 'REJECTED' } });
+      await tx.orderStatusHistory.create({ data: { orderId, status: 'ASSIGNED', changedBy: userId } });
+      return tx.order.findUnique({ where: { id: orderId }, include: { payment: true, address: true, driver: { include: { user: { select: { name: true } } } } } });
+    });
+  }
+
   async claim(userId: string, orderId: string) {
     const driver = await this.prisma.driver.findUnique({ where: { userId } });
     if (!driver || driver.status !== 'APPROVED' || !driver.isOnline) throw new ForbiddenException('السائق غير معتمد أو غير متصل');

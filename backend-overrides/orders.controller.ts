@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
-import { IsArray, IsInt, IsOptional, IsEnum, IsString, IsUUID, IsLatitude, IsLongitude, Max, Min, ValidateNested } from 'class-validator';
+import { IsArray, IsInt, IsOptional, IsEnum, IsString, IsUUID, IsLatitude, IsLongitude, IsNumber, Max, Min, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { OrderStatus, UserRole } from '@prisma/client';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -23,6 +23,7 @@ class CreateOrderDto {
   @IsOptional() @IsString() notes?: string;
 }
 class UpdateStatusDto { @IsEnum(OrderStatus) status!: OrderStatus; }
+class CreateDeliveryOfferDto { @Type(() => Number) @IsNumber({ maxDecimalPlaces: 2 }) @Min(1) @Max(10000000) amount!: number; }
 @Controller('orders') @UseGuards(JwtAuthGuard, RolesGuard)
 export class OrdersController {
   constructor(private readonly orders: OrdersService, private readonly notifications: NotificationsService) {}
@@ -42,6 +43,18 @@ export class OrdersController {
   @Get('vendor') @Roles(UserRole.VENDOR) vendorOrders(@CurrentUser() user: {id:string}) { return this.orders.vendorOrders(user.id); }
   @Get('driver/available') @Roles(UserRole.DRIVER) available(@CurrentUser() user: {id:string}) { return this.orders.availableForDriver(user.id); }
   @Get('driver/mine') @Roles(UserRole.DRIVER) driverMine(@CurrentUser() user: {id:string}) { return this.orders.driverMine(user.id); }
+  @Post(':id/offers') @Roles(UserRole.DRIVER)
+  submitDeliveryOffer(@CurrentUser() user: {id:string}, @Param('id') id: string, @Body() dto: CreateDeliveryOfferDto) {
+    return this.orders.submitDeliveryOffer(user.id, id, dto.amount);
+  }
+  @Get(':id/offers') @Roles(UserRole.CUSTOMER)
+  deliveryOffers(@CurrentUser() user: {id:string}, @Param('id') id: string) {
+    return this.orders.deliveryOffersForCustomer(user.id, id);
+  }
+  @Post(':id/offers/:offerId/select') @Roles(UserRole.CUSTOMER)
+  selectDeliveryOffer(@CurrentUser() user: {id:string}, @Param('id') id: string, @Param('offerId') offerId: string) {
+    return this.orders.selectDeliveryOffer(user.id, id, offerId);
+  }
   @Post(':id/claim') @Roles(UserRole.DRIVER)
   async claim(@CurrentUser() user: {id:string}, @Param('id') id: string) {
     const order = await this.orders.claim(user.id, id);
