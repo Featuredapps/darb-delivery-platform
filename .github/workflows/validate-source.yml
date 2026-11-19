@@ -188,6 +188,17 @@ jobs:
                   lines.insert(dep, entry)
           p.write_text("\n".join(lines) + "\n")
           PY
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("pubspec.yaml")
+          lines = p.read_text().splitlines()
+          lines = [line for line in lines if not line.strip().startswith("intl:")]
+          dep = next((i for i, line in enumerate(lines) if line.strip() == "dependencies:"), None)
+          if dep is None:
+              raise SystemExit("dependencies section missing")
+          lines.insert(dep + 1, "  intl: ^0.20.3")
+          p.write_text("\\n".join(lines) + "\\n")
+          PY
           flutter pub get
             if ! flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings; then
               echo "::group::Dart syntax context: app_shell.dart lines 25-33"
