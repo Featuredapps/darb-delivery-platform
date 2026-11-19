@@ -32,6 +32,24 @@ abstract final class DarbTheme {
       colorScheme: scheme,
       scaffoldBackgroundColor: DarbColors.canvas,
       fontFamily: 'Arial',
+      textTheme: const TextTheme(
+        headlineLarge: TextStyle(color: DarbColors.ink, fontSize: 28, fontWeight: FontWeight.w900, height: 1.2),
+        headlineMedium: TextStyle(color: DarbColors.ink, fontSize: 23, fontWeight: FontWeight.w900, height: 1.25),
+        titleLarge: TextStyle(color: DarbColors.ink, fontSize: 19, fontWeight: FontWeight.w800),
+        titleMedium: TextStyle(color: DarbColors.ink, fontSize: 15, fontWeight: FontWeight.w700),
+        bodyLarge: TextStyle(color: DarbColors.ink, fontSize: 15, height: 1.5),
+        bodyMedium: TextStyle(color: DarbColors.muted, fontSize: 13, height: 1.45),
+        labelLarge: TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
+      ),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: ZoomPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.linux: FadeUpwardsPageTransitionsBuilder(),
+          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.windows: FadeUpwardsPageTransitionsBuilder(),
+        },
+      ),
       splashFactory: InkSparkle.splashFactory,
       appBarTheme: const AppBarTheme(
         backgroundColor: DarbColors.canvas,
@@ -103,6 +121,12 @@ abstract final class DarbTheme {
         ),
       ),
       dividerTheme: const DividerThemeData(color: DarbColors.line, thickness: 1),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: DarbColors.forest,
+        contentTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
     );
   }
 }
