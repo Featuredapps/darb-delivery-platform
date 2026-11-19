@@ -41,6 +41,8 @@ services:
       cp backend-overrides/syrian-cities.migration.sql .render-build/darb-project/backend/prisma/migrations/20261117180000_seed_syrian_cities/migration.sql &&
       mkdir -p .render-build/darb-project/backend/prisma/migrations/20261117190000_unique_delivery_zone_per_city &&
       cp backend-overrides/unique-delivery-zone-per-city.migration.sql .render-build/darb-project/backend/prisma/migrations/20261117190000_unique_delivery_zone_per_city/migration.sql &&
+      mkdir -p .render-build/darb-project/backend/prisma/migrations/20261118195000_peer_delivery_pickup_coordinates &&
+      cp backend-overrides/pickup-coordinates.migration.sql .render-build/darb-project/backend/prisma/migrations/20261118195000_peer_delivery_pickup_coordinates/migration.sql &&
       cp backend-overrides/schema.prisma .render-build/darb-project/backend/prisma/schema.prisma &&
       mkdir -p .render-build/darb-project/backend/prisma/migrations/20261117160000_google_accounts &&
       cp backend-overrides/google-accounts.migration.sql .render-build/darb-project/backend/prisma/migrations/20261117160000_google_accounts/migration.sql &&
