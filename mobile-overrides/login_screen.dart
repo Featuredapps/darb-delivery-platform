@@ -41,7 +41,7 @@ class _LoginScreenState extends State<LoginScreen>
 
   bool get validPhone =>
       RegExp(r'^09[3-9][0-9]{7}$').hasMatch(digits);
-  String get digits => phone.text.replaceAll(RegExp(r'\\D'), '');
+  String get digits => phone.text.replaceAll(RegExp(r'\D'), '');
   bool get authenticating => busy || googleLoading;
 
   @override
@@ -153,7 +153,7 @@ class _LoginScreenState extends State<LoginScreen>
         );
       }
     } catch (e) {
-      final detail = e.toString().replaceAll(RegExp(r'[\\r\\n]+'), ' ').trim();
+      final detail = e.toString().replaceAll(RegExp(r'[\r\n]+'), ' ').trim();
       final safeDetail = detail.length > 220 ? detail.substring(0, 220) : detail;
       _fail('فشل تسجيل Google عند المرحلة $stage\\n$safeDetail');
     } finally {
@@ -330,11 +330,11 @@ class _LoginScreenState extends State<LoginScreen>
             const SizedBox(height: 20),
             Row(
               children: [
-                _featurePill(Icons.storefront_rounded, 'متاجر'),
+                _featurePill(Icons.storefront_rounded, l.t('featureStores')),
                 const SizedBox(width: 8),
-                _featurePill(Icons.local_shipping_rounded, 'توصيل'),
+                _featurePill(Icons.local_shipping_rounded, l.t('featureDelivery')),
                 const SizedBox(width: 8),
-                _featurePill(Icons.near_me_rounded, 'على دربك'),
+                _featurePill(Icons.near_me_rounded, l.t('featureNearby')),
               ],
             ),
           ],
@@ -756,7 +756,7 @@ class SyrianPhoneFormatter extends TextInputFormatter {
     TextEditingValue oldValue,
     TextEditingValue newValue,
   ) {
-    final raw = newValue.text.replaceAll(RegExp(r'\\D'), '');
+    final raw = newValue.text.replaceAll(RegExp(r'\D'), '');
     final digits = raw.length > 10 ? raw.substring(0, 10) : raw;
     final out = StringBuffer();
     for (var i = 0; i < digits.length; i++) {
