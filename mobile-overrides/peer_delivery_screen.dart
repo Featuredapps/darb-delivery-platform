@@ -276,8 +276,6 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
         'notes': noteParts.join('\n'),
       });
       if (!mounted) return;
-      final fee = order['deliveryFee'];
-      final currency = (order['currency'] ?? '').toString();
       await showDialog<void>(
         context: context,
         barrierDismissible: false,
@@ -289,12 +287,8 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('رقم الطلب: ${order['orderNumber'] ?? order['id']}'),
-              if (fee != null) ...[
-                const SizedBox(height: 8),
-                Text('رسوم التوصيل: $fee $currency'),
-              ],
               const SizedBox(height: 8),
-              const Text('سيظهر طلبك للسائقين المتاحين في مدينتك.'),
+              const Text('سيظهر طلبك للسائقين المتاحين في مدينتك. سيقدم كل سائق أجرته، ويمكنك مقارنة العروض واختيار الأنسب قبل تأكيد التوصيل.'),
             ],
           ),
           actions: [
@@ -545,7 +539,7 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
               SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'ستظهر رسوم التوصيل بعد احتساب المسافة وإعدادات المدينة عند إرسال الطلب.',
+                  'بعد إرسال الطلب سيحدد السائقون أجورهم وفق مسافة التوصيل، وستختار العرض المناسب قبل تأكيد الطلب.',
                   style: TextStyle(color: DarbColors.forest, fontSize: 12, height: 1.5),
                 ),
               ),
