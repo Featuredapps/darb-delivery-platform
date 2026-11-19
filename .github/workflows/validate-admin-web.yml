@@ -1,0 +1,47 @@
+name: Validate DARB admin web
+on:
+  pull_request:
+    paths:
+      - "admin-web/**"
+      - ".github/workflows/validate-admin-web.yml"
+  push:
+    branches: [main]
+    paths:
+      - "admin-web/**"
+      - ".github/workflows/validate-admin-web.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate embedded JavaScript
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          html = Path("admin-web/index.html").read_text()
+          scripts = re.findall(r"<script>(.*?)</script>", html, re.S)
+          if len(scripts) != 1:
+              raise SystemExit(f"Expected exactly one inline script, found {len(scripts)}")
+          Path("/tmp/admin.js").write_text(scripts[0])
+          PY
+          node --check /tmp/admin.js
+      - name: Validate required security gates and endpoints
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          html = Path("admin-web/index.html").read_text()
+          required = [
+              "me.role!=='ADMIN'",
+              "/auth/otp/verify",
+              "/admin/drivers/pending",
+              "/admin/vendors/pending",
+              "Authorization='Bearer '+token()",
+          ]
+          missing = [item for item in required if item not in html]
+          if missing:
+              raise SystemExit("Missing required admin portal checks: " + ", ".join(missing))
+          PY
