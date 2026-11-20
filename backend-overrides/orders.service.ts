@@ -102,7 +102,7 @@ export class OrdersService {
   }
   async driverMine(userId: string) { const driver = await this.prisma.driver.findUnique({ where: { userId }, select: { id: true } }); if (!driver) throw new ForbiddenException(); return this.prisma.order.findMany({ where: { driverId: driver.id }, orderBy: { createdAt: 'desc' }, include: { items: true, address: true, vendor: { include: { location: true, translations: true } } } }); }
   async availableForDriver(userId: string) {
-    const driver = await this.prisma.driver.findUnique({ where: { userId }, select: { cityId: true, status: true, isOnline: true } });
+    const driver = await this.prisma.driver.findUnique({ where: { userId }, select: { id: true, cityId: true, status: true, isOnline: true } });
     if (!driver || driver.status !== 'APPROVED' || !driver.isOnline) throw new ForbiddenException('السائق غير متصل أو غير معتمد');
     const orders = await this.prisma.order.findMany({
       where: { cityId: driver.cityId, driverId: null, OR: [{ type: 'VENDOR_ORDER', status: 'READY' }, { type: 'PEER_DELIVERY', status: 'PENDING' }] },
