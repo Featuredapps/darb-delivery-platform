@@ -23,6 +23,7 @@ class AppLocalizations {
       'otpTitle':'تحقق من رقمك','otpSubtitle':'أدخل رمز التحقق الذي وصلك برسالة نصية',
       'otpLabel':'رمز التحقق','nameLabel':'الاسم (اختياري)','verify':'تأكيد الدخول',
       'changePhone':'تغيير رقم الهاتف','invalidOtp':'أدخل رمز التحقق المكوّن من 6 أرقام',
+      'languageTitle':'لغة التطبيق','languageSubtitle':'اختر اللغة التي تريد استخدام دَرْب بها','languageSave':'حفظ اللغة','languageSaved':'تم حفظ لغة التطبيق','languageSaving':'جارٍ حفظ اللغة','languageArabic':'العربية','languageEnglish':'الإنجليزية','languageTurkish':'التركية','languageArabicNative':'واجهة عربية كاملة واتجاه من اليمين إلى اليسار','languageEnglishNative':'English interface, left to right','languageTurkishNative':'Türkçe arayüz, soldan sağa',
     },
     'en': {
       'welcomeTitle':'Welcome to DARB','welcomeSubtitle':'Your easier way to discover stores and order what you need',
@@ -37,6 +38,7 @@ class AppLocalizations {
       'otpTitle':'Verify your number','otpSubtitle':'Enter the verification code sent by SMS',
       'otpLabel':'Verification code','nameLabel':'Name (optional)','verify':'Verify and continue',
       'changePhone':'Change phone number','invalidOtp':'Enter the 6-digit verification code',
+      'languageTitle':'App language','languageSubtitle':'Choose the language you want to use in DARB','languageSave':'Save language','languageSaved':'App language saved','languageSaving':'Saving language','languageArabic':'Arabic','languageEnglish':'English','languageTurkish':'Turkish','languageArabicNative':'واجهة عربية كاملة واتجاه من اليمين إلى اليسار','languageEnglishNative':'English interface, left to right','languageTurkishNative':'Turkish interface, left to right',
     },
     'tr': {
       'welcomeTitle':"DARB'a hoş geldiniz",'welcomeSubtitle':'İhtiyacınız olanı keşfetmenin ve sipariş etmenin kolay yolu',
@@ -51,6 +53,7 @@ class AppLocalizations {
       'otpTitle':'Numaranızı doğrulayın','otpSubtitle':'SMS ile gönderilen doğrulama kodunu girin',
       'otpLabel':'Doğrulama kodu','nameLabel':'Ad (isteğe bağlı)','verify':'Doğrula ve devam et',
       'changePhone':'Telefon numarasını değiştir','invalidOtp':'6 haneli doğrulama kodunu girin',
+      'languageTitle':'Uygulama dili','languageSubtitle':'DARB uygulamasında kullanmak istediğiniz dili seçin','languageSave':'Dili kaydet','languageSaved':'Uygulama dili kaydedildi','languageSaving':'Dil kaydediliyor','languageArabic':'Arapça','languageEnglish':'İngilizce','languageTurkish':'Türkçe','languageArabicNative':'واجهة عربية كاملة واتجاه من اليمين إلى اليسار','languageEnglishNative':'English interface, left to right','languageTurkishNative':'Türkçe arayüz, soldan sağa',
     },
   };
 }
