@@ -109,6 +109,27 @@ jobs:
           mkdir -p extracted/darb-project/backend/prisma/migrations
           cp -R backend/prisma/migrations/. extracted/darb-project/backend/prisma/migrations/
 
+      - name: Collect backend test harness metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          backend="extracted/darb-project/backend"
+          mkdir -p backend-test-harness
+          cp "$backend/package.json" backend-test-harness/
+          find "$backend" -maxdepth 3 -type f \\
+            \\( -iname 'jest.config.*' -o -iname 'jest-e2e.*' -o -iname '*jest*setup*' -o -name 'tsconfig.json' -o -name 'tsconfig.build.json' \\) \\
+            -not -path '*/node_modules/*' -print0 | while IFS= read -r -d '' file; do
+              cp --parents "$file" backend-test-harness/
+            done
+
+      - name: Upload backend test harness metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: darb-backend-test-harness
+          path: backend-test-harness/
+          if-no-files-found: error
+          retention-days: 3
+
       - name: Upload auth source for security review
         uses: actions/upload-artifact@v4
         with:
