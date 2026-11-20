@@ -53,6 +53,7 @@ jobs:
           cp "$ROOT/mobile-overrides/app_update.dart" "$M/lib/app_update.dart"
           mkdir -p "$M/android/app/src/main/kotlin/com/darb/darb" "$M/android/app/src/main/res/xml"
           cp "$ROOT/mobile-overrides/MainActivity.kt" "$M/android/app/src/main/kotlin/com/darb/darb/MainActivity.kt"
+          cp "$ROOT/mobile-overrides/DarbUpdateDownloadReceiver.kt" "$M/android/app/src/main/kotlin/com/darb/darb/DarbUpdateDownloadReceiver.kt"
           cp "$ROOT/mobile-overrides/darb_file_paths.xml" "$M/android/app/src/main/res/xml/darb_file_paths.xml"
           mkdir -p "$M/android/app/src/main/res/drawable"
           cp "$ROOT/mobile-overrides/ic_launcher.xml" "$M/android/app/src/main/res/drawable/ic_launcher.xml"
@@ -87,6 +88,15 @@ jobs:
                       android:name="android.support.FILE_PROVIDER_PATHS"
                       android:resource="@xml/darb_file_paths" />
               </provider>"""
+          receiver = """    <receiver
+                  android:name=".DarbUpdateDownloadReceiver"
+                  android:exported="false">
+                  <intent-filter>
+                      <action android:name="android.intent.action.DOWNLOAD_COMPLETE" />
+                  </intent-filter>
+              </receiver>"""
+          if "DarbUpdateDownloadReceiver" not in m:
+              m = m.replace("</application>", receiver + "\n    </application>", 1)
           if "androidx.core.content.FileProvider" not in m:
               m = m.replace("</application>", provider + "\n    </application>", 1)
           manifest.write_text(m)
