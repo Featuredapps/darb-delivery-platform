@@ -415,8 +415,8 @@ describe('Driver available-order proximity ranking', () => {
     const result = await service.availableForDriver('driver-user-1');
 
     expect(result.map((order: any) => order.id)).toEqual(['near', 'older-no-gps', 'newer-no-gps']);
-    expect(result[1].distanceKm).toBeNull();
-    expect(result[2].distanceKm).toBeNull();
+    expect((result[1] as any).distanceKm).toBeNull();
+    expect((result[2] as any).distanceKm).toBeNull();
   });
 
   it('does not query or return tasks for an offline driver', async () => {
