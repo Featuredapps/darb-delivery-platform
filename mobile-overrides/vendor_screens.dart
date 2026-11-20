@@ -107,145 +107,414 @@ Widget build(BuildContext context) {
 
 }
 
-class CheckoutScreen extends StatefulWidget {final String vendorId,cityId;final List<Map<String,dynamic>> items;const CheckoutScreen({super.key,required this.vendorId,required this.cityId,required this.items});@override State<CheckoutScreen> createState()=>_CheckoutScreenState();}
-class _CheckoutScreenState extends State<CheckoutScreen>{bool loading=true,sending=false;String? error,addressId;List addresses=[];final notes=TextEditingController();@override void initState(){super.initState();_load();}@override void dispose(){notes.dispose();super.dispose();}bool get _selectedAddressHasLocation=>addresses.any((a)=>a['id'].toString()==addressId&&a['hasLocation']==true);Future<void> _load()async{try{addresses=await Api.instance.get('/addresses') as List;if(addresses.isNotEmpty)addressId=addresses.first['id'].toString();}catch(e){error=e.toString();}finally{if(mounted)setState(()=>loading=false);}}Future<void> _newAddress()async{final label=TextEditingController();final details=TextEditingController();double? latitude,longitude;final ok=await showDialog<bool>(context:context,builder:(ctx)=>AlertDialog(title:Text(dt('عنوان جديد')),content:Column(mainAxisSize:MainAxisSize.min,children:[TextField(controller:label,decoration:InputDecoration(labelText: dt('اسم العنوان (اختياري)'))),SizedBox(height:10),TextField(controller:details,maxLines:3,decoration:InputDecoration(labelText: dt('العنوان بالتفصيل'))),TextButton.icon(onPressed:()async{try{if(!await Geolocator.isLocationServiceEnabled())throw Exception('فعّل خدمة الموقع أولاً');var permission=await Geolocator.checkPermission();if(permission==LocationPermission.denied)permission=await Geolocator.requestPermission();if(permission==LocationPermission.denied||permission==LocationPermission.deniedForever)throw Exception('لم يتم منح إذن الموقع');final point=await Geolocator.getCurrentPosition();latitude=point.latitude;longitude=point.longitude;if(context.mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(dt('تم تحديد إحداثيات موقعك'))));}catch(e){if(context.mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(e.toString())));}},icon:Icon(Icons.my_location),label:Text(dt('استخدام موقعي الحالي')))]),actions:[TextButton(onPressed:()=>Navigator.pop(ctx,false),child:Text(dt('إلغاء'))),FilledButton(onPressed:()=>Navigator.pop(ctx,true),child:Text(dt('حفظ')))]));if(ok==true&&details.text.trim().isNotEmpty){try{final a=await Api.instance.post('/addresses',{'label':label.text.trim(),'details':details.text.trim(),if(latitude!=null&&longitude!=null)'latitude':latitude,if(latitude!=null&&longitude!=null)'longitude':longitude});setState((){addresses.insert(0,{...a,'hasLocation':latitude!=null&&longitude!=null});addressId=a['id'].toString();error=null;});}catch(e){setState(()=>error=e.toString());}}label.dispose();details.dispose();}Future<void> _submit()async{if(addressId==null){setState(()=>error='أضف عنوان توصيل أولاً');return;}setState(()=>sending=true);try{await Api.instance.post('/orders',{'cityId':widget.cityId,'addressId':addressId,'vendorId':widget.vendorId,'items':widget.items.map((x)=>{'productId':x['productId'],'quantity':x['quantity']}).toList(),'notes':notes.text.trim()});if(!mounted)return;ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(dt('تم إرسال طلبك بنجاح'))));Navigator.of(context).popUntil((r)=>r.isFirst);}catch(e){if(mounted)setState(()=>error=e.toString());}finally{if(mounted)setState(()=>sending=false);}}@override
-Widget build(BuildContext context) {
-  final subtotal=widget.items.fold<double>(0,(sum,item)=>
-    sum+((double.tryParse(item['price'].toString())??0)*(item['quantity'] as int)));
-  return Scaffold(
-    appBar:AppBar(title:Text(dt('تأكيد الطلب'))),
-    body:loading
-      ?const Center(child:CircularProgressIndicator())
-      :ListView(
-        padding:const EdgeInsets.fromLTRB(18,12,18,28),
-        children:[
-          Container(
-            padding:const EdgeInsets.all(18),
-            decoration:BoxDecoration(
-              gradient:const LinearGradient(colors:[DarbColors.forestSoft,DarbColors.forest]),
-              borderRadius:BorderRadius.circular(DarbRadius.xl),
-            ),
-            child:Row(children:[
-              const Icon(Icons.receipt_long_rounded,color:DarbColors.lime,size:27),
-              const SizedBox(width:12),
-              Expanded(child:Column(
-                crossAxisAlignment:CrossAxisAlignment.start,
-                children:[
-                  Text(dt('مراجعة طلبك'),style:const TextStyle(color:Colors.white,fontSize:18,fontWeight:FontWeight.w900)),
-                  const SizedBox(height:4),
-                  Text(dt('تأكد من المنتجات والعنوان قبل الإرسال'),style:TextStyle(color:Colors.white.withValues(alpha:.75),fontSize:11)),
-                ],
-              )),
-            ]),
-          ),
-          const SizedBox(height:22),
-          Text(dt('ملخص السلة'),style:const TextStyle(fontSize:17,fontWeight:FontWeight.w900,color:DarbColors.ink)),
-          const SizedBox(height:10),
-          Card(child:Padding(
-            padding:const EdgeInsets.all(14),
-            child:Column(children:[
-              for(var index=0;index<widget.items.length;index++)...[
-                if(index>0)const Divider(height:18),
-                Row(children:[
-                  Container(
-                    width:42,height:42,
-                    decoration:BoxDecoration(color:DarbColors.canvas,borderRadius:BorderRadius.circular(13)),
-                    child:const Icon(Icons.inventory_2_outlined,color:DarbColors.forest),
-                  ),
-                  const SizedBox(width:10),
-                  Expanded(child:Column(
-                    crossAxisAlignment:CrossAxisAlignment.start,
-                    children:[
-                      Text(widget.items[index]['name'].toString(),style:const TextStyle(fontWeight:FontWeight.w800,fontSize:13)),
-                      const SizedBox(height:3),
-                      Text(dt('الكمية: ${widget.items[index]['quantity']}'),style:const TextStyle(color:DarbColors.muted,fontSize:11)),
-                    ],
-                  )),
-                  Text('${widget.items[index]['price']} ${widget.items[index]['currency']}',style:const TextStyle(fontWeight:FontWeight.w900,color:DarbColors.forest)),
-                ]),
-              ],
-              const Divider(height:24),
-              Row(children:[
-                Expanded(child:Text(dt('المجموع الفرعي'),style:const TextStyle(color:DarbColors.muted,fontWeight:FontWeight.w700))),
-                Text(subtotal.toStringAsFixed(2),style:const TextStyle(fontSize:18,fontWeight:FontWeight.w900,color:DarbColors.forest)),
-              ]),
-            ]),
-          )),
-          const SizedBox(height:22),
-          Row(children:[
-            Expanded(child:Text(dt('عنوان التوصيل'),style:const TextStyle(fontSize:17,fontWeight:FontWeight.w900,color:DarbColors.ink))),
-            TextButton.icon(onPressed:_newAddress,icon:const Icon(Icons.add_location_alt_outlined,size:17),label:Text(dt('إضافة عنوان'))),
-          ]),
-          Card(child:Padding(
-            padding:const EdgeInsets.all(14),
-            child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-              if(addresses.isEmpty)
-                _EmptyPanel(text:dt('لا يوجد عنوان محفوظ. أضف عنواناً للمتابعة.')),
-              if(addresses.isNotEmpty)DropdownButtonFormField<String>(
-                value:addressId,
-                isExpanded:true,
-                decoration:InputDecoration(
-                  labelText:dt('اختر عنوان التوصيل'),
-                  prefixIcon:const Icon(Icons.location_on_outlined),
-                ),
-                items:[
-                  for(final address in addresses)
-                    DropdownMenuItem(
-                      value:address['id'].toString(),
-                      child:Text(
-                        '${address['label']??dt('عنوان')} — ${address['details']??''}',
-                        maxLines:2,overflow:TextOverflow.ellipsis,
-                      ),
-                    ),
-                ],
-                onChanged:(value)=>setState(()=>addressId=value),
-              ),
-              if(addressId!=null)...[
-                const SizedBox(height:10),
-                Row(children:[
-                  Icon(_selectedAddressHasLocation?Icons.check_circle_rounded:Icons.info_outline_rounded,
-                    size:17,color:_selectedAddressHasLocation?DarbColors.success:DarbColors.warning),
-                  const SizedBox(width:7),
-                  Expanded(child:Text(
-                    _selectedAddressHasLocation?dt('تم تحديد موقع هذا العنوان'):dt('العنوان لا يحتوي على إحداثيات موقع'),
-                    style:TextStyle(fontSize:11,color:_selectedAddressHasLocation?DarbColors.success:DarbColors.warning,fontWeight:FontWeight.w700),
-                  )),
-                ]),
-              ],
-            ]),
-          )),
-          const SizedBox(height:18),
-          TextField(
-            controller:notes,
-            maxLines:3,
-            decoration:InputDecoration(
-              labelText:dt('ملاحظات للمتجر (اختياري)'),
-              hintText:dt('أضف أي تعليمات تساعد المتجر في تجهيز طلبك'),
-              prefixIcon:const Icon(Icons.notes_rounded),
-              alignLabelWithHint:true,
-            ),
-          ),
-          if(error!=null)Padding(
-            padding:const EdgeInsets.only(top:14),
-            child:_ErrorPanel(message:error!,retry:()async{setState(()=>loading=true);await _load();}),
-          ),
-          const SizedBox(height:20),
-          FilledButton(
-            onPressed:sending||addressId==null?null:_submit,
-            child:sending
-              ?const SizedBox(width:21,height:21,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white))
-              :Row(mainAxisAlignment:MainAxisAlignment.center,children:[
-                const Icon(Icons.check_circle_outline_rounded,size:19),
-                const SizedBox(width:8),
-                Text(dt('تأكيد الطلب • الدفع عند الاستلام')),
-              ]),
-          ),
-          const SizedBox(height:9),
-          Center(child:Text(dt('لن يتم تحصيل أي مبلغ إلكترونياً في هذه الخطوة'),style:const TextStyle(color:DarbColors.muted,fontSize:10))),
-        ],
-      ),
-  );
+class CheckoutScreen extends StatefulWidget {
+  final String vendorId, cityId;
+  final List<Map<String, dynamic>> items;
+
+  const CheckoutScreen({super.key, required this.vendorId, required this.cityId, required this.items});
+
+  @override
+  State<CheckoutScreen> createState() => _CheckoutScreenState();
 }
+
+class _CheckoutScreenState extends State<CheckoutScreen> {
+  bool loading = true;
+  bool sending = false;
+  bool addingAddress = false;
+  bool locating = false;
+  String? error;
+  String? addressId;
+  List addresses = [];
+  final notes = TextEditingController();
+  final _addressFormKey = GlobalKey<FormState>();
+  int _loadGeneration = 0;
+
+  bool get _selectedAddressHasLocation => addresses.any(
+    (address) => address['id']?.toString() == addressId && address['hasLocation'] == true,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  @override
+  void dispose() {
+    notes.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    final generation = ++_loadGeneration;
+    if (mounted) setState(() { loading = true; error = null; });
+    try {
+      final result = await Api.instance.get('/addresses');
+      if (result is! List) throw Exception(dt('تعذر قراءة عناوين التوصيل'));
+      if (generation != _loadGeneration) return;
+      addresses = result;
+      if (!addresses.any((address) => address['id']?.toString() == addressId)) {
+        addressId = addresses.isEmpty ? null : addresses.first['id'].toString();
+      }
+    } catch (e) {
+      if (generation == _loadGeneration) error = e.toString();
+    } finally {
+      if (mounted && generation == _loadGeneration) setState(() => loading = false);
+    }
+  }
+
+  Future<void> _newAddress() async {
+    final label = TextEditingController();
+    final details = TextEditingController();
+    double? latitude;
+    double? longitude;
+    String? locationError;
+
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, refreshDialog) => AlertDialog(
+          title: Text(dt('إضافة عنوان توصيل')),
+          content: SingleChildScrollView(
+            child: Form(
+              key: _addressFormKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: label,
+                    textInputAction: TextInputAction.next,
+                    decoration: InputDecoration(labelText: dt('اسم العنوان (اختياري)'), prefixIcon: const Icon(Icons.bookmark_outline_rounded)),
+                    validator: (value) => (value?.trim().length ?? 0) > 40 ? dt('اسم العنوان طويل جداً') : null,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: details,
+                    minLines: 2,
+                    maxLines: 4,
+                    maxLength: 500,
+                    textInputAction: TextInputAction.newline,
+                    decoration: InputDecoration(labelText: dt('العنوان بالتفصيل'), hintText: dt('الحي، الشارع، البناء، الطابق...'), prefixIcon: const Icon(Icons.location_on_outlined), alignLabelWithHint: true),
+                    validator: (value) {
+                      final text = value?.trim() ?? '';
+                      if (text.isEmpty) return dt('أدخل تفاصيل العنوان');
+                      if (text.length > 500) return dt('تفاصيل العنوان طويلة جداً');
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 4),
+                  OutlinedButton.icon(
+                    onPressed: locating ? null : () async {
+                      refreshDialog(() { locating = true; locationError = null; });
+                      try {
+                        if (!await Geolocator.isLocationServiceEnabled()) {
+                          throw Exception(dt('فعّل خدمة الموقع في هاتفك أولاً'));
+                        }
+                        var permission = await Geolocator.checkPermission();
+                        if (permission == LocationPermission.denied) permission = await Geolocator.requestPermission();
+                        if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+                          throw Exception(dt('يلزم السماح للتطبيق بالوصول إلى موقعك'));
+                        }
+                        final point = await Geolocator.getCurrentPosition(
+                          locationSettings: const LocationSettings(accuracy: LocationAccuracy.high, timeLimit: Duration(seconds: 20)),
+                        );
+                        latitude = point.latitude;
+                        longitude = point.longitude;
+                        if (dialogContext.mounted) refreshDialog(() {});
+                      } catch (e) {
+                        locationError = e.toString();
+                        if (dialogContext.mounted) refreshDialog(() {});
+                      } finally {
+                        if (dialogContext.mounted) refreshDialog(() { locating = false; });
+                      }
+                    },
+                    icon: locating
+                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                      : Icon(latitude == null ? Icons.my_location_rounded : Icons.check_circle_rounded),
+                    label: Text(locating ? dt('جارٍ تحديد الموقع...') : latitude == null ? dt('استخدام موقعي الحالي') : dt('تم تحديد الموقع')),
+                  ),
+                  if (locationError != null) Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(locationError!, style: const TextStyle(color: DarbColors.danger, fontSize: 12)),
+                  ),
+                  if (latitude != null) Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Row(children: [
+                      const Icon(Icons.verified_rounded, color: DarbColors.success, size: 16),
+                      const SizedBox(width: 6),
+                      Expanded(child: Text(dt('سيتم حفظ إحداثيات هذا العنوان لحساب مسافة التوصيل'), style: const TextStyle(color: DarbColors.success, fontSize: 11))),
+                    ]),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: locating ? null : () => Navigator.pop(dialogContext, false), child: Text(dt('إلغاء'))),
+            FilledButton(
+              onPressed: locating ? null : () {
+                if (_addressFormKey.currentState?.validate() ?? false) Navigator.pop(dialogContext, true);
+              },
+              child: Text(dt('حفظ العنوان')),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (saved == true) {
+      if (mounted) setState(() { addingAddress = true; error = null; });
+      try {
+        final created = await Api.instance.post('/addresses', {
+          'label': label.text.trim(),
+          'details': details.text.trim(),
+          if (latitude != null && longitude != null) 'latitude': latitude,
+          if (latitude != null && longitude != null) 'longitude': longitude,
+        });
+        if (created is! Map || created['id'] == null) throw Exception(dt('لم يتم حفظ العنوان بشكل صحيح'));
+        if (mounted) setState(() {
+          addresses.insert(0, {...Map<String, dynamic>.from(created), 'hasLocation': latitude != null && longitude != null});
+          addressId = created['id'].toString();
+          error = null;
+        });
+      } catch (e) {
+        if (mounted) setState(() => error = e.toString());
+      } finally {
+        if (mounted) setState(() => addingAddress = false);
+      }
+    }
+    label.dispose();
+    details.dispose();
+  }
+
+  String _orderError(Object exception) {
+    final raw = exception.toString();
+    if (raw.contains('حدد موقع عنوان التوصيل')) return dt('هذا الطلب يحتاج إلى إحداثيات عنوان التوصيل لحساب الأجرة. أضف عنواناً جديداً وحدد موقعك بدقة.');
+    if (raw.contains('لم يتم إعداد رسوم التوصيل')) return dt('التوصيل غير مفعّل لهذه المدينة حالياً. لم يتم إرسال الطلب.');
+    if (raw.contains('بعض المنتجات لم تعد متاحة') || raw.contains('نفدت كمية أحد المنتجات')) return dt('تغيّرت توفر المنتجات أو الكمية. ارجع إلى المتجر وحدّث سلتك قبل المحاولة.');
+    if (raw.contains('المتجر غير متاح')) return dt('هذا المتجر غير متاح لاستقبال الطلبات حالياً.');
+    return raw;
+  }
+
+  Future<void> _submit() async {
+    if (sending) return;
+    if (widget.items.isEmpty || widget.items.any((item) => (item['quantity'] as int? ?? 0) < 1)) {
+      setState(() => error = dt('السلة فارغة أو تحتوي على كمية غير صالحة'));
+      return;
+    }
+    if (addressId == null || !addresses.any((address) => address['id']?.toString() == addressId)) {
+      setState(() => error = dt('اختر عنوان توصيل صالحاً أو أضف عنواناً جديداً'));
+      return;
+    }
+    FocusScope.of(context).unfocus();
+    setState(() { sending = true; error = null; });
+    try {
+      final result = await Api.instance.post('/orders', {
+        'cityId': widget.cityId,
+        'addressId': addressId,
+        'vendorId': widget.vendorId,
+        'items': widget.items.map((item) => {
+          'productId': item['productId'],
+          'quantity': item['quantity'],
+        }).toList(),
+        'notes': notes.text.trim(),
+      });
+      if (!mounted) return;
+      if (result is! Map || result['id'] == null) throw Exception(dt('تم إرسال الطلب لكن تعذر قراءة تفاصيل التأكيد. تحقق من صفحة طلباتي قبل إعادة المحاولة.'));
+      Navigator.of(context).pushReplacement(MaterialPageRoute(
+        builder: (_) => OrderCreatedScreen(order: Map<String, dynamic>.from(result)),
+      ));
+    } catch (e) {
+      if (mounted) setState(() => error = _orderError(e));
+    } finally {
+      if (mounted) setState(() => sending = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final subtotal = widget.items.fold<double>(0, (sum, item) =>
+      sum + ((double.tryParse(item['price'].toString()) ?? 0) * (item['quantity'] as int)));
+    final currency = widget.items.isEmpty ? '' : widget.items.first['currency']?.toString() ?? '';
+
+    return Scaffold(
+      appBar: AppBar(title: Text(dt('تأكيد الطلب'))),
+      body: loading
+        ? const Center(child: CircularProgressIndicator())
+        : error != null && addresses.isEmpty
+          ? ListView(padding: const EdgeInsets.all(20), children: [
+              _ErrorPanel(message: error!, retry: _load),
+              OutlinedButton.icon(onPressed: addingAddress ? null : _newAddress, icon: const Icon(Icons.add_location_alt_outlined), label: Text(dt('إضافة عنوان جديد'))),
+            ])
+          : ListView(
+              padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(colors: [DarbColors.forestSoft, DarbColors.forest]),
+                    borderRadius: BorderRadius.circular(DarbRadius.xl),
+                  ),
+                  child: Row(children: [
+                    const Icon(Icons.receipt_long_rounded, color: DarbColors.lime, size: 27),
+                    const SizedBox(width: 12),
+                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(dt('مراجعة طلبك'), style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
+                      const SizedBox(height: 4),
+                      Text(dt('راجع المنتجات والعنوان قبل إرسال الطلب'), style: TextStyle(color: Colors.white.withValues(alpha: .78), fontSize: 12)),
+                    ])),
+                  ]),
+                ),
+                const SizedBox(height: 22),
+                Text(dt('ملخص السلة'), style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: DarbColors.ink)),
+                const SizedBox(height: 10),
+                Card(child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(children: [
+                    for (var index = 0; index < widget.items.length; index++) ...[
+                      if (index > 0) const Divider(height: 18),
+                      Row(children: [
+                        Container(width: 42, height: 42, decoration: BoxDecoration(color: DarbColors.canvas, borderRadius: BorderRadius.circular(13)), child: const Icon(Icons.inventory_2_outlined, color: DarbColors.forest)),
+                        const SizedBox(width: 10),
+                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text(widget.items[index]['name'].toString(), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+                          const SizedBox(height: 3),
+                          Text('${dt('الكمية')}: ${widget.items[index]['quantity']}', style: const TextStyle(color: DarbColors.muted, fontSize: 11)),
+                        ])),
+                        Text('${widget.items[index]['price']} ${widget.items[index]['currency']}', style: const TextStyle(fontWeight: FontWeight.w900, color: DarbColors.forest)),
+                      ]),
+                    ],
+                    const Divider(height: 24),
+                    Row(children: [
+                      Expanded(child: Text(dt('المجموع الفرعي التقريبي'), style: const TextStyle(color: DarbColors.muted, fontWeight: FontWeight.w700))),
+                      Text('$subtotal $currency', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: DarbColors.forest)),
+                    ]),
+                    const SizedBox(height: 7),
+                    Align(alignment: AlignmentDirectional.centerStart, child: Text(dt('السعر النهائي ورسوم التوصيل يؤكدهما الخادم عند إنشاء الطلب'), style: const TextStyle(color: DarbColors.muted, fontSize: 10))),
+                  ]),
+                )),
+                const SizedBox(height: 22),
+                Row(children: [
+                  Expanded(child: Text(dt('عنوان التوصيل'), style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: DarbColors.ink))),
+                  TextButton.icon(onPressed: addingAddress || sending ? null : _newAddress, icon: const Icon(Icons.add_location_alt_outlined, size: 17), label: Text(dt('إضافة عنوان'))),
+                ]),
+                Card(child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    if (addresses.isEmpty) _EmptyPanel(text: dt('لا يوجد عنوان محفوظ. أضف عنواناً للمتابعة.')),
+                    if (addresses.isNotEmpty) DropdownButtonFormField<String>(
+                      value: addresses.any((address) => address['id']?.toString() == addressId) ? addressId : null,
+                      isExpanded: true,
+                      decoration: InputDecoration(labelText: dt('اختر عنوان التوصيل'), prefixIcon: const Icon(Icons.location_on_outlined)),
+                      items: [for (final address in addresses) DropdownMenuItem(
+                        value: address['id'].toString(),
+                        child: Text('${address['label']?.toString().trim().isNotEmpty == true ? address['label'] : dt('عنوان')} — ${address['details'] ?? ''}', maxLines: 2, overflow: TextOverflow.ellipsis),
+                      )],
+                      onChanged: sending ? null : (value) => setState(() { addressId = value; error = null; }),
+                    ),
+                    if (addressId != null) ...[
+                      const SizedBox(height: 10),
+                      Row(children: [
+                        Icon(_selectedAddressHasLocation ? Icons.check_circle_rounded : Icons.info_outline_rounded, size: 17, color: _selectedAddressHasLocation ? DarbColors.success : DarbColors.warning),
+                        const SizedBox(width: 7),
+                        Expanded(child: Text(
+                          _selectedAddressHasLocation ? dt('موقع العنوان محفوظ ويمكن حساب المسافة') : dt('لا توجد إحداثيات لهذا العنوان. قد يطلب النظام تحديد الموقع لحساب رسوم التوصيل.'),
+                          style: TextStyle(fontSize: 11, color: _selectedAddressHasLocation ? DarbColors.success : DarbColors.warning, fontWeight: FontWeight.w700),
+                        )),
+                      ]),
+                    ],
+                  ]),
+                )),
+                const SizedBox(height: 18),
+                TextField(
+                  controller: notes,
+                  maxLength: 500,
+                  maxLines: 3,
+                  enabled: !sending,
+                  decoration: InputDecoration(labelText: dt('ملاحظات للمتجر (اختياري)'), hintText: dt('تعليمات تساعد المتجر في تجهيز طلبك'), prefixIcon: const Icon(Icons.notes_rounded), alignLabelWithHint: true),
+                ),
+                if (error != null) Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: _ErrorPanel(message: error!, retry: _submit),
+                ),
+                const SizedBox(height: 18),
+                FilledButton(
+                  onPressed: sending || addressId == null || widget.items.isEmpty ? null : _submit,
+                  child: sending
+                    ? const SizedBox(width: 21, height: 21, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                        const Icon(Icons.check_circle_outline_rounded, size: 19),
+                        const SizedBox(width: 8),
+                        Text(dt('تأكيد الطلب • الدفع عند الاستلام')),
+                      ]),
+                ),
+                const SizedBox(height: 9),
+                Center(child: Text(dt('لن يتم تحصيل أي مبلغ إلكترونياً في هذه الخطوة'), style: const TextStyle(color: DarbColors.muted, fontSize: 10))),
+              ],
+            ),
+    );
+  }
+}
+
+class OrderCreatedScreen extends StatelessWidget {
+  final Map<String, dynamic> order;
+  const OrderCreatedScreen({super.key, required this.order});
+
+  @override
+  Widget build(BuildContext context) {
+    final orderNumber = order['orderNumber']?.toString() ?? order['id']?.toString() ?? '—';
+    final currency = order['currency']?.toString() ?? '';
+    final total = order['total']?.toString() ?? '—';
+    final deliveryFee = order['deliveryFee']?.toString();
+    return Scaffold(
+      appBar: AppBar(title: Text(dt('تم استلام طلبك'))),
+      body: SafeArea(child: ListView(
+        padding: const EdgeInsets.all(22),
+        children: [
+          const SizedBox(height: 26),
+          Container(
+            width: 92, height: 92, alignment: Alignment.center,
+            decoration: BoxDecoration(color: DarbColors.success.withValues(alpha: .10), shape: BoxShape.circle),
+            child: const Icon(Icons.check_rounded, color: DarbColors.success, size: 52),
+          ),
+          const SizedBox(height: 22),
+          Text(dt('تم إرسال طلبك بنجاح'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w900, color: DarbColors.ink)),
+          const SizedBox(height: 8),
+          Text(dt('وصل طلبك إلى النظام، ويمكنك متابعة حالته من قسم طلباتي.'), textAlign: TextAlign.center, style: const TextStyle(color: DarbColors.muted, height: 1.5)),
+          const SizedBox(height: 26),
+          Card(child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(children: [
+              Text(dt('رقم الطلب'), style: const TextStyle(color: DarbColors.muted, fontSize: 12)),
+              const SizedBox(height: 6),
+              SelectableText(orderNumber, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: DarbColors.forest)),
+              const Divider(height: 28),
+              if (deliveryFee != null) _confirmationValue(context, dt('رسوم التوصيل'), '$deliveryFee $currency'),
+              _confirmationValue(context, dt('الإجمالي عند الاستلام'), '$total $currency'),
+              _confirmationValue(context, dt('طريقة الدفع'), dt('الدفع نقداً عند الاستلام')),
+              _confirmationValue(context, dt('حالة الطلب'), dt('بانتظار تأكيد المتجر')),
+            ]),
+          )),
+          const SizedBox(height: 22),
+          FilledButton.icon(
+            onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+            icon: const Icon(Icons.home_rounded),
+            label: Text(dt('العودة إلى الرئيسية')),
+          ),
+          const SizedBox(height: 10),
+          Text(dt('احتفظ برقم الطلب للرجوع إليه عند الحاجة.'), textAlign: TextAlign.center, style: const TextStyle(color: DarbColors.muted, fontSize: 11)),
+        ],
+      )),
+    );
+  }
+
+  Widget _confirmationValue(BuildContext context, String label, String value) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 7),
+    child: Row(children: [
+      Expanded(child: Text(label, style: const TextStyle(color: DarbColors.muted, fontSize: 12))),
+      Flexible(child: Text(value, textAlign: TextAlign.end, style: const TextStyle(color: DarbColors.ink, fontWeight: FontWeight.w800, fontSize: 12))),
+    ]),
+  );
 }
 
 class CustomerOrders extends StatelessWidget {const CustomerOrders({super.key});@override Widget build(BuildContext context)=>_DataList(path:'/orders/mine',title: dt('طلباتك'),empty: dt('لا توجد طلبات حتى الآن'));}
