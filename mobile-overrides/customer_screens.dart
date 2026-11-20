@@ -259,7 +259,7 @@ class _CustomerHomeState extends State<CustomerHome> {
                 colors: [Color(0xFF285647), Color(0xFF102B26), Color(0xFF091D19)],
               ),
               borderRadius: BorderRadius.circular(27),
-              boxShadow: const [
+              boxShadow: [
                 BoxShadow(color: Color(0x1D102B26), blurRadius: 22, offset: Offset(0, 10)),
               ],
             ),
