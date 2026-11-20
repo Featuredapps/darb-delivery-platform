@@ -43,6 +43,11 @@ class _AppShellState extends State<AppShell> {
       final data = await Api.instance.get('/auth/me');
       me = Map<String, dynamic>.from(data);
       role = me?['role']?.toString() ?? 'CUSTOMER';
+      if (role == 'DRIVER') {
+        DriverLocationReporter.start();
+      } else {
+        DriverLocationReporter.stop();
+      }
       final savedLocale = me?['locale']?.toString();
       if (savedLocale == 'ar' || savedLocale == 'en' || savedLocale == 'tr') {
         darbLocale.value = Locale(savedLocale!);
@@ -56,6 +61,7 @@ class _AppShellState extends State<AppShell> {
   }
 
   Future<void> _logout() async {
+    DriverLocationReporter.stop();
     await DarbNotifications.unregister();
     await Api.instance.clear();
     if (mounted) {
@@ -64,6 +70,12 @@ class _AppShellState extends State<AppShell> {
         (_) => false,
       );
     }
+  }
+
+  @override
+  void dispose() {
+    DriverLocationReporter.stop();
+    super.dispose();
   }
 
   @override
