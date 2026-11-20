@@ -41,6 +41,9 @@ class AppLocalizations {
     if (source.startsWith('حالة المتجر: ')) return dynamicValue('حالة المتجر: ', 'Store status: ', 'Mağaza durumu: ');
     if (source.startsWith('تعذر تحميل المناطق: ')) return dynamicValue('تعذر تحميل المناطق: ', 'Could not load zones: ', 'Bölgeler yüklenemedi: ');
     if (source.startsWith('الكمية: ')) return dynamicValue('الكمية: ', 'Quantity: ', 'Miktar: ');
+    if (source.startsWith('نوع الغرض: ')) return dynamicValue('نوع الغرض: ', 'Item type: ', 'Eşya türü: ');
+    if (source.startsWith('وصف الغرض: ')) return dynamicValue('وصف الغرض: ', 'Item description: ', 'Eşya açıklaması: ');
+    if (source.startsWith('تعليمات للسائق: ')) return dynamicValue('تعليمات للسائق: ', 'Driver instructions: ', 'Kurye talimatları: ');
     if (source.startsWith('المجموع الفرعي: ')) return dynamicValue('المجموع الفرعي: ', 'Subtotal: ', 'Ara toplam: ');
     if (source.startsWith('السلة (') && source.endsWith(')')) {
       final count = source.substring('السلة ('.length, source.length - 1);
