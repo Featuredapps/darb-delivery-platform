@@ -73,53 +73,265 @@ TextButton.icon(onPressed:()async{try{if(!await Geolocator.isLocationServiceEnab
   );
  }
  @override Widget build(BuildContext context) {
-  final name=profile?['name']?.toString().trim()??'';
-  final email=profile?['email']?.toString()??'';
-  final phone=profile?['phone']?.toString()??'';
-  final role=profile?['role']?.toString()??'CUSTOMER';
-  final initial=name.isNotEmpty?name.substring(0,1).toUpperCase():'د';
-  return ListView(padding:const EdgeInsets.fromLTRB(18,10,18,30),children:[
-   Container(
-    padding:const EdgeInsets.fromLTRB(20,24,20,20),
-    decoration:BoxDecoration(gradient:const LinearGradient(begin:Alignment.topRight,end:Alignment.bottomLeft,colors:[DarbColors.forest,DarbColors.forestSoft]),borderRadius:BorderRadius.circular(26)),
-    child:Column(children:[
-     Container(width:76,height:76,alignment:Alignment.center,decoration:BoxDecoration(color:Colors.white.withValues(alpha:.13),shape:BoxShape.circle,border:Border.all(color:Colors.white.withValues(alpha:.25))),child:Text(initial,style:const TextStyle(color:Colors.white,fontSize:30,fontWeight:FontWeight.w900))),
-     const SizedBox(height:13),
-     Text(name.isEmpty?'مرحباً بك في دَرْب':name,style:const TextStyle(color:Colors.white,fontSize:21,fontWeight:FontWeight.w900)),
-     const SizedBox(height:5),
-     Text(phone.isNotEmpty?phone:email,style:TextStyle(color:Colors.white.withValues(alpha:.75),fontSize:13)),
-     const SizedBox(height:16),
-     Container(padding:const EdgeInsets.symmetric(horizontal:13,vertical:7),decoration:BoxDecoration(color:Colors.white.withValues(alpha:.12),borderRadius:BorderRadius.circular(30)),child:Text(role=='ADMIN'?'إدارة دَرْب':role=='DRIVER'?'حساب سائق':role=='VENDOR'?'حساب تاجر':'حساب عميل',style:const TextStyle(color:Colors.white,fontWeight:FontWeight.w700,fontSize:12))),
-    ]),
-   ),
-   const SizedBox(height:20),
-   Row(children:[const Expanded(child:Text('بيانات الحساب',style:TextStyle(fontSize:17,fontWeight:FontWeight.w900,color:DarbColors.ink))),TextButton.icon(onPressed:saving?null:_edit,icon:const Icon(Icons.edit_outlined,size:17),label:Text(saving?'جارٍ الحفظ':'تعديل'))]),
-   Container(decoration:BoxDecoration(color:DarbColors.surface,borderRadius:BorderRadius.circular(20),border:Border.all(color:DarbColors.line)),child:Column(children:[
-    ListTile(leading:const Icon(Icons.person_outline_rounded,color:DarbColors.forest),title:const Text('الاسم',style:TextStyle(fontSize:11,color:DarbColors.muted)),subtitle:Text(name.isEmpty?'غير محدد':name,style:const TextStyle(fontWeight:FontWeight.w700))),
-    const Divider(height:1,indent:16,endIndent:16),
-    ListTile(leading:const Icon(Icons.alternate_email_rounded,color:DarbColors.forest),title:const Text('البريد الإلكتروني',style:TextStyle(fontSize:11,color:DarbColors.muted)),subtitle:Text(email.isEmpty?'غير مرتبط':email,style:const TextStyle(fontWeight:FontWeight.w600))),
-    if(phone.isNotEmpty)...[const Divider(height:1,indent:16,endIndent:16),ListTile(leading:const Icon(Icons.phone_iphone_rounded,color:DarbColors.forest),title:const Text('رقم الهاتف',style:TextStyle(fontSize:11,color:DarbColors.muted)),subtitle:Text(phone,style:const TextStyle(fontWeight:FontWeight.w600)))],
-   ])),
-   if(role=='CUSTOMER') ...[
-    const SizedBox(height:24),
-    const Text('انضم إلى شبكة دَرْب',style:TextStyle(fontSize:17,fontWeight:FontWeight.w900,color:DarbColors.ink)),
-    const SizedBox(height:5),
-    const Text('قدّم طلبك للعمل معنا. ستراجع الإدارة بياناتك قبل تفعيل الحساب.',style:TextStyle(fontSize:12,color:DarbColors.muted)),
-    const SizedBox(height:13),
-    _applicationCard(title:'كن سائقاً في دَرْب',description:'استقبل طلبات التوصيل وقدّم أجرتك للعملاء',icon:Icons.delivery_dining_rounded,status:profile?['driverApplication'],onApply:()=>_apply(context,false)),
-    const SizedBox(height:11),
-    _applicationCard(title:'انضم بمتجرك',description:'اعرض منتجات متجرك واستقبل طلبات العملاء',icon:Icons.storefront_rounded,status:profile?['vendorApplication'],onApply:()=>_apply(context,true)),
-   ],
-   const SizedBox(height:24),
-   Container(decoration:BoxDecoration(color:DarbColors.surface,borderRadius:BorderRadius.circular(18),border:Border.all(color:DarbColors.line)),child:Column(children:[
-    ListTile(leading:const Icon(Icons.language_rounded,color:DarbColors.forest),title:const Text('اللغة'),subtitle:Text(profile?['locale']?.toString()??'ar'),trailing:const Icon(Icons.chevron_left_rounded)),
-    const Divider(height:1,indent:16,endIndent:16),
-    ListTile(leading:const Icon(Icons.help_outline_rounded,color:DarbColors.forest),title:const Text('المساعدة والدعم'),subtitle:const Text('تواصل معنا عند الحاجة')),
-   ])),
-   const SizedBox(height:18),
-   OutlinedButton.icon(onPressed:widget.onLogout,icon:const Icon(Icons.logout_rounded),label:const Text('تسجيل الخروج'),style:OutlinedButton.styleFrom(foregroundColor:DarbColors.danger,side:BorderSide(color:DarbColors.danger.withValues(alpha:.3)))),
-  ]);
+  final name = profile?['name']?.toString().trim() ?? '';
+  final email = profile?['email']?.toString() ?? '';
+  final phone = profile?['phone']?.toString() ?? '';
+  final role = profile?['role']?.toString() ?? 'CUSTOMER';
+  final initial = name.isNotEmpty ? name.characters.first.toUpperCase() : 'د';
+  final roleLabel = role == 'ADMIN'
+      ? 'إدارة دَرْب'
+      : role == 'DRIVER'
+          ? 'حساب سائق'
+          : role == 'VENDOR'
+              ? 'حساب تاجر'
+              : 'حساب عميل';
+
+  return ListView(
+    padding: const EdgeInsets.fromLTRB(18, 14, 18, 32),
+    children: [
+      TweenAnimationBuilder<double>(
+        tween: Tween(begin: .94, end: 1),
+        duration: DarbMotion.expressive,
+        curve: DarbMotion.enter,
+        builder: (context, value, child) => Transform.scale(
+          scale: value,
+          alignment: Alignment.topCenter,
+          child: child,
+        ),
+        child: Container(
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
+              colors: [DarbColors.forest, DarbColors.forestSoft],
+            ),
+            borderRadius: BorderRadius.circular(DarbRadius.hero),
+            boxShadow: DarbElevation.floating,
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                top: -58,
+                left: -38,
+                child: Container(
+                  width: 170,
+                  height: 170,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white.withValues(alpha: .07), width: 24),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: -88,
+                right: -45,
+                child: Container(
+                  width: 190,
+                  height: 190,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: DarbColors.lime.withValues(alpha: .07),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(22, 25, 22, 22),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'ملفي الشخصي',
+                            style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: .10),
+                            borderRadius: BorderRadius.circular(DarbRadius.pill),
+                            border: Border.all(color: Colors.white.withValues(alpha: .12)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.verified_user_outlined, color: DarbColors.lime, size: 13),
+                              const SizedBox(width: 6),
+                              Text(roleLabel, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 22),
+                    Container(
+                      width: 86,
+                      height: 86,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withValues(alpha: .12),
+                        border: Border.all(color: Colors.white.withValues(alpha: .28), width: 1.5),
+                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .12), blurRadius: 22, offset: const Offset(0, 9))],
+                      ),
+                      child: Text(initial, style: const TextStyle(color: DarbColors.lime, fontSize: 34, fontWeight: FontWeight.w900)),
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      name.isEmpty ? 'مرحباً بك في دَرْب' : name,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.white, fontSize: 21, fontWeight: FontWeight.w900),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      phone.isNotEmpty ? phone : (email.isNotEmpty ? email : 'أضف بيانات التواصل إلى حسابك'),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white.withValues(alpha: .72), fontSize: 12, fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: saving ? null : _edit,
+                        icon: saving
+                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                            : const Icon(Icons.edit_outlined, size: 17),
+                        label: Text(saving ? 'جارٍ حفظ التعديلات' : 'تعديل الملف الشخصي'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          side: BorderSide(color: Colors.white.withValues(alpha: .28)),
+                          backgroundColor: Colors.white.withValues(alpha: .07),
+                          minimumSize: const Size.fromHeight(48),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      const SizedBox(height: 27),
+      _sectionHeading('بيانات الحساب', 'المعلومات المرتبطة بحسابك'),
+      const SizedBox(height: 12),
+      Container(
+        decoration: BoxDecoration(
+          color: DarbColors.surface,
+          borderRadius: BorderRadius.circular(DarbRadius.lg),
+          border: Border.all(color: DarbColors.line),
+          boxShadow: DarbElevation.card,
+        ),
+        child: Column(
+          children: [
+            _accountInfoTile(icon: Icons.person_outline_rounded, label: 'الاسم', value: name.isEmpty ? 'غير محدد' : name),
+            _accountDivider(),
+            _accountInfoTile(icon: Icons.alternate_email_rounded, label: 'البريد الإلكتروني', value: email.isEmpty ? 'غير مرتبط' : email),
+            if (phone.isNotEmpty) ...[
+              _accountDivider(),
+              _accountInfoTile(icon: Icons.phone_iphone_rounded, label: 'رقم الهاتف', value: phone),
+            ],
+          ],
+        ),
+      ),
+      if (role == 'CUSTOMER') ...[
+        const SizedBox(height: 28),
+        _sectionHeading('انضم إلى شبكة دَرْب', 'اختر كيف تريد أن تشارك في خدماتنا'),
+        const SizedBox(height: 12),
+        _applicationCard(
+          title: 'كن سائقاً في دَرْب',
+          description: 'استقبل طلبات التوصيل وقدّم أجرتك للعملاء',
+          icon: Icons.delivery_dining_rounded,
+          status: profile?['driverApplication'],
+          onApply: () => _apply(context, false),
+        ),
+        const SizedBox(height: 12),
+        _applicationCard(
+          title: 'انضم بمتجرك',
+          description: 'اعرض منتجات متجرك واستقبل طلبات العملاء',
+          icon: Icons.storefront_rounded,
+          status: profile?['vendorApplication'],
+          onApply: () => _apply(context, true),
+        ),
+      ],
+      const SizedBox(height: 28),
+      _sectionHeading('التفضيلات والدعم', 'إعدادات تجربتك في دَرْب'),
+      const SizedBox(height: 12),
+      Container(
+        decoration: BoxDecoration(
+          color: DarbColors.surface,
+          borderRadius: BorderRadius.circular(DarbRadius.lg),
+          border: Border.all(color: DarbColors.line),
+          boxShadow: DarbElevation.card,
+        ),
+        child: Column(
+          children: [
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 17, vertical: 5),
+              leading: _settingsIcon(Icons.language_rounded),
+              title: const Text('اللغة', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+              subtitle: Text(profile?['locale']?.toString() ?? 'ar', style: const TextStyle(color: DarbColors.muted, fontSize: 12)),
+              trailing: const Icon(Icons.chevron_left_rounded, color: DarbColors.muted),
+            ),
+            _accountDivider(),
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 17, vertical: 5),
+              leading: _settingsIcon(Icons.support_agent_rounded),
+              title: const Text('المساعدة والدعم', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+              subtitle: const Text('تواصل معنا عند الحاجة', style: TextStyle(color: DarbColors.muted, fontSize: 12)),
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 22),
+      OutlinedButton.icon(
+        onPressed: widget.onLogout,
+        icon: const Icon(Icons.logout_rounded, size: 18),
+        label: const Text('تسجيل الخروج'),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: DarbColors.danger,
+          side: BorderSide(color: DarbColors.danger.withValues(alpha: .28)),
+          backgroundColor: DarbColors.danger.withValues(alpha: .035),
+          minimumSize: const Size.fromHeight(52),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+      ),
+      const SizedBox(height: 10),
+      const Center(
+        child: Text('دَرْب • كل طريق يبدأ بخطوة', style: TextStyle(color: DarbColors.muted, fontSize: 10, fontWeight: FontWeight.w600)),
+      ),
+    ],
+  );
  }
-}
+
+ Widget _sectionHeading(String title, String subtitle) => Column(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+   Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: DarbColors.ink)),
+   const SizedBox(height: 3),
+   Text(subtitle, style: const TextStyle(fontSize: 11, color: DarbColors.muted)),
+  ],
+ );
+
+ Widget _accountInfoTile({required IconData icon, required String label, required String value}) => ListTile(
+  contentPadding: const EdgeInsets.symmetric(horizontal: 17, vertical: 5),
+  leading: _settingsIcon(icon),
+  title: Text(label, style: const TextStyle(fontSize: 11, color: DarbColors.muted, fontWeight: FontWeight.w600)),
+  subtitle: Text(value, style: const TextStyle(fontSize: 13, color: DarbColors.ink, fontWeight: FontWeight.w800)),
+ );
+
+ Widget _settingsIcon(IconData icon) => Container(
+  width: 42,
+  height: 42,
+  alignment: Alignment.center,
+  decoration: BoxDecoration(color: DarbColors.mint.withValues(alpha: .35), borderRadius: BorderRadius.circular(14)),
+  child: Icon(icon, color: DarbColors.forest, size: 20),
+ );
+
+ Widget _accountDivider() => const Divider(height: 1, indent: 17, endIndent: 17);
+ }
 class _EmptyPanel extends StatelessWidget {final String text;const _EmptyPanel({required this.text});@override Widget build(BuildContext context)=>Container(padding:const EdgeInsets.all(24),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(18)),child:Text(text,textAlign:TextAlign.center,style:const TextStyle(color:Colors.black54)));}
 class _ErrorPanel extends StatelessWidget {final String message;final Future<void> Function() retry;const _ErrorPanel({required this.message,required this.retry});@override Widget build(BuildContext context)=>Container(padding:const EdgeInsets.all(18),decoration:BoxDecoration(color:const Color(0xFFFFEEEE),borderRadius:BorderRadius.circular(16)),child:Column(children:[Text(message,style:const TextStyle(color:Colors.red)),TextButton(onPressed:retry,child:const Text('إعادة المحاولة'))]));}
