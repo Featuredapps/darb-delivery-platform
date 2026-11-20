@@ -52,6 +52,7 @@ jobs:
           mkdir -p extracted/darb-project/backend/src/modules/orders
           mkdir -p extracted/darb-project/backend/src/modules/notifications
           cp backend-overrides/orders.service.spec.ts extracted/darb-project/backend/src/modules/orders/orders.service.spec.ts
+          cp backend-overrides/ai-order-assistant.service.spec.ts extracted/darb-project/backend/src/modules/ai-order-assistant/ai-order-assistant.service.spec.ts
           cp backend-overrides/orders.service.ts extracted/darb-project/backend/src/modules/orders/orders.service.ts
           cp backend-overrides/sms.providers.ts extracted/darb-project/backend/src/modules/auth/sms/sms.providers.ts
           cp backend-overrides/auth.service.ts extracted/darb-project/backend/src/modules/auth/auth.service.ts
