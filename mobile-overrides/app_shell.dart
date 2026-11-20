@@ -138,6 +138,10 @@ class _AppShellState extends State<AppShell> {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: DarbColors.forest,
+        foregroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
         titleSpacing: 18,
         title: Row(
           children: [
@@ -146,18 +150,22 @@ class _AppShellState extends State<AppShell> {
               height: 38,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                gradient: LinearGradient(colors: [DarbColors.forestSoft, DarbColors.forest]),
+                gradient: LinearGradient(
+                  begin: Alignment.topRight,
+                  end: Alignment.bottomLeft,
+                  colors: [DarbColors.lime, DarbColors.mint],
+                ),
                 borderRadius: BorderRadius.circular(13),
               ),
-              child: Text(dt('د'), style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 23)),
+              child: Text(dt('د'), style: TextStyle(color: DarbColors.forest, fontWeight: FontWeight.w900, fontSize: 23)),
             ),
             SizedBox(width: 11),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(dt('دَرْب'), style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, height: 1.1)),
-                Text(titles[tab], style: TextStyle(color: DarbColors.muted, fontSize: 11, fontWeight: FontWeight.w600)),
+                Text(dt('دَرْب'), style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18, height: 1.1)),
+                Text(titles[tab], style: TextStyle(color: Colors.white.withValues(alpha: .72), fontSize: 11, fontWeight: FontWeight.w600)),
               ],
             ),
           ],
@@ -190,14 +198,14 @@ class _AppShellState extends State<AppShell> {
               },
               icon: Icon(
                 update == null ? Icons.system_update_alt_rounded : Icons.system_update_rounded,
-                color: update == null ? null : DarbColors.success,
+                color: update == null ? Colors.white : DarbColors.lime,
               ),
             ),
           ),
           IconButton(
             tooltip: dt('تحديث'),
             onPressed: () { setState(() => loading = true); _load(); },
-            icon: Icon(Icons.refresh_rounded),
+            icon: Icon(Icons.refresh_rounded, color: Colors.white),
           ),
           SizedBox(width: 6),
         ],
@@ -216,6 +224,9 @@ class _AppShellState extends State<AppShell> {
         child: KeyedSubtree(key: ValueKey(tab), child: pages[tab]),
       ),
       bottomNavigationBar: NavigationBar(
+        backgroundColor: DarbColors.surface,
+        indicatorColor: DarbColors.mint.withValues(alpha: .62),
+        elevation: 8,
         selectedIndex: tab,
         onDestinationSelected: (value) => setState(() => tab = value),
         destinations: [

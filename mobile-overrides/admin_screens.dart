@@ -46,15 +46,58 @@ class _AdminQueueState extends State<AdminQueue> {
     final city = widget.kind == 'drivers' && cityData is Map ? cityData['code']?.toString() ?? '' : '';
     final detail = widget.kind == 'vendors' ? row['type']?.toString() ?? '' : row['vehicleType']?.toString() ?? '';
     final id = row['id'].toString();
-    return Card(child: Padding(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
-      SizedBox(height: 5), Text(user['phone']?.toString() ?? ''),
-      if (detail.isNotEmpty) Text(detail), if (city.isNotEmpty) Text(dt('رمز المدينة: $city')),
-      SizedBox(height: 10), Wrap(spacing: 8, children: [
-        FilledButton(onPressed: working ? null : () => _setStatus(id, 'APPROVED'), child: Text(dt('اعتماد'))),
-        OutlinedButton(onPressed: working ? null : () => _setStatus(id, widget.kind == 'vendors' ? 'REJECTED' : 'SUSPENDED'), child: Text(widget.kind == 'vendors' ? dt('رفض') : dt('تعليق'))),
-      ]),
-    ])));
+    return Card(
+      margin:const EdgeInsets.only(bottom:12),
+      child:Padding(
+        padding:const EdgeInsets.all(16),
+        child:Column(
+          crossAxisAlignment:CrossAxisAlignment.start,
+          children:[
+            Row(children:[
+              Container(
+                width:48,height:48,
+                decoration:BoxDecoration(color:DarbColors.mint.withValues(alpha:.38),borderRadius:BorderRadius.circular(15)),
+                child:Icon(widget.kind=='vendors'?Icons.storefront_rounded:Icons.delivery_dining_rounded,color:DarbColors.forest,size:24),
+              ),
+              const SizedBox(width:12),
+              Expanded(child:Column(
+                crossAxisAlignment:CrossAxisAlignment.start,
+                children:[
+                  Text(title,style:const TextStyle(fontSize:15,fontWeight:FontWeight.w900,color:DarbColors.ink)),
+                  const SizedBox(height:4),
+                  Text(user['phone']?.toString()??'',style:const TextStyle(color:DarbColors.muted,fontSize:12)),
+                ],
+              )),
+              Container(
+                padding:const EdgeInsets.symmetric(horizontal:9,vertical:6),
+                decoration:BoxDecoration(color:DarbColors.warning.withValues(alpha:.10),borderRadius:BorderRadius.circular(DarbRadius.pill)),
+                child:Text(dt('قيد المراجعة'),style:const TextStyle(color:DarbColors.warning,fontSize:10,fontWeight:FontWeight.w800)),
+              ),
+            ]),
+            if(detail.isNotEmpty||city.isNotEmpty)...[
+              const SizedBox(height:14),
+              Wrap(spacing:8,runSpacing:8,children:[
+                if(detail.isNotEmpty)Chip(avatar:const Icon(Icons.category_outlined,size:15),label:Text(detail)),
+                if(city.isNotEmpty)Chip(avatar:const Icon(Icons.location_city_outlined,size:15),label:Text(city)),
+              ]),
+            ],
+            const SizedBox(height:14),
+            Row(children:[
+              Expanded(child:FilledButton(
+                onPressed:working?null:()=>_setStatus(id,'APPROVED'),
+                child:Text(dt('اعتماد الطلب')),
+              )),
+              const SizedBox(width:9),
+              OutlinedButton(
+                onPressed:working?null:()=>_setStatus(id,widget.kind=='vendors'?'REJECTED':'SUSPENDED'),
+                style:OutlinedButton.styleFrom(foregroundColor:DarbColors.danger,side:const BorderSide(color:DarbColors.danger)),
+                child:Text(widget.kind=='vendors'?dt('رفض'):dt('تعليق')),
+              ),
+            ]),
+          ],
+        ),
+      ),
+    );
   }
 }
 
