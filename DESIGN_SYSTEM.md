@@ -1,10 +1,10 @@
 # DARB Design System
 
-Version: 1.0  
+Version: 2.0  
 Scope: Flutter mobile app (customer, driver, vendor, administration)  
 Source of truth: `mobile-overrides/design_system.dart`
 
-This document records the design tokens already implemented in the app and defines how new and revised screens must use them. It does not authorize changing product behavior or backend contracts.
+This document defines the shared visual and interaction language for DARB. It does not authorize changing product behavior or backend contracts.
 
 ## Product principles
 
@@ -17,27 +17,69 @@ This document records the design tokens already implemented in the app and defin
 - Separate API/business logic from presentation when adding or restructuring screens.
 - Preserve authentication, package identity, release signing, and existing API contracts unless a separately reviewed change requires otherwise.
 
-## Color tokens
+## Approved visual direction: DARB PULSE 2026
+
+DARB should feel like a live logistics network: confident, clear, fast, and premium. The interface is map-aware and task-first, not a generic shopping template.
+
+- **Visual hierarchy:** one dominant task per screen; supporting actions remain secondary.
+- **Customer experience:** make the two service paths unmistakable—ordering from stores and independent parcel delivery. Do not hide independent delivery when stores are unavailable.
+- **Driver experience:** prioritize availability, nearby eligible requests, active delivery progress, and the next required action.
+- **Vendor experience:** prioritize incoming orders and the preparation/hand-off sequence.
+- **Administration:** prioritize operational queues, approvals, exceptions, and delivery-zone controls.
+- **Navigation:** role-specific destinations remain stable and predictable. Do not add tabs merely for decoration.
+- **Map use:** show maps only where location materially helps a task. A map must not displace the primary action or make weak-network startup heavier.
+- **Motion:** dynamic and rich, but purposeful. Motion explains state, hierarchy, and transitions; it never delays critical actions.
+- **Surface language:** layered surfaces, deliberate negative space, restrained borders, and a small number of high-contrast accents. Avoid excessive gradients, glass effects, and decorative cards.
+- **Content integrity:** no fake live data, placeholder ratings, fabricated availability, or invented delivery prices.
+
+## Color system
+
+### Shared brand anchors
 
 | Token | Hex | Usage |
 |---|---|---|
-| forest | #102B26 | Primary brand, primary actions, headings on light surfaces |
-| forestSoft | #1C443B | Secondary brand surfaces and dark hero gradients |
-| mint | #B9E4D2 | Selected states and soft supporting surfaces |
-| lime | #C8F169 | High-emphasis accent on dark backgrounds only |
-| canvas | #F5F6F2 | Main application background |
-| surface | #FFFFFF | Cards, sheets, fields |
-| ink | #17231F | Main text |
-| muted | #77837D | Secondary text and hints |
-| line | #E4E9E3 | Dividers and subtle borders |
-| borderStrong | #CBD5CE | Stronger boundaries |
+| forest | #102B26 | Primary brand and high-emphasis actions |
+| forestSoft | #1C443B | Secondary brand surfaces |
+| mint | #B9E4D2 | Selected and supportive states |
+| lime | #C8F169 | High-emphasis accent on dark brand surfaces |
 | danger | #B94747 | Destructive actions and errors |
 | success | #287A50 | Confirmed/success states |
 | warning | #B7791F | Pending/attention states |
 | info | #356D9A | Informational states |
+
+### Light semantic surfaces
+
+| Token | Hex | Usage |
+|---|---|---|
+| canvas | #F5F6F2 | Main application background |
+| surface | #FFFFFF | Cards, sheets, and fields |
+| ink | #17231F | Main text |
+| muted | #77837D | Secondary text and hints |
+| line | #E4E9E3 | Dividers and subtle borders |
+| borderStrong | #CBD5CE | Stronger boundaries |
 | scrim | #990B1713 | Modal backdrops |
 
-Do not introduce near-duplicate brand colors in individual screens. If a new semantic color is genuinely required, add it centrally to `DarbColors` and document its use.
+### Dark semantic surfaces
+
+The dark theme must use a separate semantic palette; do not invert the light palette mechanically.
+
+| Semantic role | Target color | Usage |
+|---|---|---|
+| canvas | #0B1512 | App background |
+| surface | #13221D | Main cards and navigation surfaces |
+| surfaceElevated | #1A2D26 | Sheets, dialogs, elevated cards |
+| ink | #F1F5F1 | Primary text |
+| muted | #A4B2AA | Secondary text and hints |
+| line | #2A3B33 | Dividers and subtle borders |
+| borderStrong | #40564A | Stronger boundaries |
+| primary | #B9E4D2 | Main interactive emphasis on dark surfaces |
+| onPrimary | #102B26 | Text/icons on primary |
+| accent | #C8F169 | Rare high-priority accent |
+| scrim | #B3000000 | Modal backdrops |
+
+Dark palette values are semantic targets. Contrast and component states must be verified in implementation before this theme is considered complete.
+
+Do not introduce near-duplicate brand colors in individual screens. Add genuinely new semantic colors centrally and document their use. All screen colors must resolve through the active theme; screen-specific hard-coded palette values are not permitted except for intentional brand artwork and media.
 
 ## Spacing
 
@@ -67,16 +109,7 @@ Use `DarbElevation.card` for ordinary cards and `DarbElevation.floating` for flo
 
 ## Typography
 
-Use the shared `DarbTheme.light` text theme:
-- headlineLarge: 28 / 900
-- headlineMedium: 23 / 900
-- titleLarge: 19 / 800
-- titleMedium: 15 / 700
-- bodyLarge: 15
-- bodyMedium: 13
-- labelLarge: 13 / 800
-
-Keep titles concise, body copy comfortably readable, and secondary labels visually subordinate. Avoid long all-bold paragraphs. Use localized strings through the existing localization helpers.
+Use the shared theme text styles. Maintain readable Arabic typography and consistent hierarchy across Arabic, English, and Turkish. Keep titles concise, body copy comfortably readable, and secondary labels visually subordinate. Avoid long all-bold paragraphs. Use localized strings through the existing localization helpers.
 
 ## Motion
 
@@ -96,17 +129,17 @@ Reusable building blocks:
 - `DarbPressScale` for tactile press feedback on custom interactive surfaces.
 - `DarbMotion.effectiveDuration(context, duration)` and `DarbMotion.reduceMotion(context)` to honor the operating-system accessibility preference.
 
-The approved direction is dynamic and expressive, not continuously animated. Use motion to explain hierarchy and real state changes: screen transitions, selected navigation, expanding details, order progression, and confirmation feedback. Stagger only small groups; avoid animating every row in long lists. Never delay a critical action for decorative animation. All motion must become immediate when reduced motion is enabled.
+Use motion for screen transitions, selected navigation, expanding details, order progression, and confirmation feedback. Stagger only small groups; avoid animating every row in long lists. Never delay a critical action for decorative animation. All motion must become immediate when reduced motion is enabled.
 
 ## Components and interaction
 
 - Primary action: `FilledButton`, one clear primary action per view.
 - Secondary action: `OutlinedButton` or `TextButton`.
-- Destructive action: use `DarbColors.danger` and require confirmation when consequential.
-- Cards: white surface, 22 px default radius, subtle line, restrained elevation.
+- Destructive action: use the active theme's error color and require confirmation when consequential.
+- Cards: semantic surface, clear grouping, restrained elevation.
 - Inputs: shared `InputDecorationTheme`; show validation beside the relevant field.
-- Navigation: shared Material 3 `NavigationBar`; preserve role-specific destinations.
-- Dialogs and sheets: shared `DarbTheme` shapes and surfaces.
+- Navigation: shared Material 3 navigation; preserve role-specific destinations.
+- Dialogs and sheets: shared theme shapes and surfaces.
 - Loading: use a clear progress indicator or skeleton that matches the final content footprint.
 - Empty: explain what is absent and offer a relevant next action where possible.
 - Error: explain the failure in user language and provide retry without discarding user input.
@@ -141,8 +174,9 @@ Pending vendor/driver approvals, delivery-zone and fee configuration, operationa
 - Preserve current endpoint payloads until backend compatibility is verified.
 - Run `flutter analyze` and the available tests before publishing.
 - A UI phase is not complete until tested on a real device for RTL, small screens, loading, empty, error, and success states.
-- Build a signed APK with the existing release keystore and a versionCode greater than the installed version. Never ask the user to uninstall the working app as a routine update step.
+- Preserve authentication, package identity, release signing, and installed-app update compatibility.
+- Do not merge or publish a release before review and explicit approval.
 
 ## Current implementation notes
 
-The current token implementation lives in `mobile-overrides/design_system.dart`. This document is aligned to that file. If tokens change, update both locations in the same reviewed change.
+The token implementation lives in `mobile-overrides/design_system.dart`. Keep this document aligned with the code. A theme is incomplete until all customer, driver, vendor, and administration screens use semantic colors and all key components are legible in both modes.
