@@ -96,6 +96,13 @@ class _CustomerHomeState extends State<CustomerHome> {
     ));
   }
 
+  void _openAiOrderAssistant() {
+    if (cityId == null) return;
+    Navigator.push(context, MaterialPageRoute(
+      builder: (_) => AiOrderAssistantScreen(cityId: cityId!),
+    ));
+  }
+
   void _openStores() {
     final target = storesKey.currentContext;
     if (target == null) return;
@@ -368,6 +375,13 @@ class _CustomerHomeState extends State<CustomerHome> {
           ),
           SizedBox(height: 9),
           _serviceCard(
+            icon: Icons.auto_awesome_rounded,
+            title: dt('اطلب بمساعدة الذكاء الاصطناعي'),
+            subtitle: dt('اكتب طلبك باللهجة التي تستخدمها ودع دَرْب يحوله إلى مسودة للمراجعة'),
+            onTap: _openAiOrderAssistant,
+          ),
+          SizedBox(height: 9),
+          _serviceCard(
             icon: Icons.storefront_outlined,
             title: dt('الطلب من المتاجر'),
             subtitle: dt('تصفح المتاجر والمنتجات واطلب إلى بابك'),
@@ -457,6 +471,142 @@ class _CustomerHomeState extends State<CustomerHome> {
             )
           else
             ...visibleVendors.map(_storeTile),
+        ],
+      ),
+    );
+  }
+}
+
+
+class AiOrderAssistantScreen extends StatefulWidget {
+  final String cityId;
+  const AiOrderAssistantScreen({super.key, required this.cityId});
+  @override
+  State<AiOrderAssistantScreen> createState() => _AiOrderAssistantScreenState();
+}
+
+class _AiOrderAssistantScreenState extends State<AiOrderAssistantScreen> {
+  final _text = TextEditingController();
+  bool _loading = false;
+  String? _error;
+  Map<String, dynamic>? _draft;
+
+  @override
+  void dispose() { _text.dispose(); super.dispose(); }
+
+  Future<void> _analyze() async {
+    final value = _text.text.trim();
+    if (value.length < 5 || value.length > 3000) {
+      setState(() => _error = dt('اكتب طلباً بين 5 و3000 محرف'));
+      return;
+    }
+    setState(() { _loading = true; _error = null; _draft = null; });
+    try {
+      final result = await Api.instance.post('/ai/order-assistant/drafts/text', {
+        'cityId': widget.cityId, 'text': value,
+      });
+      if (result is! Map) throw const ApiException('استجابة المساعد غير صالحة');
+      if (mounted) setState(() => _draft = Map<String, dynamic>.from(result));
+    } catch (e) {
+      if (mounted) setState(() => _error = e.toString());
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  String _intentLabel(String? intent) {
+    switch (intent) {
+      case 'STORE_ORDER': return dt('طلب من متجر');
+      case 'PEER_DELIVERY': return dt('توصيل غرض مستقل');
+      default: return dt('يحتاج إلى توضيح');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final items = (_draft?['items'] as List?) ?? const [];
+    final warnings = (_draft?['warnings'] as List?) ?? const [];
+    return Scaffold(
+      appBar: AppBar(title: Text(dt('مساعد دَرْب الذكي')),
+        backgroundColor: DarbColors.forest, foregroundColor: Colors.white),
+      body: ListView(
+        padding: const EdgeInsets.all(18),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topRight, end: Alignment.bottomLeft,
+                colors: [DarbColors.forestSoft, DarbColors.forest]),
+              borderRadius: BorderRadius.circular(24)),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Icon(Icons.auto_awesome_rounded, color: Color(0xFFC8F169), size: 28),
+              const SizedBox(height: 12),
+              Text(dt('احكِ طلبك بطريقتك'), style: const TextStyle(
+                color: Colors.white, fontSize: 21, fontWeight: FontWeight.w900)),
+              const SizedBox(height: 7),
+              Text(dt('اكتب باللهجة السورية أو العربية. سيستخرج المساعد نوع الطلب والمنتجات والعنوان، ثم يعرضها عليك للمراجعة.'),
+                style: TextStyle(color: Colors.white.withValues(alpha: .78), height: 1.55, fontSize: 12)),
+            ]),
+          ),
+          const SizedBox(height: 18),
+          TextField(controller: _text, minLines: 5, maxLines: 8,
+            maxLength: 3000, textDirection: TextDirection.rtl,
+            decoration: InputDecoration(
+              labelText: dt('اكتب طلبك هنا'),
+              hintText: dt('مثال: بدي كيلو موز وحليب، والتوصيل على عنواني...'),
+              alignLabelWithHint: true, filled: true, fillColor: Colors.white,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(18)))),
+          const SizedBox(height: 10),
+          SizedBox(height: 52, child: FilledButton.icon(
+            onPressed: _loading ? null : _analyze,
+            icon: _loading
+              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              : const Icon(Icons.auto_awesome_rounded),
+            label: Text(_loading ? dt('جارٍ تحليل طلبك...') : dt('حلّل الطلب')))),
+          if (_error != null) ...[
+            const SizedBox(height: 14),
+            _ErrorPanel(message: _error!, retry: _analyze),
+          ],
+          if (_draft != null) ...[
+            const SizedBox(height: 22),
+            Text(dt('مسودة طلبك'), style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 10),
+            Card(child: Padding(padding: const EdgeInsets.all(16),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(_intentLabel(_draft?['intent']?.toString()),
+                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                const SizedBox(height: 6),
+                Text('الحالة: ${_draft?['status'] ?? 'غير محددة'}',
+                  style: const TextStyle(color: DarbColors.muted, fontSize: 12)),
+                if ((_draft?['transcript'] ?? '').toString().isNotEmpty) ...[
+                  const Divider(height: 22), Text(_draft!['transcript'].toString())],
+                if (items.isNotEmpty) ...[
+                  const Divider(height: 22),
+                  Text(dt('العناصر المستخرجة'), style: const TextStyle(fontWeight: FontWeight.w800)),
+                  for (final item in items)
+                    if (item is Map) ListTile(contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.inventory_2_outlined, color: DarbColors.forest),
+                      title: Text(item['rawName']?.toString() ?? dt('عنصر')),
+                      subtitle: Text('الكمية: ${item['quantity'] ?? 1} ${item['unit'] ?? ''}'),
+                      trailing: item['productId'] == null
+                        ? const Icon(Icons.help_outline_rounded, color: DarbColors.warning)
+                        : const Icon(Icons.check_circle_rounded, color: DarbColors.success)),
+                ],
+                if (warnings.isNotEmpty) ...[
+                  const Divider(height: 22),
+                  Text(dt('يحتاج إلى مراجعتك'), style: const TextStyle(fontWeight: FontWeight.w800, color: DarbColors.warning)),
+                  for (final warning in warnings)
+                    Padding(padding: const EdgeInsets.only(top: 7),
+                      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        const Icon(Icons.info_outline_rounded, size: 17, color: DarbColors.warning),
+                        const SizedBox(width: 7), Expanded(child: Text(warning.toString(), style: const TextStyle(fontSize: 12)))])),
+                ],
+                const SizedBox(height: 12),
+                Text(dt('هذه مسودة فقط. لم يتم إنشاء طلب أو حجز منتجات أو تثبيت عنوان.'),
+                  style: const TextStyle(color: DarbColors.muted, fontSize: 11, height: 1.5)),
+              ]))),
+          ],
         ],
       ),
     );
