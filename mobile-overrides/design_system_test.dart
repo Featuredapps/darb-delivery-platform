@@ -24,7 +24,6 @@ void main() {
       expect(DarbMotion.press.inMilliseconds, 120);
       expect(DarbMotion.route.inMilliseconds, 340);
       expect(DarbMotion.staggerDelay(3).inMilliseconds, 165);
-
     });
 
     testWidgets('DarbFadeSlide skips entrance motion when reduced motion is on', (tester) async {
@@ -39,7 +38,13 @@ void main() {
         ),
       );
 
-      final fade = tester.widget<FadeTransition>(find.byType(FadeTransition));
+      final fadeFinder = find.descendant(
+        of: find.byType(DarbFadeSlide),
+        matching: find.byType(FadeTransition),
+      );
+      expect(fadeFinder, findsOneWidget);
+
+      final fade = tester.widget<FadeTransition>(fadeFinder);
       expect(fade.opacity.value, 1);
     });
 
