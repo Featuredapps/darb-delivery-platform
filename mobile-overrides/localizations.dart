@@ -146,11 +146,11 @@ class AppLocalizations {
     "لا توجد توصيلات حالياً": "No deliveries yet|Henüz teslimat yok",
     "قبول": "Accept|Kabul et",
     "بدء التحضير": "Start preparing|Hazırlamaya başla",
-    "جاهز للاستلام": "Ready for pickup|Teslim almaya hazır",
+    
     "استلام الطلب": "Pick up order|Siparişi al",
     "موقع السائق": "Driver location|Kurye konumu",
     "تم الاستلام": "Picked up|Teslim alındı",
-    "تم التسليم": "Delivered|Teslim edildi",
+    
     "طلب توصيل مستقل": "Independent delivery request|Bağımsız teslimat talebi",
     "بانتظار العروض": "Waiting for offers|Teklifler bekleniyor",
     "الاستلام": "Pickup|Alım",
