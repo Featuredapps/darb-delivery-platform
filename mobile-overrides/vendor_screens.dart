@@ -15,7 +15,97 @@ String _localizedCatalogName(dynamic entity, String fallback) {
 class _VendorTile extends StatelessWidget {final Map<String,dynamic> vendor;final String cityId;const _VendorTile({required this.vendor,required this.cityId});@override Widget build(BuildContext context){final name=_localizedCatalogName(vendor,'متجر');return Card(child:ListTile(contentPadding:const EdgeInsets.all(12),leading:Container(width:54,height:54,decoration:BoxDecoration(color:Color(0xFFE7F1EC),borderRadius:BorderRadius.circular(16)),child:Icon(Icons.storefront,color:green,size:28)),title:Text(name,style:TextStyle(fontWeight:FontWeight.bold)),subtitle:Text(dt('${vendor['_count']?['products']??0} منتج متاح')),trailing:Icon(Icons.chevron_left),onTap:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>VendorCatalog(vendorId:vendor['id'].toString(),name:name,cityId:cityId)))));}}
 class VendorCatalog extends StatefulWidget {final String vendorId,name,cityId;const VendorCatalog({super.key,required this.vendorId,required this.name,required this.cityId});@override State<VendorCatalog> createState()=>_VendorCatalogState();}
 String _productName(dynamic p)=>_localizedCatalogName(p,'منتج');
-class _VendorCatalogState extends State<VendorCatalog>{bool loading=true;String? error;int _loadGeneration=0;List products=[];final Map<String,Map<String,dynamic>> cart={};@override void initState(){super.initState();darbLocale.addListener(_onLocaleChanged);_load();}void _onLocaleChanged()=>_load();@override void dispose(){darbLocale.removeListener(_onLocaleChanged);super.dispose();}Future<void> _load()async{final generation=++_loadGeneration;if(mounted)setState(()=>loading=true);try{final loaded=await Api.instance.get('/vendors/${widget.vendorId}/products?locale=${darbLocale.value.languageCode}') as List;if(generation!=_loadGeneration)return;products=loaded;error=null;}catch(e){if(generation==_loadGeneration)error=e.toString();}finally{if(mounted&&generation==_loadGeneration)setState(()=>loading=false);}}void _add(dynamic p){final id=p['id'].toString();setState((){final old=cart[id];cart[id]={'productId':id,'name':_productName(p),'price':p['basePrice'],'currency':p['currency'],'quantity':(old?['quantity']??0)+1};});ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(dt('أضيف ${_productName(p)} إلى السلة')),duration:Duration(milliseconds:900)));} @override Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:Text(widget.name),actions:[TextButton.icon(onPressed:cart.isEmpty?null:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>CheckoutScreen(vendorId:widget.vendorId,cityId:widget.cityId,items:cart.values.toList()))),icon:Icon(Icons.shopping_bag_outlined),label:Text(dt('السلة (${cart.values.fold<int>(0,(n,x)=>n+(x['quantity'] as int))})')))]),body:loading?Center(child:CircularProgressIndicator()):error!=null?Center(child:Text(error!)):products.isEmpty?_EmptyPanel(text: dt('لا توجد منتجات متاحة')):ListView(children:[for(final p in products)ListTile(title:Text(_productName(p)),subtitle:Text('${p['basePrice']} ${p['currency']}'),leading:Icon(Icons.fastfood),trailing:IconButton(onPressed:()=>_add(p),icon:Icon(Icons.add_circle,color:green,size:30))) ]));}
+class _VendorCatalogState extends State<VendorCatalog>{bool loading=true;String? error;int _loadGeneration=0;List products=[];final Map<String,Map<String,dynamic>> cart={};@override void initState(){super.initState();darbLocale.addListener(_onLocaleChanged);_load();}void _onLocaleChanged()=>_load();@override void dispose(){darbLocale.removeListener(_onLocaleChanged);super.dispose();}Future<void> _load()async{final generation=++_loadGeneration;if(mounted)setState(()=>loading=true);try{final loaded=await Api.instance.get('/vendors/${widget.vendorId}/products?locale=${darbLocale.value.languageCode}') as List;if(generation!=_loadGeneration)return;products=loaded;error=null;}catch(e){if(generation==_loadGeneration)error=e.toString();}finally{if(mounted&&generation==_loadGeneration)setState(()=>loading=false);}}void _add(dynamic p){final id=p['id'].toString();setState((){final old=cart[id];cart[id]={'productId':id,'name':_productName(p),'price':p['basePrice'],'currency':p['currency'],'quantity':(old?['quantity']??0)+1};});ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(dt('أضيف ${_productName(p)} إلى السلة')),duration:Duration(milliseconds:900)));} @override
+Widget build(BuildContext context) {
+  final quantity=cart.values.fold<int>(0,(total,item)=>total+(item['quantity'] as int));
+  return Scaffold(
+    appBar:AppBar(
+      title:Text(widget.name,maxLines:1,overflow:TextOverflow.ellipsis),
+      actions:[
+        Padding(
+          padding:const EdgeInsetsDirectional.only(end:10),
+          child:Center(child:Container(
+            padding:const EdgeInsets.symmetric(horizontal:11,vertical:7),
+            decoration:BoxDecoration(color:DarbColors.mint.withValues(alpha:.45),borderRadius:BorderRadius.circular(DarbRadius.pill)),
+            child:Row(mainAxisSize:MainAxisSize.min,children:[
+              const Icon(Icons.shopping_bag_outlined,size:17,color:DarbColors.forest),
+              const SizedBox(width:6),
+              Text('$quantity',style:const TextStyle(fontWeight:FontWeight.w900,color:DarbColors.forest)),
+            ]),
+          )),
+        ),
+      ],
+    ),
+    body:loading
+      ?ListView(padding:const EdgeInsets.all(18),children:List.generate(4,(index)=>Container(
+        height:106,margin:const EdgeInsets.only(bottom:11),
+        decoration:BoxDecoration(color:DarbColors.surface,borderRadius:BorderRadius.circular(DarbRadius.lg),border:Border.all(color:DarbColors.line)),
+        child:const Center(child:LinearProgressIndicator(minHeight:2)),
+      ))
+      :error!=null
+        ?_ErrorPanel(message:error!,retry:_load)
+        :products.isEmpty
+          ?_EmptyPanel(text:dt('لا توجد منتجات متاحة'))
+          :ListView(
+            padding:const EdgeInsets.fromLTRB(18,12,18,24),
+            children:[
+              Container(
+                padding:const EdgeInsets.all(16),
+                decoration:BoxDecoration(
+                  gradient:const LinearGradient(colors:[DarbColors.forestSoft,DarbColors.forest]),
+                  borderRadius:BorderRadius.circular(DarbRadius.xl),
+                ),
+                child:Row(children:[
+                  const Icon(Icons.storefront_rounded,color:DarbColors.lime,size:25),
+                  const SizedBox(width:11),
+                  Expanded(child:Text(dt('منتجات المتجر'),style:const TextStyle(color:Colors.white,fontSize:17,fontWeight:FontWeight.w900))),
+                  Text('${products.length}',style:const TextStyle(color:DarbColors.lime,fontSize:14,fontWeight:FontWeight.w900)),
+                ]),
+              ),
+              const SizedBox(height:15),
+              for(final product in products)Card(
+                margin:const EdgeInsets.only(bottom:11),
+                child:Padding(
+                  padding:const EdgeInsets.all(13),
+                  child:Row(children:[
+                    Container(
+                      width:58,height:58,
+                      decoration:BoxDecoration(color:DarbColors.canvas,borderRadius:BorderRadius.circular(16)),
+                      child:const Icon(Icons.inventory_2_outlined,color:DarbColors.forest,size:26),
+                    ),
+                    const SizedBox(width:12),
+                    Expanded(child:Column(
+                      crossAxisAlignment:CrossAxisAlignment.start,
+                      children:[
+                        Text(_productName(product),style:const TextStyle(fontWeight:FontWeight.w900,fontSize:14,color:DarbColors.ink)),
+                        const SizedBox(height:6),
+                        Text('${product['basePrice']} ${product['currency']}',style:const TextStyle(color:DarbColors.forest,fontWeight:FontWeight.w900,fontSize:13)),
+                      ],
+                    )),
+                    IconButton.filledTonal(
+                      tooltip:dt('إضافة إلى السلة'),
+                      onPressed:()=>_add(product),
+                      icon:const Icon(Icons.add_rounded),
+                      style:IconButton.styleFrom(backgroundColor:DarbColors.mint.withValues(alpha:.55),foregroundColor:DarbColors.forest),
+                    ),
+                  ]),
+                ),
+              ),
+            ],
+          ),
+    bottomNavigationBar:quantity==0?null:SafeArea(
+      minimum:const EdgeInsets.fromLTRB(18,8,18,12),
+      child:FilledButton(
+        onPressed:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>CheckoutScreen(vendorId:widget.vendorId,cityId:widget.cityId,items:cart.values.toList()))),
+        child:Row(mainAxisAlignment:MainAxisAlignment.center,children:[
+          const Icon(Icons.shopping_bag_outlined,size:18),
+          const SizedBox(width:8),
+          Text(dt('متابعة إلى السلة • $quantity')),
+        ]),
+      ),
+    ),
+  );
+}
 
 class CheckoutScreen extends StatefulWidget {final String vendorId,cityId;final List<Map<String,dynamic>> items;const CheckoutScreen({super.key,required this.vendorId,required this.cityId,required this.items});@override State<CheckoutScreen> createState()=>_CheckoutScreenState();}
 class _CheckoutScreenState extends State<CheckoutScreen>{bool loading=true,sending=false;String? error,addressId;List addresses=[];final notes=TextEditingController();@override void initState(){super.initState();_load();}@override void dispose(){notes.dispose();super.dispose();}bool get _selectedAddressHasLocation=>addresses.any((a)=>a['id'].toString()==addressId&&a['hasLocation']==true);Future<void> _load()async{try{addresses=await Api.instance.get('/addresses') as List;if(addresses.isNotEmpty)addressId=addresses.first['id'].toString();}catch(e){error=e.toString();}finally{if(mounted)setState(()=>loading=false);}}Future<void> _newAddress()async{final label=TextEditingController();final details=TextEditingController();double? latitude,longitude;final ok=await showDialog<bool>(context:context,builder:(ctx)=>AlertDialog(title:Text(dt('عنوان جديد')),content:Column(mainAxisSize:MainAxisSize.min,children:[TextField(controller:label,decoration:InputDecoration(labelText: dt('اسم العنوان (اختياري)'))),SizedBox(height:10),TextField(controller:details,maxLines:3,decoration:InputDecoration(labelText: dt('العنوان بالتفصيل'))),TextButton.icon(onPressed:()async{try{if(!await Geolocator.isLocationServiceEnabled())throw Exception('فعّل خدمة الموقع أولاً');var permission=await Geolocator.checkPermission();if(permission==LocationPermission.denied)permission=await Geolocator.requestPermission();if(permission==LocationPermission.denied||permission==LocationPermission.deniedForever)throw Exception('لم يتم منح إذن الموقع');final point=await Geolocator.getCurrentPosition();latitude=point.latitude;longitude=point.longitude;if(context.mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(dt('تم تحديد إحداثيات موقعك'))));}catch(e){if(context.mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(e.toString())));}},icon:Icon(Icons.my_location),label:Text(dt('استخدام موقعي الحالي')))]),actions:[TextButton(onPressed:()=>Navigator.pop(ctx,false),child:Text(dt('إلغاء'))),FilledButton(onPressed:()=>Navigator.pop(ctx,true),child:Text(dt('حفظ')))]));if(ok==true&&details.text.trim().isNotEmpty){try{final a=await Api.instance.post('/addresses',{'label':label.text.trim(),'details':details.text.trim(),if(latitude!=null&&longitude!=null)'latitude':latitude,if(latitude!=null&&longitude!=null)'longitude':longitude});setState((){addresses.insert(0,{...a,'hasLocation':latitude!=null&&longitude!=null});addressId=a['id'].toString();error=null;});}catch(e){setState(()=>error=e.toString());}}label.dispose();details.dispose();}Future<void> _submit()async{if(addressId==null){setState(()=>error='أضف عنوان توصيل أولاً');return;}setState(()=>sending=true);try{await Api.instance.post('/orders',{'cityId':widget.cityId,'addressId':addressId,'vendorId':widget.vendorId,'items':widget.items.map((x)=>{'productId':x['productId'],'quantity':x['quantity']}).toList(),'notes':notes.text.trim()});if(!mounted)return;ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(dt('تم إرسال طلبك بنجاح'))));Navigator.of(context).popUntil((r)=>r.isFirst);}catch(e){if(mounted)setState(()=>error=e.toString());}finally{if(mounted)setState(()=>sending=false);}}@override Widget build(BuildContext context){final subtotal=widget.items.fold<double>(0,(s,x)=>s+((double.tryParse(x['price'].toString())??0)*(x['quantity'] as int)));return Scaffold(appBar:AppBar(title:Text(dt('تأكيد الطلب'))),body:loading?Center(child:CircularProgressIndicator()):ListView(padding:const EdgeInsets.all(18),children:[Text(dt('ملخص السلة'),style:TextStyle(fontSize:20,fontWeight:FontWeight.w900)),for(final x in widget.items)ListTile(title:Text(x['name'].toString()),subtitle:Text(dt('الكمية: ${x['quantity']}')),trailing:Text('${x['price']} ${x['currency']}')),Divider(),Text(dt('المجموع الفرعي: ${subtotal.toStringAsFixed(2)}')),SizedBox(height:22),Text(dt('عنوان التوصيل'),style:TextStyle(fontSize:18,fontWeight:FontWeight.bold)),if(addresses.isEmpty)_EmptyPanel(text: dt('لا يوجد عنوان محفوظ')),if(addresses.isNotEmpty)DropdownButtonFormField<String>(value:addressId,items:[for(final a in addresses)DropdownMenuItem(value:a['id'].toString(),child:Text('${a['label']??dt('عنوان')} — ${a['details']??''} · ${a['hasLocation']==true?dt('موقع محدد'):dt('الموقع غير محدد')}',maxLines:1,overflow:TextOverflow.ellipsis))],onChanged:(v)=>setState(()=>addressId=v)),if(addressId!=null&&!_selectedAddressHasLocation)Padding(padding:const EdgeInsets.symmetric(vertical:8),child:Text(dt('هذا العنوان لا يحتوي على موقع جغرافي. إذا كانت رسوم التوصيل تُحسب بالكيلومتر، أضف عنواناً مع تحديد موقعك.'),style:TextStyle(color:DarbColors.muted,fontSize:12))),TextButton.icon(onPressed:_newAddress,icon:Icon(Icons.add_location_alt_outlined),label:Text(dt('إضافة عنوان'))),SizedBox(height:12),TextField(controller:notes,maxLines:2,decoration:InputDecoration(labelText: dt('ملاحظات للمتجر (اختياري)'))),if(error!=null)Padding(padding:const EdgeInsets.all(12),child:Text(error!,style:TextStyle(color:Colors.red))),SizedBox(height:18),FilledButton(onPressed:sending?null:_submit,child:sending?SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2)):Text(dt('إرسال الطلب — الدفع عند الاستلام')))]));}}
