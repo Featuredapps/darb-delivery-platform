@@ -105,7 +105,7 @@ class DarbUpdater {
       if (response.statusCode != 200) throw Exception('HTTP ${response.statusCode}');
       final file = File('${Directory.systemTemp.path}/darb-update-${info.versionCode}.apk');
       final sink = file.openWrite();
-      final digestSink = DigestSink();
+      final digestSink = AccumulatorSink<Digest>();
       final hashSink = sha256.startChunkedConversion(digestSink);
       var received = 0;
       final total = response.contentLength ?? 0;
