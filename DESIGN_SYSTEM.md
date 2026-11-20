@@ -80,14 +80,23 @@ Keep titles concise, body copy comfortably readable, and secondary labels visual
 
 ## Motion
 
-Use `DarbMotion`:
+Use the shared primitives and tokens in `mobile-overrides/design_system.dart`:
+- press feedback: 120 ms
 - fast: 160 ms
 - standard: 260 ms
+- route: 340 ms
 - expressive: 420 ms
+- stagger step: 55 ms
 - enter: easeOutCubic
 - exit: easeInCubic
+- expressive emphasis: easeOutBack
 
-Use motion to communicate state and hierarchy: screen transitions, selected navigation, expanding details, and confirmation feedback. Keep motion subtle and interruptible. Never delay a critical action for decorative animation.
+Reusable building blocks:
+- `DarbFadeSlide` for staggered content entrances; use `DarbMotion.staggerDelay(index)` for list items.
+- `DarbPressScale` for tactile press feedback on custom interactive surfaces.
+- `DarbMotion.effectiveDuration(context, duration)` and `DarbMotion.reduceMotion(context)` to honor the operating-system accessibility preference.
+
+The approved direction is dynamic and expressive, not continuously animated. Use motion to explain hierarchy and real state changes: screen transitions, selected navigation, expanding details, order progression, and confirmation feedback. Stagger only small groups; avoid animating every row in long lists. Never delay a critical action for decorative animation. All motion must become immediate when reduced motion is enabled.
 
 ## Components and interaction
 
