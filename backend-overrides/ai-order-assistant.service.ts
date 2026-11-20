@@ -34,7 +34,7 @@ export class AiOrderAssistantService {
     if (file.size > MAX_AUDIO_BYTES) throw new BadRequestException('حجم التسجيل يتجاوز 8 ميغابايت');
     if (!AUDIO_TYPES.has(file.mimetype)) throw new BadRequestException('صيغة التسجيل الصوتي غير مدعومة');
     const draft = await this.beginDraft(userId, input, AiDraftSource.AUDIO);
-    if (draft.status !== AiDraftStatus.PROCESSING) return this.getDraft(userId, draft.id);
+    if (!draft.created) return this.getDraft(userId, draft.id);
     try {
       const transcript = await this.transcribe(file);
       if (!transcript.trim()) throw new BadRequestException('لم نتمكن من فهم التسجيل، حاول التحدث بوضوح');
@@ -86,7 +86,7 @@ export class AiOrderAssistantService {
         const existing = await this.prisma.aiOrderDraft.findFirst({
           where: { userId, idempotencyKey: input.idempotencyKey }, select: { id: true, status: true },
         });
-        if (existing) return existing;
+        if (existing) return { ...existing, created: false };
       }
       throw error;
     }
@@ -123,6 +123,7 @@ export class AiOrderAssistantService {
         ...(!draftInfo.vendorId && matchedVendorIds.size > 1 ? ['المنتجات المقترحة من متاجر مختلفة؛ اختر متجراً واحداً لإكمال الطلب'] : []),
         ...parsed.missingFields,
         ...(parsed.intent === 'STORE_ORDER' && !preparedItems.length ? ['لم يتم تحديد منتجات'] : []),
+        ...(parsed.intent === 'PEER_DELIVERY' && !parsed.deliveryDescription ? ['وصف الغرض المراد توصيله غير واضح'] : []),
         ...preparedItems.flatMap(item => item.productId ? [] : ['تحقق من المنتج: ' + item.rawName]),
         ...(parsed.address.rawText ? [] : ['العنوان يحتاج إلى توضيح']),
       ])];
