@@ -106,13 +106,13 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
               children: [
                 TextField(
                   controller: label,
-                  decoration: const InputDecoration(labelText: dt('اسم العنوان')),
+                  decoration: InputDecoration(labelText: dt('اسم العنوان')),
                 ),
                 const SizedBox(height: 10),
                 TextField(
                   controller: details,
                   maxLines: 2,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: dt('العنوان بالتفصيل'),
                     hintText: dt('الحي، الشارع، البناء، أقرب نقطة دالة'),
                   ),
@@ -284,7 +284,7 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(dt('رقم الطلب: ${order[')orderNumber'] ?? order['id']}'),
+              Text('رقم الطلب: ${order['orderNumber'] ?? order['id']}'),
               const SizedBox(height: 8),
               Text(dt('سيظهر طلبك للسائقين المتاحين في مدينتك. سيقدم كل سائق أجرته، ويمكنك مقارنة العروض واختيار الأنسب قبل تأكيد التوصيل.')),
             ],
@@ -311,7 +311,8 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
       children: [
         Row(
           children: [
-            Text(dt('الخطوة ${step + 1} من 3'),
+            Text(
+              'الخطوة ${step + 1} من 3',
               style: const TextStyle(color: DarbColors.muted, fontSize: 12, fontWeight: FontWeight.w700),
             ),
             const Spacer(),
@@ -352,7 +353,7 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
           controller: pickup,
           maxLines: 2,
           textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: dt('وصف مكان الاستلام'),
             hintText: dt('مثلاً: أمام صيدلية الشفاء، شارع ...'),
             prefixIcon: Icon(Icons.inventory_2_outlined),
@@ -371,7 +372,8 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
         if (pickupPosition != null)
           Padding(
             padding: const EdgeInsets.only(top: 6),
-            child: Text(dt('تم تحديد الموقع بدقة: ${pickupPosition!.latitude.toStringAsFixed(4)}, ${pickupPosition!.longitude.toStringAsFixed(4)}'),
+            child: Text(
+              'تم تحديد الموقع بدقة: ${pickupPosition!.latitude.toStringAsFixed(4)}, ${pickupPosition!.longitude.toStringAsFixed(4)}',
               style: const TextStyle(color: DarbColors.muted, fontSize: 11),
             ),
           ),
@@ -401,7 +403,7 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
           DropdownButtonFormField<String>(
             initialValue: addressId,
             isExpanded: true,
-            decoration: const InputDecoration(prefixIcon: Icon(Icons.location_on_outlined)),
+            decoration: InputDecoration(prefixIcon: Icon(Icons.location_on_outlined)),
             items: [
               for (final address in addresses)
                 DropdownMenuItem(
@@ -435,7 +437,7 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
         TextField(
           controller: itemType,
           textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: dt('نوع الغرض'),
             hintText: dt('مثلاً: مستندات، حقيبة، قطعة غيار'),
             prefixIcon: Icon(Icons.category_outlined),
@@ -446,7 +448,7 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
           controller: itemDescription,
           minLines: 3,
           maxLines: 4,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: dt('وصف الغرض'),
             hintText: dt('اذكر الحجم أو أي تفاصيل تساعد السائق'),
             alignLabelWithHint: true,
@@ -457,7 +459,7 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
           controller: driverInstructions,
           minLines: 2,
           maxLines: 3,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: dt('تعليمات إضافية للسائق (اختياري)'),
             hintText: dt('وقت مناسب، شخص للتواصل عند الوصول...'),
             alignLabelWithHint: true,
