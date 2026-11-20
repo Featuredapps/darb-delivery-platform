@@ -25,8 +25,8 @@ Widget _orderCard(dynamic row){
     if(status=='PICKED_UP')actions.add(_action(id,'تم التسليم','DELIVERED'));
   }
   return Card(child:Padding(padding:const EdgeInsets.all(12),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-    ListTile(contentPadding:EdgeInsets.zero,title:Text(peer?'طلب توصيل مستقل':'طلب ${row['orderNumber']??id}'),subtitle:Text(dt('رقم الطلب: ${row[')orderNumber']??id} • الحالة: $status'),trailing:peer&&row['deliveryFee']==0?Text(dt('بانتظار العروض')):Text('${row['total']??''} ${row['currency']??''}')),
-    if(peer&&row['distanceKm']!=null)Padding(padding:const EdgeInsets.symmetric(horizontal:16),child:Text(dt('مسافة التوصيل: ${(row[')distanceKm'] as num).toStringAsFixed(1)} كم',style:const TextStyle(fontWeight:FontWeight.w800))),
+    ListTile(contentPadding:EdgeInsets.zero,title:Text(peer?'طلب توصيل مستقل':'طلب ${row['orderNumber']??id}'),subtitle:Text('رقم الطلب: ${row['orderNumber']??id} • الحالة: $status'),trailing:peer&&row['deliveryFee']==0?Text(dt('بانتظار العروض')):Text('${row['total']??''} ${row['currency']??''}')),
+    if(peer&&row['distanceKm']!=null)Padding(padding:const EdgeInsets.symmetric(horizontal:16),child:Text('مسافة التوصيل: ${(row['distanceKm'] as num).toStringAsFixed(1)} كم',style:const TextStyle(fontWeight:FontWeight.w800))),
     if(peer&&pickup!=null)ListTile(dense:true,leading:const Icon(Icons.trip_origin),title:Text(dt('الاستلام')),subtitle:Text(pickup)),
     if(peer&&destination!=null)ListTile(dense:true,leading:const Icon(Icons.flag_outlined),title:Text(dt('التسليم')),subtitle:Text(destination)),
     if(peer&&widget.path=='/orders/mine'&&status=='PENDING')_CustomerDeliveryOffers(orderId:id,onSelected:_load),
@@ -34,7 +34,7 @@ Widget _orderCard(dynamic row){
   ])));
 }
 Widget _action(String id,String label,String status)=>TextButton(onPressed:()=>_changeStatus(id,status),child:Text(label));
-Future<void> _track(String id)async{try{final location=await Api.instance.get('/orders/$id/driver-location');if(location is! Map||location['available']!=true){if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text(dt('لم يشارك السائق موقعه بعد'))));return;}final lat=location['latitude'];final lng=location['longitude'];final uri=Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lng');if(!await launchUrl(uri,mode:LaunchMode.externalApplication))throw Exception('تعذر فتح الخرائط');}catch(e){if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(e.toString())));}}Future<void> _changeStatus(String id,String status)async{try{await Api.instance.patch('/orders/$id/status',{'status':status});await _load();}catch(e){if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(e.toString())));}}
+Future<void> _track(String id)async{try{final location=await Api.instance.get('/orders/$id/driver-location');if(location is! Map||location['available']!=true){if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(dt('لم يشارك السائق موقعه بعد'))));return;}final lat=location['latitude'];final lng=location['longitude'];final uri=Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lng');if(!await launchUrl(uri,mode:LaunchMode.externalApplication))throw Exception('تعذر فتح الخرائط');}catch(e){if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(e.toString())));}}Future<void> _changeStatus(String id,String status)async{try{await Api.instance.patch('/orders/$id/status',{'status':status});await _load();}catch(e){if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(e.toString())));}}
 Future<void> _claim(String id)async{try{await Api.instance.post('/orders/$id/claim',{});await _load();}catch(e){if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(e.toString())));}}
 }
 
@@ -47,7 +47,7 @@ class _DriverOfferAction extends StatelessWidget {
     final price=TextEditingController();
     final ok=await showDialog<bool>(context:context,builder:(ctx)=>AlertDialog(
       title:Text(dt('تقديم أجرة التوصيل')),
-      content:TextField(controller:price,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:const InputDecoration(labelText: dt('الأجرة بالليرة السورية الجديدة'),hintText: dt('أدخل المبلغ'))),
+      content:TextField(controller:price,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText: dt('الأجرة بالليرة السورية الجديدة'),hintText: dt('أدخل المبلغ'))),
       actions:[TextButton(onPressed:()=>Navigator.pop(ctx,false),child:Text(dt('إلغاء'))),FilledButton(onPressed:()=>Navigator.pop(ctx,true),child:Text(dt('إرسال العرض')))],
     ));
     final amount=double.tryParse(price.text.trim());
@@ -55,7 +55,7 @@ class _DriverOfferAction extends StatelessWidget {
     if(ok!=true||amount==null||amount<=0)return;
     try{
       await Api.instance.post('/orders/$orderId/offers',{'amount':amount});
-      if(context.mounted){ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text(dt('تم إرسال عرضك للعميل'))));await onSent();}
+      if(context.mounted){ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(dt('تم إرسال عرضك للعميل'))));await onSent();}
     }catch(e){if(context.mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(e.toString())));}
   }
   @override Widget build(BuildContext context)=>FilledButton.icon(onPressed:()=>_offer(context),icon:const Icon(Icons.local_offer_outlined),label:Text(dt('تحديد الأجرة')));
@@ -81,13 +81,13 @@ class _CustomerDeliveryOffersState extends State<_CustomerDeliveryOffers>{
     setState(()=>selecting=true);
     try{
       await Api.instance.post('/orders/${widget.orderId}/offers/${offer['id']}/select',{});
-      if(mounted){ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text(dt('تم اختيار السائق وتأكيد الأجرة'))));await widget.onSelected();}
+      if(mounted){ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(dt('تم اختيار السائق وتأكيد الأجرة'))));await widget.onSelected();}
     }catch(e){if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(e.toString())));}
     finally{if(mounted)setState(()=>selecting=false);}
   }
   @override Widget build(BuildContext context){
     if(loading)return const Padding(padding:EdgeInsets.all(12),child:Center(child:CircularProgressIndicator()));
-    if(error!=null)return TextButton(onPressed:(){setState(()=>loading=true);_load();},child:Text(dt('تعذر تحميل العروض: $error')));
+    if(error!=null)return TextButton(onPressed:(){setState(()=>loading=true);_load();},child:Text('تعذر تحميل العروض: $error'));
     if(offers.isEmpty)return Padding(padding:const EdgeInsets.all(12),child:Row(children:[
       const Expanded(child:Text(dt('بانتظار عروض السائقين.'))),
       TextButton.icon(onPressed:(){setState(()=>loading=true);_load();},icon:const Icon(Icons.refresh),label:Text(dt('تحديث'))),
