@@ -65,7 +65,7 @@ class _CustomerHomeState extends State<CustomerHome> {
   void _openPeerDelivery() {
     if (cityId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(dt('لا توجد مدينة مفعّلة لخدمة التوصيل حالياً'))),
+        SnackBar(content: Text(dt('لا توجد مدينة مفعّلة لخدمة التوصيل حالياً'))),
       );
       return;
     }
@@ -182,7 +182,7 @@ class _CustomerHomeState extends State<CustomerHome> {
                   Text(name, maxLines: 1, overflow: TextOverflow.ellipsis,
                     style: const TextStyle(color: ink, fontSize: 14, fontWeight: FontWeight.w900)),
                   const SizedBox(height: 5),
-                  Text(dt('$count منتج متاح'),
+                  Text('$count منتج متاح',
                     style: const TextStyle(color: DarbColors.muted, fontSize: 11)),
                 ],
               )),
