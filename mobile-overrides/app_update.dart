@@ -64,7 +64,7 @@ class DarbUpdater {
         if (force) checkFailed = true;
         return;
       }
-      final release = jsonDecode(response.body);
+      final release = jsonDecode(utf8.decode(response.bodyBytes));
       if (release is! Map<String, dynamic> || release['assets'] is! List) {
         throw const FormatException('Invalid release response');
       }
@@ -80,7 +80,7 @@ class DarbUpdater {
       }
       final manifestResponse = await http.get(Uri.parse(manifestUrl)).timeout(const Duration(seconds: 15));
       if (manifestResponse.statusCode != 200) throw Exception('Manifest HTTP ${manifestResponse.statusCode}');
-      final decoded = jsonDecode(manifestResponse.body);
+      final decoded = jsonDecode(utf8.decode(manifestResponse.bodyBytes));
       if (decoded is! Map<String, dynamic>) throw const FormatException('Invalid update manifest');
       final info = DarbUpdateInfo.fromJson(decoded);
       if (info.versionCode <= 0 || !info.apkUrl.startsWith('https://') || !RegExp(r'^[a-f0-9]{64}$').hasMatch(info.sha256)) {
@@ -194,7 +194,25 @@ class _DarbUpdateDialogState extends State<DarbUpdateDialog> {
         children: [
           _detail(dt('الإصدار الجديد'), info.versionName),
           const SizedBox(height: 8),
-          if (info.releaseNotes.isNotEmpty) Text(info.releaseNotes, style: TextStyle(color: DarbColors.muted)),
+          if (info.releaseNotes.trim().isNotEmpty) ...[
+            const SizedBox(height: 14),
+            Text(dt('ما الجديد في هذا التحديث؟'), style: const TextStyle(fontWeight: FontWeight.w800)),
+            const SizedBox(height: 8),
+            ...info.releaseNotes.split(RegExp(r'\r?\n')).map((line) => line.trim()).where((line) => line.isNotEmpty).map((line) {
+              final note = line.replaceFirst(RegExp(r'^[-•]\s*'), '');
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 7),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(padding: EdgeInsets.only(top: 5), child: Icon(Icons.check_circle, size: 15, color: DarbColors.primary)),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(note, style: TextStyle(color: DarbColors.muted, height: 1.4))),
+                  ],
+                ),
+              );
+            }),
+          ],
           const SizedBox(height: 14),
           ValueListenableBuilder<double?>(
             valueListenable: DarbUpdater.instance.downloadProgress,
@@ -219,7 +237,7 @@ class _DarbUpdateDialogState extends State<DarbUpdateDialog> {
         TextButton(onPressed: _busy ? null : () => Navigator.pop(context), child: Text(dt('لاحقاً'))),
         FilledButton(
           onPressed: _busy ? null : (_downloaded ? _install : _download),
-          child: Text(_busy ? dt('جارٍ تنزيل التحديث') : (_downloaded ? dt('تثبيت التحديث') : dt('تنزيل التحديث'))),
+          child: Text(_busy ? dt('جارٍ تنزيل التحديث') : (_downloaded ? dt('تثبيت التحديث') : dt('تحديث الآن'))),
         ),
       ],
     );
