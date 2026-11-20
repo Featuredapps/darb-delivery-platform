@@ -8,9 +8,9 @@ import 'notifications.dart';
 import 'app_update.dart';
 import 'design_system.dart';
 
-const ink = DarbColors.forest;
-const green = DarbColors.forestSoft;
-const paper = DarbColors.canvas;
+Color get ink => DarbColors.ink;
+Color get green => DarbColors.forestSoft;
+Color get paper => DarbColors.canvas;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,6 +40,10 @@ class DarbApp extends StatelessWidget {
       theme: DarbTheme.light,
       darkTheme: DarbTheme.dark,
       themeMode: themeMode,
+      builder: (context, child) {
+        DarbTheme.updateBrightness(Theme.of(context).brightness);
+        return child ?? const SizedBox.shrink();
+      },
       home: DarbLaunchGate(locale: locale),
     ),
     ),
