@@ -317,6 +317,8 @@ class AppLocalizations {
     "تحديث التطبيق": "Update app|Uygulamayı güncelle",
     "تطبيقك محدّث إلى آخر إصدار": "Your app is up to date|Uygulamanız güncel",
     "يتوفر تحديث جديد": "A new update is available|Yeni bir güncelleme var",
+    "ما الجديد في هذا التحديث؟": "What's new in this update?|Yenilikler neler?",
+    "تحديث الآن": "Update now|Şimdi güncelle",
     "الإصدار الحالي": "Current version|Mevcut sürüm",
     "الإصدار الجديد": "New version|Yeni sürüm",
     "حجم التحديث": "Update size|Güncelleme boyutu",
