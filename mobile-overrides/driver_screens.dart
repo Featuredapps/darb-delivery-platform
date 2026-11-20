@@ -1,9 +1,9 @@
 part of 'app_shell.dart';
 
-class DriverAvailable extends StatefulWidget {DriverAvailable({super.key});@override State<DriverAvailable> createState()=>_DriverAvailableState();}
+class DriverAvailable extends StatefulWidget {const DriverAvailable({super.key});@override State<DriverAvailable> createState()=>_DriverAvailableState();}
 class _DriverAvailableState extends State<DriverAvailable>{bool loading=true,working=false;Map<String,dynamic>? driver;String? error;Timer? _locationTimer;@override void initState(){super.initState();_load();}@override void dispose(){_locationTimer?.cancel();super.dispose();}Future<void> _load()async{try{driver=Map<String,dynamic>.from(await Api.instance.get('/drivers/me'));error=null;if(driver?['isOnline']==true&&driver?['status']=='APPROVED')_startLocationUpdates();}catch(e){error=e.toString();}finally{if(mounted)setState(()=>loading=false);}}Future<void> _toggle(bool value)async{setState(()=>working=true);try{driver=Map<String,dynamic>.from(await Api.instance.patch('/drivers/online',{'isOnline':value}));error=null;if(value&&driver?['status']=='APPROVED'){_startLocationUpdates();}else{_locationTimer?.cancel();_locationTimer=null;}}catch(e){error=e.toString();}finally{if(mounted)setState(()=>working=false);}}void _startLocationUpdates(){_locationTimer?.cancel();_sendLocation();_locationTimer=Timer.periodic(Duration(seconds:30),(_)=>_sendLocation());}Future<void> _sendLocation()async{try{if(!await Geolocator.isLocationServiceEnabled())return;var permission=await Geolocator.checkPermission();if(permission==LocationPermission.denied)permission=await Geolocator.requestPermission();if(permission==LocationPermission.denied||permission==LocationPermission.deniedForever)return;final position=await Geolocator.getCurrentPosition(locationSettings:LocationSettings(accuracy:LocationAccuracy.high,timeLimit:Duration(seconds:15)));await Api.instance.patch('/drivers/location',{'latitude':position.latitude,'longitude':position.longitude});}catch(_){}}@override Widget build(BuildContext context){if(loading)return Center(child:CircularProgressIndicator());if(error!=null)return Center(child:Padding(padding:const EdgeInsets.all(20),child:Column(mainAxisSize:MainAxisSize.min,children:[Text(error!),TextButton(onPressed:(){setState(()=>loading=true);_load();},child:Text(dt('إعادة المحاولة')))])));final approved=driver?['status']=='APPROVED';return Column(children:[Padding(padding:const EdgeInsets.all(14),child:Card(child:SwitchListTile(value:driver?['isOnline']==true&&approved,onChanged:!approved||working?null:_toggle,title:Text(dt('متصل لاستلام الطلبات')),subtitle:Text(approved?'فعّل الحالة لتظهر لك الطلبات الجاهزة':'حساب السائق بانتظار اعتماد الإدارة')))),if(approved&&driver?['isOnline']==true)Expanded(child:_DataList(path:'/orders/driver/available',title: dt('طلبات جاهزة للاستلام'),empty: dt('لا توجد طلبات متاحة حالياً')))else Expanded(child:Center(child:Text(dt('اتصل لاستقبال الطلبات بعد اعتماد حسابك'))))]);}}
-class DriverOrders extends StatelessWidget {DriverOrders({super.key});@override Widget build(BuildContext context)=>_DataList(path:'/orders/driver/mine',title: dt('توصيلاتي'),empty: dt('لا توجد توصيلات حالياً'));}
-class _DataList extends StatefulWidget {final String path,title,empty;_DataList({super.key,required this.path,required this.title,required this.empty});@override State<_DataList> createState()=>_DataListState();}
+class DriverOrders extends StatelessWidget {const DriverOrders({super.key});@override Widget build(BuildContext context)=>_DataList(path:'/orders/driver/mine',title: dt('توصيلاتي'),empty: dt('لا توجد توصيلات حالياً'));}
+class _DataList extends StatefulWidget {final String path,title,empty;const _DataList({super.key,required this.path,required this.title,required this.empty});@override State<_DataList> createState()=>_DataListState();}
 class _DataListState extends State<_DataList>{bool loading=true;String? error;List rows=[];@override void initState(){super.initState();_load();}Future<void> _load()async{setState(()=>loading=true);try{rows=await Api.instance.get(widget.path) as List;error=null;}catch(e){error=e.toString();}finally{if(mounted)setState(()=>loading=false);}}@override Widget build(BuildContext context)=>RefreshIndicator(onRefresh:_load,child:ListView(padding:const EdgeInsets.all(18),children:[Text(widget.title,style:TextStyle(fontSize:22,fontWeight:FontWeight.w900)),SizedBox(height:14),if(loading)Center(child:CircularProgressIndicator()),if(error!=null)_ErrorPanel(message:error!,retry:_load),if(!loading&&error==null&&rows.isEmpty)_EmptyPanel(text:widget.empty),for(final row in rows)_orderCard(row)]));
 Widget _orderCard(dynamic row){
   final id=row['id']?.toString()??'';
@@ -42,7 +42,7 @@ Future<void> _claim(String id)async{try{await Api.instance.post('/orders/$id/cla
 class _DriverOfferAction extends StatelessWidget {
   final String orderId;
   final Future<void> Function() onSent;
-  _DriverOfferAction({required this.orderId,required this.onSent});
+  const _DriverOfferAction({required this.orderId,required this.onSent});
   Future<void> _offer(BuildContext context) async {
     final price=TextEditingController();
     final ok=await showDialog<bool>(context:context,builder:(ctx)=>AlertDialog(
@@ -64,7 +64,7 @@ class _DriverOfferAction extends StatelessWidget {
 class _CustomerDeliveryOffers extends StatefulWidget {
   final String orderId;
   final Future<void> Function() onSelected;
-  _CustomerDeliveryOffers({required this.orderId,required this.onSelected});
+  const _CustomerDeliveryOffers({required this.orderId,required this.onSelected});
   @override State<_CustomerDeliveryOffers> createState()=>_CustomerDeliveryOffersState();
 }
 class _CustomerDeliveryOffersState extends State<_CustomerDeliveryOffers>{
