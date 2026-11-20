@@ -101,6 +101,7 @@ jobs:
           cp backend-overrides/otp.service.spec.ts extracted/darb-project/backend/src/modules/auth/otp.service.spec.ts
           cp backend-overrides/auth.service.spec.ts extracted/darb-project/backend/src/modules/auth/auth.service.spec.ts
           cp backend-overrides/orders.service.spec.ts extracted/darb-project/backend/src/modules/orders/orders.service.spec.ts
+          cp backend-overrides/orders.service.integration.spec.ts extracted/darb-project/backend/src/modules/orders/orders.service.integration.spec.ts
           cp backend-overrides/ai-order-assistant.service.spec.ts extracted/darb-project/backend/src/modules/ai-order-assistant/ai-order-assistant.service.spec.ts
           cp backend-overrides/orders.tracking.service.spec.ts extracted/darb-project/backend/src/modules/orders/orders.tracking.service.spec.ts
           cp backend-overrides/driver-location.service.spec.ts extracted/darb-project/backend/src/modules/drivers/driver-location.service.spec.ts
