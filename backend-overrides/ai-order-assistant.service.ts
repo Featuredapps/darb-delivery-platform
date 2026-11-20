@@ -25,7 +25,7 @@ export class AiOrderAssistantService {
     const text = input.text.trim();
     if (text.length < 5 || text.length > 3000) throw new BadRequestException('النص يجب أن يكون بين 5 و3000 محرف');
     const draft = await this.beginDraft(userId, input, AiDraftSource.TEXT, text);
-    if (draft.status !== AiDraftStatus.PROCESSING) return this.getDraft(userId, draft.id);
+    if (!draft.created) return this.getDraft(userId, draft.id);
     return this.processDraft(userId, draft.id, text);
   }
 
@@ -69,10 +69,10 @@ export class AiOrderAssistantService {
       const existing = await this.prisma.aiOrderDraft.findFirst({
         where: { userId, idempotencyKey: input.idempotencyKey }, select: { id: true, status: true },
       });
-      if (existing) return existing;
+      if (existing) return { ...existing, created: false };
     }
     try {
-      return await this.prisma.aiOrderDraft.create({
+      const created = await this.prisma.aiOrderDraft.create({
         data: {
           userId, cityId: input.cityId, vendorId: input.vendorId, idempotencyKey: input.idempotencyKey,
           source, originalText, status: AiDraftStatus.PROCESSING,
@@ -80,6 +80,7 @@ export class AiOrderAssistantService {
         },
         select: { id: true, status: true },
       });
+      return { ...created, created: true };
     } catch (error) {
       if (input.idempotencyKey) {
         const existing = await this.prisma.aiOrderDraft.findFirst({
