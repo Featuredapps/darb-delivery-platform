@@ -24,7 +24,7 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
   bool savingAddress = false;
   Position? pickupPosition;
 
-  static const _stepTitles = ['المواقع', 'تفاصيل الغرض', 'مراجعة الطلب'];
+  List<String> get _stepTitles => [dt('المواقع'), dt('تفاصيل الغرض'), dt('مراجعة الطلب')];
 
   @override
   void initState() {
