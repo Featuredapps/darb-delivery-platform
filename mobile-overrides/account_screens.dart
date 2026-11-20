@@ -66,7 +66,7 @@ class _AccountPageState extends State<AccountPage> {
                 controller: name,
                 maxLength: 120,
                 textInputAction: TextInputAction.done,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: dt('الاسم'),
                   prefixIcon: Icon(Icons.person_outline_rounded),
                 ),
@@ -74,7 +74,7 @@ class _AccountPageState extends State<AccountPage> {
               const SizedBox(height: 10),
               DropdownButtonFormField<String>(
                 value: locale,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: dt('لغة التطبيق'),
                   prefixIcon: Icon(Icons.language_rounded),
                 ),
@@ -161,7 +161,7 @@ class _AccountPageState extends State<AccountPage> {
                   if (vendor) ...[
                     TextField(
                       controller: storeName,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: dt('اسم المتجر'),
                         prefixIcon: Icon(Icons.storefront_outlined),
                       ),
@@ -169,7 +169,7 @@ class _AccountPageState extends State<AccountPage> {
                     const SizedBox(height: 10),
                     TextField(
                       controller: activity,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: dt('نوع النشاط'),
                         prefixIcon: Icon(Icons.category_outlined),
                       ),
@@ -177,7 +177,7 @@ class _AccountPageState extends State<AccountPage> {
                   ] else
                     TextField(
                       controller: activity,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: dt('نوع المركبة (اختياري)'),
                         prefixIcon: Icon(Icons.two_wheeler_outlined),
                       ),
@@ -186,7 +186,7 @@ class _AccountPageState extends State<AccountPage> {
                   DropdownButtonFormField<String>(
                     value: cityId,
                     isExpanded: true,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: dt('المدينة'),
                       prefixIcon: Icon(Icons.location_city_outlined),
                     ),
@@ -212,7 +212,7 @@ class _AccountPageState extends State<AccountPage> {
                     const SizedBox(height: 10),
                     TextField(
                       controller: address,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: dt('عنوان المتجر (اختياري)'),
                         prefixIcon: Icon(Icons.place_outlined),
                       ),
