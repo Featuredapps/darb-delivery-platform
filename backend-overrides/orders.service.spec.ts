@@ -289,6 +289,7 @@ describe('Peer delivery offers', () => {
     prisma.driver.findUnique.mockResolvedValue({ id: 'driver-1', cityId: 'city-2', status: 'APPROVED', isOnline: true });
     const findFirst = jest.fn().mockResolvedValue(null);
     prisma.$transaction.mockImplementation(async (callback: (tx: any) => unknown) => callback({
+      $queryRaw: jest.fn().mockResolvedValue([]),
       order: { findFirst }, deliveryOffer: { upsert: jest.fn() },
     }));
     await expect(service.submitDeliveryOffer('driver-user-1', 'order-1', 75)).rejects.toBeInstanceOf(BadRequestException);
@@ -311,6 +312,7 @@ describe('Peer delivery offers', () => {
     const orderFindFirst = jest.fn().mockResolvedValue(null);
     const offerFindFirst = jest.fn();
     prisma.$transaction.mockImplementation(async (callback: (tx: any) => unknown) => callback({
+      $queryRaw: jest.fn().mockResolvedValue([]),
       order: { findFirst: orderFindFirst }, deliveryOffer: { findFirst: offerFindFirst },
     }));
     await expect(service.selectDeliveryOffer('another-customer', 'order-1', 'offer-1')).rejects.toBeInstanceOf(BadRequestException);
@@ -320,6 +322,7 @@ describe('Peer delivery offers', () => {
   it('rejects selecting an offer from a driver who is no longer approved and online', async () => {
     const offerFindFirst = jest.fn().mockResolvedValue(null);
     prisma.$transaction.mockImplementation(async (callback: (tx: any) => unknown) => callback({
+      $queryRaw: jest.fn().mockResolvedValue([]),
       order: { findFirst: jest.fn().mockResolvedValue({ id: 'order-1' }) },
       deliveryOffer: { findFirst: offerFindFirst },
     }));
@@ -334,6 +337,7 @@ describe('Peer delivery offers', () => {
       .mockResolvedValueOnce({ count: 1 })
       .mockResolvedValueOnce({ count: 0 });
     const tx: any = {
+      $queryRaw: jest.fn().mockResolvedValue([]),
       order: {
         findFirst: jest.fn().mockResolvedValue({ id: 'order-1' }),
         updateMany: orderUpdateMany,
