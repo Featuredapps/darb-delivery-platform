@@ -64,6 +64,18 @@ class AppLocalizations {
   }
 
   static const Map<String, String> _sourceValues = {
+    "طلب": "Order|Sipariş",
+    "رقم الطلب": "Order number|Sipariş numarası",
+    "الحالة": "Status|Durum",
+    "بانتظار عروض السائقين": "Waiting for driver offers|Kurye teklifleri bekleniyor",
+    "بانتظار التأكيد": "Awaiting confirmation|Onay bekleniyor",
+    "تم قبول الطلب": "Order accepted|Sipariş kabul edildi",
+    "قيد التحضير": "Preparing|Hazırlanıyor",
+    "جاهز للاستلام": "Ready for pickup|Teslim almaya hazır",
+    "تم تعيين سائق": "Driver assigned|Kurye atandı",
+    "تم استلام الطلب": "Order picked up|Sipariş teslim alındı",
+    "تم التسليم": "Delivered|Teslim edildi",
+    "ملغي": "Cancelled|İptal edildi",
     "كل طريق يبدأ بخطوة": "Every journey starts with a step|Her yolculuk bir adımla başlar",
     "طلبات المتاجر": "Store orders|Mağaza siparişleri",
     "طلبات السائقين": "Driver applications|Kurye başvuruları",
@@ -134,11 +146,11 @@ class AppLocalizations {
     "لا توجد توصيلات حالياً": "No deliveries yet|Henüz teslimat yok",
     "قبول": "Accept|Kabul et",
     "بدء التحضير": "Start preparing|Hazırlamaya başla",
-    "جاهز للاستلام": "Ready for pickup|Teslim almaya hazır",
+    
     "استلام الطلب": "Pick up order|Siparişi al",
     "موقع السائق": "Driver location|Kurye konumu",
     "تم الاستلام": "Picked up|Teslim alındı",
-    "تم التسليم": "Delivered|Teslim edildi",
+    
     "طلب توصيل مستقل": "Independent delivery request|Bağımsız teslimat talebi",
     "بانتظار العروض": "Waiting for offers|Teklifler bekleniyor",
     "الاستلام": "Pickup|Alım",
