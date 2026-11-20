@@ -314,6 +314,20 @@ class AppLocalizations {
     "حسابك ضمن شبكة دَرْب": "Your account is part of the DARB network|Hesabınız DARB ağının bir parçası",
     "غرضك بأي مكان…\\\\nودَرْب يوصّله.": "Your item, anywhere…\\\\nDARB delivers it.|Eşyanız nerede olursa olsun…\\\\nDARB ulaştırır.",
     "رسوم المنطقة: ": "Zone fees: |Bölge ücretleri: ",
+    "تحديث التطبيق": "Update app|Uygulamayı güncelle",
+    "تطبيقك محدّث إلى آخر إصدار": "Your app is up to date|Uygulamanız güncel",
+    "يتوفر تحديث جديد": "A new update is available|Yeni bir güncelleme var",
+    "الإصدار الحالي": "Current version|Mevcut sürüm",
+    "الإصدار الجديد": "New version|Yeni sürüm",
+    "حجم التحديث": "Update size|Güncelleme boyutu",
+    "تنزيل التحديث": "Download update|Güncellemeyi indir",
+    "تثبيت التحديث": "Install update|Güncellemeyi yükle",
+    "جارٍ تنزيل التحديث": "Downloading update|Güncelleme indiriliyor",
+    "لاحقاً": "Later|Daha sonra",
+    "تعذر التحقق من التحديث": "Could not check for updates|Güncellemeler kontrol edilemedi",
+    "تعذر تنزيل التحديث": "Could not download the update|Güncelleme indirilemedi",
+    "اسمح لدَرْب بتثبيت التحديثات من إعدادات أندرويد ثم ارجع واضغط تثبيت": "Allow DARB to install updates in Android settings, then return and tap Install|Android ayarlarından DARB'ın güncelleme yüklemesine izin verin, ardından geri dönüp Yükle'ye dokunun",
+    "التحقق من سلامة الملف فشل. أعد التنزيل": "File integrity check failed. Download again|Dosya bütünlüğü doğrulanamadı. Yeniden indirin",
   };
   static const Map<String, Map<String, String>> _values = {
     'ar': {

@@ -8,6 +8,7 @@ import '../main.dart';
 import '../localizations.dart';
 import '../notifications.dart';
 import 'login_screen.dart';
+import '../app_update.dart';
 
 part 'admin_screens.dart';
 part 'customer_screens.dart';
@@ -162,6 +163,37 @@ class _AppShellState extends State<AppShell> {
           ],
         ),
         actions: [
+          ValueListenableBuilder<DarbUpdateInfo?>(
+            valueListenable: DarbUpdater.instance.availableUpdate,
+            builder: (context, update, _) => IconButton(
+              tooltip: dt('تحديث التطبيق'),
+              onPressed: () async {
+                if (update == null) {
+                  await DarbUpdater.instance.checkForUpdate(force: true);
+                }
+                final latest = DarbUpdater.instance.availableUpdate.value;
+                if (!mounted) return;
+                if (latest != null) {
+                  showDialog<void>(
+                    context: context,
+                    builder: (_) => DarbUpdateDialog(info: latest),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(
+                      DarbUpdater.instance.checkFailed
+                          ? dt('تعذر التحقق من التحديث')
+                          : dt('تطبيقك محدّث إلى آخر إصدار'),
+                    )),
+                  );
+                }
+              },
+              icon: Icon(
+                update == null ? Icons.system_update_alt_rounded : Icons.system_update_rounded,
+                color: update == null ? null : DarbColors.success,
+              ),
+            ),
+          ),
           IconButton(
             tooltip: dt('تحديث'),
             onPressed: () { setState(() => loading = true); _load(); },
