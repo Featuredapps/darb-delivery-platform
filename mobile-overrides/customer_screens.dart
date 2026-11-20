@@ -236,7 +236,7 @@ class _CustomerHomeState extends State<CustomerHome> {
             Container(
               width: 38, height: 38,
               decoration: BoxDecoration(
-                color: Color(0xFFE8F0EA),
+                color: DarbColors.surfaceAlt,
                 borderRadius: BorderRadius.circular(13),
               ),
               child: Icon(Icons.location_on_rounded, color: green, size: 20),
@@ -388,7 +388,7 @@ class _CustomerHomeState extends State<CustomerHome> {
                 icon: Icon(Icons.close_rounded),
               ),
               filled: true,
-              fillColor: Colors.white,
+              fillColor: DarbColors.surface,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide.none,
@@ -431,7 +431,7 @@ class _CustomerHomeState extends State<CustomerHome> {
                 Container(
                   width: 55, height: 55,
                   decoration: BoxDecoration(
-                    color: Color(0xFFEAF2EC),
+                    color: DarbColors.surfaceAlt,
                     borderRadius: BorderRadius.circular(17),
                   ),
                   child: Icon(Icons.storefront_outlined, color: green, size: 27),
