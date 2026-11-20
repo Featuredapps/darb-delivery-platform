@@ -40,8 +40,8 @@ class _AdminQueueState extends State<AdminQueue> {
     final user = row['user'] as Map? ?? {};
     final translations = row['translations'] as List? ?? [];
     final title = widget.kind == 'vendors'
-      ? (translations.isEmpty ? 'متجر جديد' : translations.first['name']?.toString() ?? 'متجر جديد')
-      : user['name']?.toString() ?? 'سائق جديد';
+      ? (translations.isEmpty ? dt('متجر جديد') : translations.first['name']?.toString() ?? dt('متجر جديد'))
+      : user['name']?.toString() ?? dt('سائق جديد');
     final cityData = row['city'];
     final city = widget.kind == 'drivers' && cityData is Map ? cityData['code']?.toString() ?? '' : '';
     final detail = widget.kind == 'vendors' ? row['type']?.toString() ?? '' : row['vehicleType']?.toString() ?? '';
@@ -52,7 +52,7 @@ class _AdminQueueState extends State<AdminQueue> {
       if (detail.isNotEmpty) Text(detail), if (city.isNotEmpty) Text(dt('رمز المدينة: $city')),
       SizedBox(height: 10), Wrap(spacing: 8, children: [
         FilledButton(onPressed: working ? null : () => _setStatus(id, 'APPROVED'), child: Text(dt('اعتماد'))),
-        OutlinedButton(onPressed: working ? null : () => _setStatus(id, widget.kind == 'vendors' ? 'REJECTED' : 'SUSPENDED'), child: Text(widget.kind == 'vendors' ? 'رفض' : 'تعليق')),
+        OutlinedButton(onPressed: working ? null : () => _setStatus(id, widget.kind == 'vendors' ? 'REJECTED' : 'SUSPENDED'), child: Text(widget.kind == 'vendors' ? dt('رفض') : dt('تعليق'))),
       ]),
     ])));
   }
@@ -86,7 +86,7 @@ class _AdminDeliveryZonesState extends State<AdminDeliveryZones> {
     final perKm=TextEditingController(text:zone?['feePerKm']?.toString()??'');
     String cityId=zone?['cityId']?.toString()??selectableCities.first['id'].toString();
     final ok=await showDialog<bool>(context:context,builder:(ctx)=>StatefulBuilder(builder:(ctx,setDialog)=>AlertDialog(
-      title:Text(zone==null?'إضافة منطقة توصيل':'تعديل رسوم التوصيل'),
+      title:Text(zone==null?dt('إضافة منطقة توصيل'):dt('تعديل رسوم التوصيل')),
       content:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[
         if(zone==null)DropdownButtonFormField<String>(value:cityId,decoration:InputDecoration(labelText: dt('المدينة')),items:[for(final c in selectableCities)DropdownMenuItem(value:c['id'].toString(),child:Text(_cityName(c)))],onChanged:(v){if(v!=null)setDialog(()=>cityId=v);}),
         TextField(controller:name,decoration:InputDecoration(labelText: dt('وصف إعداد الرسوم'))),
@@ -118,8 +118,8 @@ class _AdminDeliveryZonesState extends State<AdminDeliveryZones> {
       SizedBox(height:8),Text(dt('يُضبط رسم واحد لكل مدينة. احتساب رسم الكيلومتر يتطلب تحديد موقع المتجر وموقع عنوان العميل.'),style:TextStyle(color:Colors.black54)),
       for(final zone in zones)Card(child:ListTile(
         leading:Icon(Icons.payments_outlined,color:green),
-        title:Text(zone['name']?.toString()??'منطقة'),
-        subtitle:Text('${_cityName(zone['city'] as Map)} • أساسي: ${zone['feeBase']} ل.س • لكل كم: ${zone['feePerKm']} ل.س'),
+        title:Text(zone['name']?.toString()??dt('منطقة')),
+        subtitle:Text(dt('رسوم المنطقة: ${zone['feeBase']} ل.س • لكل كم: ${zone['feePerKm']} ل.س')),
         trailing:IconButton(onPressed:working?null:()=>_edit(zone as Map),icon:Icon(Icons.edit_outlined)),
       )),
     ])),
