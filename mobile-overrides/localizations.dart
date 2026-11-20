@@ -43,7 +43,7 @@ class AppLocalizations {
     if (source.startsWith('الكمية: ')) return dynamicValue('الكمية: ', 'Quantity: ', 'Miktar: ');
     if (source.startsWith('المجموع الفرعي: ')) return dynamicValue('المجموع الفرعي: ', 'Subtotal: ', 'Ara toplam: ');
     if (source.startsWith('السلة (') && source.endsWith(')')) {
-      final count = source.substring(6, source.length - 1);
+      final count = source.substring('السلة ('.length, source.length - 1);
       return locale.languageCode == 'tr' ? 'Sepet ($count)' : 'Cart ($count)';
     }
     if (source.startsWith('الخطوة ') && source.endsWith(' من 3')) {
@@ -51,6 +51,7 @@ class AppLocalizations {
       return locale.languageCode == 'tr' ? 'Adım $step / 3' : 'Step $step of 3';
     }
     if (source.startsWith('تم تحديد الموقع بدقة: ')) return dynamicValue('تم تحديد الموقع بدقة: ', 'Location set precisely: ', 'Konum hassas şekilde belirlendi: ');
+    if (source.startsWith('رسوم المنطقة: ')) return dynamicValue('رسوم المنطقة: ', 'Zone fees: ', 'Bölge ücretleri: ');
     if (source.startsWith('أضيف ') && source.endsWith(' إلى السلة')) {
       final product = source.substring('أضيف '.length, source.length - ' إلى السلة'.length);
       return locale.languageCode == 'tr' ? '$product sepete eklendi' : '$product added to cart';
@@ -288,6 +289,13 @@ class AppLocalizations {
     "تأكيد وإرسال الطلب": "Confirm and send request|Talebi onayla ve gönder",
     "متابعة": "Continue|Devam et",
     "العربية": "Arabic|Arapça",
+    "منتج": "Product|Ürün",
+    "لا توجد منتجات متاحة": "No products available|Ürün bulunamadı",
+    "تم إرسال طلبك": "Your request was submitted|Talebiniz gönderildi",
+    "سيظهر طلبك للسائقين المتاحين في مدينتك. سيقدم كل سائق أجرته، ويمكنك مقارنة العروض واختيار الأنسب قبل تأكيد التوصيل.": "Drivers available in your city will see your request and submit fares. Compare the offers and choose the best one before confirming delivery.|Şehrinizdeki kuryeler talebinizi görecek ve ücret teklif edecek. Teslimatı onaylamadan önce teklifleri karşılaştırıp en uygun olanı seçebilirsiniz.",
+    "حسابك ضمن شبكة دَرْب": "Your account is part of the DARB network|Hesabınız DARB ağının bir parçası",
+    "غرضك بأي مكان…\\\\nودَرْب يوصّله.": "Your item, anywhere…\\\\nDARB delivers it.|Eşyanız nerede olursa olsun…\\\\nDARB ulaştırır.",
+    "رسوم المنطقة: ": "Zone fees: |Bölge ücretleri: ",
   };
   static const Map<String, Map<String, String>> _values = {
     'ar': {
