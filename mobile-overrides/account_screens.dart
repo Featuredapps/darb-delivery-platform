@@ -115,9 +115,9 @@ class _AccountPageState extends State<AccountPage> {
         if (!mounted) return;
         setState(() => profile = Map<String, dynamic>.from(updated));
         darbLocale.value = Locale(locale);
-        _showMessage('تم تحديث بيانات حسابك');
+        _showMessage(dt('تم تحديث بيانات حسابك'));
       } catch (error) {
-        if (mounted) _showMessage('تعذر حفظ التغييرات: $error', isError: true);
+        if (mounted) _showMessage(dt('تعذر حفظ التغييرات: $error'), isError: true);
       } finally {
         if (mounted) setState(() => saving = false);
       }
@@ -132,12 +132,12 @@ class _AccountPageState extends State<AccountPage> {
     try {
       final response = await Api.instance.get('/cities');
       if (response is! List) {
-        throw FormatException('تعذر قراءة قائمة المدن');
+        throw FormatException(dt('تعذر قراءة قائمة المدن'));
       }
       final cities = response;
       if (!mounted) return;
       if (cities.isEmpty) {
-        _showMessage('لا توجد مدن مفعّلة حالياً', isError: true);
+        _showMessage(dt('لا توجد مدن مفعّلة حالياً'), isError: true);
         return;
       }
 
@@ -153,7 +153,7 @@ class _AccountPageState extends State<AccountPage> {
         context: context,
         builder: (dialogContext) => StatefulBuilder(
           builder: (dialogContext, setDialogState) => AlertDialog(
-            title: Text(vendor ? 'طلب انضمام متجر' : 'طلب انضمام سائق'),
+            title: Text(vendor ? dt('طلب انضمام متجر') : dt('طلب انضمام سائق')),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -222,7 +222,7 @@ class _AccountPageState extends State<AccountPage> {
                       onPressed: () async {
                         try {
                           if (!await Geolocator.isLocationServiceEnabled()) {
-                            throw Exception('فعّل خدمة الموقع أولاً');
+                            throw Exception(dt('فعّل خدمة الموقع أولاً'));
                           }
                           var permission = await Geolocator.checkPermission();
                           if (permission == LocationPermission.denied) {
@@ -230,7 +230,7 @@ class _AccountPageState extends State<AccountPage> {
                           }
                           if (permission == LocationPermission.denied ||
                               permission == LocationPermission.deniedForever) {
-                            throw Exception('لم يتم منح إذن الموقع');
+                            throw Exception(dt('لم يتم منح إذن الموقع'));
                           }
                           final point = await Geolocator.getCurrentPosition();
                           latitude = point.latitude;
@@ -251,8 +251,8 @@ class _AccountPageState extends State<AccountPage> {
                       ),
                       label: Text(
                         locationSelected
-                            ? 'تم تحديد موقع المتجر'
-                            : 'تحديد موقع المتجر',
+                            ? dt('تم تحديد موقع المتجر')
+                            : dt('تحديد موقع المتجر'),
                       ),
                     ),
                   ],
@@ -296,9 +296,9 @@ class _AccountPageState extends State<AccountPage> {
           final fresh = await Api.instance.get('/auth/me');
           if (!mounted) return;
           setState(() => profile = Map<String, dynamic>.from(fresh));
-          _showMessage('تم إرسال الطلب. ستراجع الإدارة بياناتك قبل تفعيل الصلاحيات.');
+          _showMessage(dt('تم إرسال الطلب. ستراجع الإدارة بياناتك قبل تفعيل الصلاحيات.'));
         } catch (error) {
-          if (mounted) _showMessage('تعذر إرسال الطلب: $error', isError: true);
+          if (mounted) _showMessage(dt('تعذر إرسال الطلب: $error'), isError: true);
         }
       }
 
@@ -306,7 +306,7 @@ class _AccountPageState extends State<AccountPage> {
       activity.dispose();
       address.dispose();
     } catch (error) {
-      if (mounted) _showMessage('تعذر تحميل المدن: $error', isError: true);
+      if (mounted) _showMessage(dt('تعذر تحميل المدن: $error'), isError: true);
     } finally {
       if (mounted) setState(() => applying = false);
     }
@@ -351,15 +351,15 @@ class _AccountPageState extends State<AccountPage> {
   String _statusLabel(dynamic value) {
     switch (value?.toString()) {
       case 'PENDING':
-        return 'قيد مراجعة الإدارة';
+        return dt('قيد مراجعة الإدارة');
       case 'APPROVED':
-        return 'تمت الموافقة';
+        return dt('تمت الموافقة');
       case 'REJECTED':
-        return 'لم تتم الموافقة';
+        return dt('لم تتم الموافقة');
       case 'SUSPENDED':
-        return 'معلّق من الإدارة';
+        return dt('معلّق من الإدارة');
       default:
-        return 'لم يُرسل طلب بعد';
+        return dt('لم يُرسل طلب بعد');
     }
   }
 
@@ -463,7 +463,7 @@ class _AccountPageState extends State<AccountPage> {
                 ),
                 SizedBox(height: 22),
                 Text(
-                  _name.isEmpty ? 'مرحباً بك في دَرْب' : _name,
+                  _name.isEmpty ? dt('مرحباً بك في دَرْب') : _name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -474,7 +474,7 @@ class _AccountPageState extends State<AccountPage> {
                 ),
                 SizedBox(height: 6),
                 Text(
-                  _phone.isNotEmpty ? _phone : (_email.isNotEmpty ? _email : 'أكمل بيانات حسابك'),
+                  _phone.isNotEmpty ? _phone : (_email.isNotEmpty ? _email  : dt('أكمل بيانات حسابك')),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -663,10 +663,10 @@ class _AccountPageState extends State<AccountPage> {
                         SizedBox(height: 4),
                         Text(
                           status == 'PENDING'
-                              ? 'استلمنا طلبك. ستراجع الإدارة بياناتك قبل تفعيل الصلاحيات.'
+                              ? dt('استلمنا طلبك. ستراجع الإدارة بياناتك قبل تفعيل الصلاحيات.')
                               : status == 'APPROVED'
-                                  ? 'تم اعتماد طلبك. حدّث بيانات الحساب لتظهر صلاحياتك الجديدة.'
-                                  : 'يمكنك التواصل مع الدعم لمعرفة تفاصيل القرار.',
+                                  ? dt('تم اعتماد طلبك. حدّث بيانات الحساب لتظهر صلاحياتك الجديدة.')
+                                  : dt('يمكنك التواصل مع الدعم لمعرفة تفاصيل القرار.'),
                           style: TextStyle(
                             color: DarbColors.muted,
                             fontSize: 11,
@@ -748,7 +748,7 @@ class _AccountPageState extends State<AccountPage> {
         ),
         SizedBox(height: 28),
         _sectionTitle(
-          'بيانات الحساب',
+          dt('بيانات الحساب'),
           action: TextButton.icon(
             onPressed: saving ? null : _edit,
             icon: saving
@@ -758,7 +758,7 @@ class _AccountPageState extends State<AccountPage> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : Icon(Icons.edit_rounded, size: 16),
-            label: Text(saving ? 'جارٍ الحفظ' : 'تعديل'),
+            label: Text(saving ? dt('جارٍ الحفظ') : dt('تعديل')),
           ),
         ),
         Container(
@@ -773,12 +773,12 @@ class _AccountPageState extends State<AccountPage> {
               _infoRow(
                 icon: Icons.person_outline_rounded,
                 label: dt('الاسم'),
-                value: _name.isEmpty ? 'غير محدد' : _name,
+                value: _name.isEmpty ? dt('غير محدد') : _name,
               ),
               _infoRow(
                 icon: Icons.alternate_email_rounded,
                 label: dt('البريد الإلكتروني'),
-                value: _email.isEmpty ? 'غير مرتبط' : _email,
+                value: _email.isEmpty ? dt('غير مرتبط') : _email,
                 last: _phone.isEmpty,
               ),
               if (_phone.isNotEmpty)
@@ -793,7 +793,7 @@ class _AccountPageState extends State<AccountPage> {
         ),
         if (_role == 'CUSTOMER') ...[
           SizedBox(height: 30),
-          _sectionTitle('وسّع دورك مع دَرْب'),
+          _sectionTitle(dt('وسّع دورك مع دَرْب')),
           Padding(
             padding: EdgeInsets.only(bottom: 14),
             child: Text(dt('انضم إلى شبكة التوصيل أو افتح متجرك على دَرْب. ستراجع الإدارة طلبك قبل تفعيل الصلاحيات.'),
@@ -806,7 +806,7 @@ class _AccountPageState extends State<AccountPage> {
           ),
           _applicationCard(
             title: dt('كن سائقاً في دَرْب'),
-            description: 'استقبل طلبات التوصيل وقدّم عروض الأجرة للعملاء',
+            description: dt('استقبل طلبات التوصيل وقدّم عروض الأجرة للعملاء'),
             icon: Icons.delivery_dining_rounded,
             status: profile?['driverApplication'],
             onApply: () => _apply(false),
@@ -814,14 +814,14 @@ class _AccountPageState extends State<AccountPage> {
           SizedBox(height: 12),
           _applicationCard(
             title: dt('انضم بمتجرك'),
-            description: 'اعرض منتجات متجرك واستقبل طلبات العملاء',
+            description: dt('اعرض منتجات متجرك واستقبل طلبات العملاء'),
             icon: Icons.storefront_rounded,
             status: profile?['vendorApplication'],
             onApply: () => _apply(true),
           ),
         ],
         SizedBox(height: 30),
-        _sectionTitle('التفضيلات والدعم'),
+        _sectionTitle(dt('التفضيلات والدعم')),
         Container(
           decoration: BoxDecoration(
             color: DarbColors.surface,
@@ -836,7 +836,7 @@ class _AccountPageState extends State<AccountPage> {
                 subtitle: switch (profile?['locale']?.toString() ?? 'ar') {
                   'en' => 'English',
                   'tr' => 'Türkçe',
-                  _ => 'العربية',
+                  _ => dt('العربية'),
                 },
                 onTap: saving ? null : _openLanguageSettings,
               ),
