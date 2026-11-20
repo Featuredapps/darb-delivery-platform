@@ -116,9 +116,7 @@ jobs:
           backend="extracted/darb-project/backend"
           mkdir -p backend-test-harness
           cp "$backend/package.json" backend-test-harness/
-          find "$backend" -maxdepth 3 -type f \\
-            \\( -iname 'jest.config.*' -o -iname 'jest-e2e.*' -o -iname '*jest*setup*' -o -name 'tsconfig.json' -o -name 'tsconfig.build.json' \\) \\
-            -not -path '*/node_modules/*' -print0 | while IFS= read -r -d '' file; do
+          find "$backend" -maxdepth 3 -type f \( -iname 'jest.config.*' -o -iname 'jest-e2e.*' -o -iname '*jest*setup*' -o -name 'tsconfig.json' -o -name 'tsconfig.build.json' \) -not -path '*/node_modules/*' -print0 | while IFS= read -r -d '' file; do
               cp --parents "$file" backend-test-harness/
             done
 
