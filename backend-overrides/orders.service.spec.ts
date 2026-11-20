@@ -157,8 +157,8 @@ describe('OrdersService safety checks', () => {
 
   it('restores reserved finite stock exactly when a vendor cancellation succeeds', async () => {
     prisma.order.findUnique.mockResolvedValue({
-      id: 'order-1', status: 'PENDING',
-      vendor: { userId: 'vendor-user-1' }, driver: null,
+      id: 'order-1', status: 'PENDING', vendorId: 'vendor-1',
+      vendor: { id: 'vendor-1', userId: 'vendor-user-1' }, driver: null,
       items: [{ productId: 'product-1', quantity: 3 }, { productId: 'product-2', quantity: 1 }],
     });
     const productUpdateMany = jest.fn().mockResolvedValue({ count: 1 });
