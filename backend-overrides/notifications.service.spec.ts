@@ -32,6 +32,15 @@ describe('NotificationsService', () => {
       type: 'DELIVERY_OFFER_SELECTED', orderId: 'order-1',
     })).resolves.toBeUndefined();
   });
+  it('keeps customer order updates successful when device lookup fails', async () => {
+    (service as any).messaging = { sendEachForMulticast: jest.fn() };
+    prisma.userDevice.findMany.mockRejectedValueOnce(new Error('database unavailable'));
+    await expect(service.notifyCustomer('user-1', 'Order', 'Updated', { type: 'ORDER_STATUS' })).resolves.toBeUndefined();
+  });
+  it('keeps vendor order creation successful when vendor notification lookup fails', async () => {
+    prisma.vendor.findUnique.mockRejectedValueOnce(new Error('database unavailable'));
+    await expect(service.notifyVendor('vendor-1', 'Order', 'New', { type: 'ORDER_CREATED' })).resolves.toBeUndefined();
+  });
   it('keeps order workflows independent when Firebase credentials are absent', async () => {
     await expect(service.notifyCustomer('user-1', 'Order', 'Updated', { type: 'ORDER_STATUS' })).resolves.toBeUndefined();
     expect(prisma.userDevice.findMany).not.toHaveBeenCalled();
