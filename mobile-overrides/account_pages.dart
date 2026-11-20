@@ -45,7 +45,7 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
             Container(
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
+                gradient: LinearGradient(
                   begin: Alignment.topRight,
                   end: Alignment.bottomLeft,
                   colors: [DarbColors.forest, DarbColors.forestSoft],
@@ -55,7 +55,7 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.translate_rounded, color: DarbColors.lime, size: 32),
+                  Icon(Icons.translate_rounded, color: DarbColors.lime, size: 32),
                   const SizedBox(height: 16),
                   Text(l.t('languageTitle'), style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900)),
                   const SizedBox(height: 7),
@@ -76,7 +76,7 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
             ],
             if (error != null) ...[
               const SizedBox(height: 8),
-              Text(error!, style: const TextStyle(color: DarbColors.danger)),
+              Text(error!, style: TextStyle(color: DarbColors.danger)),
             ],
             const SizedBox(height: 16),
             FilledButton(
@@ -126,11 +126,11 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: DarbColors.ink)),
+                  Text(title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: DarbColors.ink)),
                   const SizedBox(height: 3),
-                  Text(nativeTitle, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: DarbColors.forestSoft)),
+                  Text(nativeTitle, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: DarbColors.forestSoft)),
                   const SizedBox(height: 4),
-                  Text(subtitle, style: const TextStyle(fontSize: 11, color: DarbColors.muted)),
+                  Text(subtitle, style: TextStyle(fontSize: 11, color: DarbColors.muted)),
                 ],
               ),
             ),
