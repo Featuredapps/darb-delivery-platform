@@ -10,7 +10,6 @@ import 'design_system.dart';
 const ink = DarbColors.forest;
 const green = DarbColors.forestSoft;
 const paper = DarbColors.canvas;
-final ValueNotifier<Locale> darbLocale = ValueNotifier(const Locale('ar'));
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
