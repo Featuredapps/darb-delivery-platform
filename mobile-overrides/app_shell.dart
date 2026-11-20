@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../core/api.dart';
 import '../design_system.dart';
 import '../main.dart';
+import '../localizations.dart';
 import '../notifications.dart';
 import 'login_screen.dart';
 
