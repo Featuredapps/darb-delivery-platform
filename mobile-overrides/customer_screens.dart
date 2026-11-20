@@ -1,7 +1,7 @@
 part of 'app_shell.dart';
 
 class CustomerHome extends StatefulWidget {
-  CustomerHome({super.key});
+  const CustomerHome({super.key});
   @override
   State<CustomerHome> createState() => _CustomerHomeState();
 }
