@@ -13,10 +13,12 @@ runDatabaseTests('OrdersService PostgreSQL integration', () => {
   let vendorId: string;
   let cityId: string;
   let addressId: string;
-  let productId: string;\n  let driverUserIds: string[] = [];
+  let productId: string;
+  let driverUserIds: string[] = [];
 
   const createDriver = async (status: 'APPROVED' | 'PENDING' = 'APPROVED') => {
-    const user = await prisma.user.create({ data: { name: 'Integration driver' } });\n    driverUserIds.push(user.id);
+    const user = await prisma.user.create({ data: { name: 'Integration driver' } });
+    driverUserIds.push(user.id);
     const driver = await prisma.driver.create({
       data: { userId: user.id, cityId, status, isOnline: true },
     });
@@ -37,7 +39,8 @@ runDatabaseTests('OrdersService PostgreSQL integration', () => {
   });
 
   beforeEach(async () => {
-    suffix = randomUUID();\n    driverUserIds = [];
+    suffix = randomUUID();
+    driverUserIds = [];
     const customer = await prisma.user.create({ data: { name: 'Integration customer' } });
     const vendorUser = await prisma.user.create({ data: { name: 'Integration vendor' } });
     customerId = customer.id;
