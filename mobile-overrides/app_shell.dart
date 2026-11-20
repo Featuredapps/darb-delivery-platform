@@ -180,7 +180,11 @@ class _AppShellState extends State<AppShell> {
                   );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(dt('تطبيقك محدّث إلى آخر إصدار'))),
+                    SnackBar(content: Text(
+                      DarbUpdater.instance.checkFailed
+                          ? dt('تعذر التحقق من التحديث')
+                          : dt('تطبيقك محدّث إلى آخر إصدار'),
+                    )),
                   );
                 }
               },
