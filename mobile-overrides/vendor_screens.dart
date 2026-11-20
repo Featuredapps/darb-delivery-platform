@@ -108,7 +108,145 @@ Widget build(BuildContext context) {
 }
 
 class CheckoutScreen extends StatefulWidget {final String vendorId,cityId;final List<Map<String,dynamic>> items;const CheckoutScreen({super.key,required this.vendorId,required this.cityId,required this.items});@override State<CheckoutScreen> createState()=>_CheckoutScreenState();}
-class _CheckoutScreenState extends State<CheckoutScreen>{bool loading=true,sending=false;String? error,addressId;List addresses=[];final notes=TextEditingController();@override void initState(){super.initState();_load();}@override void dispose(){notes.dispose();super.dispose();}bool get _selectedAddressHasLocation=>addresses.any((a)=>a['id'].toString()==addressId&&a['hasLocation']==true);Future<void> _load()async{try{addresses=await Api.instance.get('/addresses') as List;if(addresses.isNotEmpty)addressId=addresses.first['id'].toString();}catch(e){error=e.toString();}finally{if(mounted)setState(()=>loading=false);}}Future<void> _newAddress()async{final label=TextEditingController();final details=TextEditingController();double? latitude,longitude;final ok=await showDialog<bool>(context:context,builder:(ctx)=>AlertDialog(title:Text(dt('عنوان جديد')),content:Column(mainAxisSize:MainAxisSize.min,children:[TextField(controller:label,decoration:InputDecoration(labelText: dt('اسم العنوان (اختياري)'))),SizedBox(height:10),TextField(controller:details,maxLines:3,decoration:InputDecoration(labelText: dt('العنوان بالتفصيل'))),TextButton.icon(onPressed:()async{try{if(!await Geolocator.isLocationServiceEnabled())throw Exception('فعّل خدمة الموقع أولاً');var permission=await Geolocator.checkPermission();if(permission==LocationPermission.denied)permission=await Geolocator.requestPermission();if(permission==LocationPermission.denied||permission==LocationPermission.deniedForever)throw Exception('لم يتم منح إذن الموقع');final point=await Geolocator.getCurrentPosition();latitude=point.latitude;longitude=point.longitude;if(context.mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(dt('تم تحديد إحداثيات موقعك'))));}catch(e){if(context.mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(e.toString())));}},icon:Icon(Icons.my_location),label:Text(dt('استخدام موقعي الحالي')))]),actions:[TextButton(onPressed:()=>Navigator.pop(ctx,false),child:Text(dt('إلغاء'))),FilledButton(onPressed:()=>Navigator.pop(ctx,true),child:Text(dt('حفظ')))]));if(ok==true&&details.text.trim().isNotEmpty){try{final a=await Api.instance.post('/addresses',{'label':label.text.trim(),'details':details.text.trim(),if(latitude!=null&&longitude!=null)'latitude':latitude,if(latitude!=null&&longitude!=null)'longitude':longitude});setState((){addresses.insert(0,{...a,'hasLocation':latitude!=null&&longitude!=null});addressId=a['id'].toString();error=null;});}catch(e){setState(()=>error=e.toString());}}label.dispose();details.dispose();}Future<void> _submit()async{if(addressId==null){setState(()=>error='أضف عنوان توصيل أولاً');return;}setState(()=>sending=true);try{await Api.instance.post('/orders',{'cityId':widget.cityId,'addressId':addressId,'vendorId':widget.vendorId,'items':widget.items.map((x)=>{'productId':x['productId'],'quantity':x['quantity']}).toList(),'notes':notes.text.trim()});if(!mounted)return;ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(dt('تم إرسال طلبك بنجاح'))));Navigator.of(context).popUntil((r)=>r.isFirst);}catch(e){if(mounted)setState(()=>error=e.toString());}finally{if(mounted)setState(()=>sending=false);}}@override Widget build(BuildContext context){final subtotal=widget.items.fold<double>(0,(s,x)=>s+((double.tryParse(x['price'].toString())??0)*(x['quantity'] as int)));return Scaffold(appBar:AppBar(title:Text(dt('تأكيد الطلب'))),body:loading?Center(child:CircularProgressIndicator()):ListView(padding:const EdgeInsets.all(18),children:[Text(dt('ملخص السلة'),style:TextStyle(fontSize:20,fontWeight:FontWeight.w900)),for(final x in widget.items)ListTile(title:Text(x['name'].toString()),subtitle:Text(dt('الكمية: ${x['quantity']}')),trailing:Text('${x['price']} ${x['currency']}')),Divider(),Text(dt('المجموع الفرعي: ${subtotal.toStringAsFixed(2)}')),SizedBox(height:22),Text(dt('عنوان التوصيل'),style:TextStyle(fontSize:18,fontWeight:FontWeight.bold)),if(addresses.isEmpty)_EmptyPanel(text: dt('لا يوجد عنوان محفوظ')),if(addresses.isNotEmpty)DropdownButtonFormField<String>(value:addressId,items:[for(final a in addresses)DropdownMenuItem(value:a['id'].toString(),child:Text('${a['label']??dt('عنوان')} — ${a['details']??''} · ${a['hasLocation']==true?dt('موقع محدد'):dt('الموقع غير محدد')}',maxLines:1,overflow:TextOverflow.ellipsis))],onChanged:(v)=>setState(()=>addressId=v)),if(addressId!=null&&!_selectedAddressHasLocation)Padding(padding:const EdgeInsets.symmetric(vertical:8),child:Text(dt('هذا العنوان لا يحتوي على موقع جغرافي. إذا كانت رسوم التوصيل تُحسب بالكيلومتر، أضف عنواناً مع تحديد موقعك.'),style:TextStyle(color:DarbColors.muted,fontSize:12))),TextButton.icon(onPressed:_newAddress,icon:Icon(Icons.add_location_alt_outlined),label:Text(dt('إضافة عنوان'))),SizedBox(height:12),TextField(controller:notes,maxLines:2,decoration:InputDecoration(labelText: dt('ملاحظات للمتجر (اختياري)'))),if(error!=null)Padding(padding:const EdgeInsets.all(12),child:Text(error!,style:TextStyle(color:Colors.red))),SizedBox(height:18),FilledButton(onPressed:sending?null:_submit,child:sending?SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2)):Text(dt('إرسال الطلب — الدفع عند الاستلام')))]));}}
+class _CheckoutScreenState extends State<CheckoutScreen>{bool loading=true,sending=false;String? error,addressId;List addresses=[];final notes=TextEditingController();@override void initState(){super.initState();_load();}@override void dispose(){notes.dispose();super.dispose();}bool get _selectedAddressHasLocation=>addresses.any((a)=>a['id'].toString()==addressId&&a['hasLocation']==true);Future<void> _load()async{try{addresses=await Api.instance.get('/addresses') as List;if(addresses.isNotEmpty)addressId=addresses.first['id'].toString();}catch(e){error=e.toString();}finally{if(mounted)setState(()=>loading=false);}}Future<void> _newAddress()async{final label=TextEditingController();final details=TextEditingController();double? latitude,longitude;final ok=await showDialog<bool>(context:context,builder:(ctx)=>AlertDialog(title:Text(dt('عنوان جديد')),content:Column(mainAxisSize:MainAxisSize.min,children:[TextField(controller:label,decoration:InputDecoration(labelText: dt('اسم العنوان (اختياري)'))),SizedBox(height:10),TextField(controller:details,maxLines:3,decoration:InputDecoration(labelText: dt('العنوان بالتفصيل'))),TextButton.icon(onPressed:()async{try{if(!await Geolocator.isLocationServiceEnabled())throw Exception('فعّل خدمة الموقع أولاً');var permission=await Geolocator.checkPermission();if(permission==LocationPermission.denied)permission=await Geolocator.requestPermission();if(permission==LocationPermission.denied||permission==LocationPermission.deniedForever)throw Exception('لم يتم منح إذن الموقع');final point=await Geolocator.getCurrentPosition();latitude=point.latitude;longitude=point.longitude;if(context.mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(dt('تم تحديد إحداثيات موقعك'))));}catch(e){if(context.mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(e.toString())));}},icon:Icon(Icons.my_location),label:Text(dt('استخدام موقعي الحالي')))]),actions:[TextButton(onPressed:()=>Navigator.pop(ctx,false),child:Text(dt('إلغاء'))),FilledButton(onPressed:()=>Navigator.pop(ctx,true),child:Text(dt('حفظ')))]));if(ok==true&&details.text.trim().isNotEmpty){try{final a=await Api.instance.post('/addresses',{'label':label.text.trim(),'details':details.text.trim(),if(latitude!=null&&longitude!=null)'latitude':latitude,if(latitude!=null&&longitude!=null)'longitude':longitude});setState((){addresses.insert(0,{...a,'hasLocation':latitude!=null&&longitude!=null});addressId=a['id'].toString();error=null;});}catch(e){setState(()=>error=e.toString());}}label.dispose();details.dispose();}Future<void> _submit()async{if(addressId==null){setState(()=>error='أضف عنوان توصيل أولاً');return;}setState(()=>sending=true);try{await Api.instance.post('/orders',{'cityId':widget.cityId,'addressId':addressId,'vendorId':widget.vendorId,'items':widget.items.map((x)=>{'productId':x['productId'],'quantity':x['quantity']}).toList(),'notes':notes.text.trim()});if(!mounted)return;ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(dt('تم إرسال طلبك بنجاح'))));Navigator.of(context).popUntil((r)=>r.isFirst);}catch(e){if(mounted)setState(()=>error=e.toString());}finally{if(mounted)setState(()=>sending=false);}}@override
+Widget build(BuildContext context) {
+  final subtotal=widget.items.fold<double>(0,(sum,item)=>
+    sum+((double.tryParse(item['price'].toString())??0)*(item['quantity'] as int)));
+  return Scaffold(
+    appBar:AppBar(title:Text(dt('تأكيد الطلب'))),
+    body:loading
+      ?const Center(child:CircularProgressIndicator())
+      :ListView(
+        padding:const EdgeInsets.fromLTRB(18,12,18,28),
+        children:[
+          Container(
+            padding:const EdgeInsets.all(18),
+            decoration:BoxDecoration(
+              gradient:const LinearGradient(colors:[DarbColors.forestSoft,DarbColors.forest]),
+              borderRadius:BorderRadius.circular(DarbRadius.xl),
+            ),
+            child:Row(children:[
+              const Icon(Icons.receipt_long_rounded,color:DarbColors.lime,size:27),
+              const SizedBox(width:12),
+              Expanded(child:Column(
+                crossAxisAlignment:CrossAxisAlignment.start,
+                children:[
+                  Text(dt('مراجعة طلبك'),style:const TextStyle(color:Colors.white,fontSize:18,fontWeight:FontWeight.w900)),
+                  const SizedBox(height:4),
+                  Text(dt('تأكد من المنتجات والعنوان قبل الإرسال'),style:TextStyle(color:Colors.white.withValues(alpha:.75),fontSize:11)),
+                ],
+              )),
+            ]),
+          ),
+          const SizedBox(height:22),
+          Text(dt('ملخص السلة'),style:const TextStyle(fontSize:17,fontWeight:FontWeight.w900,color:DarbColors.ink)),
+          const SizedBox(height:10),
+          Card(child:Padding(
+            padding:const EdgeInsets.all(14),
+            child:Column(children:[
+              for(var index=0;index<widget.items.length;index++)...[
+                if(index>0)const Divider(height:18),
+                Row(children:[
+                  Container(
+                    width:42,height:42,
+                    decoration:BoxDecoration(color:DarbColors.canvas,borderRadius:BorderRadius.circular(13)),
+                    child:const Icon(Icons.inventory_2_outlined,color:DarbColors.forest),
+                  ),
+                  const SizedBox(width:10),
+                  Expanded(child:Column(
+                    crossAxisAlignment:CrossAxisAlignment.start,
+                    children:[
+                      Text(widget.items[index]['name'].toString(),style:const TextStyle(fontWeight:FontWeight.w800,fontSize:13)),
+                      const SizedBox(height:3),
+                      Text(dt('الكمية: ${widget.items[index]['quantity']}'),style:const TextStyle(color:DarbColors.muted,fontSize:11)),
+                    ],
+                  )),
+                  Text('${widget.items[index]['price']} ${widget.items[index]['currency']}',style:const TextStyle(fontWeight:FontWeight.w900,color:DarbColors.forest)),
+                ]),
+              ],
+              const Divider(height:24),
+              Row(children:[
+                Expanded(child:Text(dt('المجموع الفرعي'),style:const TextStyle(color:DarbColors.muted,fontWeight:FontWeight.w700))),
+                Text(subtotal.toStringAsFixed(2),style:const TextStyle(fontSize:18,fontWeight:FontWeight.w900,color:DarbColors.forest)),
+              ]),
+            ]),
+          )),
+          const SizedBox(height:22),
+          Row(children:[
+            Expanded(child:Text(dt('عنوان التوصيل'),style:const TextStyle(fontSize:17,fontWeight:FontWeight.w900,color:DarbColors.ink))),
+            TextButton.icon(onPressed:_newAddress,icon:const Icon(Icons.add_location_alt_outlined,size:17),label:Text(dt('إضافة عنوان'))),
+          ]),
+          Card(child:Padding(
+            padding:const EdgeInsets.all(14),
+            child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+              if(addresses.isEmpty)
+                _EmptyPanel(text:dt('لا يوجد عنوان محفوظ. أضف عنواناً للمتابعة.')),
+              if(addresses.isNotEmpty)DropdownButtonFormField<String>(
+                value:addressId,
+                isExpanded:true,
+                decoration:InputDecoration(
+                  labelText:dt('اختر عنوان التوصيل'),
+                  prefixIcon:const Icon(Icons.location_on_outlined),
+                ),
+                items:[
+                  for(final address in addresses)
+                    DropdownMenuItem(
+                      value:address['id'].toString(),
+                      child:Text(
+                        '${address['label']??dt('عنوان')} — ${address['details']??''}',
+                        maxLines:2,overflow:TextOverflow.ellipsis,
+                      ),
+                    ),
+                ],
+                onChanged:(value)=>setState(()=>addressId=value),
+              ),
+              if(addressId!=null)...[
+                const SizedBox(height:10),
+                Row(children:[
+                  Icon(_selectedAddressHasLocation?Icons.check_circle_rounded:Icons.info_outline_rounded,
+                    size:17,color:_selectedAddressHasLocation?DarbColors.success:DarbColors.warning),
+                  const SizedBox(width:7),
+                  Expanded(child:Text(
+                    _selectedAddressHasLocation?dt('تم تحديد موقع هذا العنوان'):dt('العنوان لا يحتوي على إحداثيات موقع'),
+                    style:TextStyle(fontSize:11,color:_selectedAddressHasLocation?DarbColors.success:DarbColors.warning,fontWeight:FontWeight.w700),
+                  )),
+                ]),
+              ],
+            ]),
+          )),
+          const SizedBox(height:18),
+          TextField(
+            controller:notes,
+            maxLines:3,
+            decoration:InputDecoration(
+              labelText:dt('ملاحظات للمتجر (اختياري)'),
+              hintText:dt('أضف أي تعليمات تساعد المتجر في تجهيز طلبك'),
+              prefixIcon:const Icon(Icons.notes_rounded),
+              alignLabelWithHint:true,
+            ),
+          ),
+          if(error!=null)Padding(
+            padding:const EdgeInsets.only(top:14),
+            child:_ErrorPanel(message:error!,retry:()async{setState(()=>loading=true);await _load();}),
+          ),
+          const SizedBox(height:20),
+          FilledButton(
+            onPressed:sending||addressId==null?null:_submit,
+            child:sending
+              ?const SizedBox(width:21,height:21,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white))
+              :Row(mainAxisAlignment:MainAxisAlignment.center,children:[
+                const Icon(Icons.check_circle_outline_rounded,size:19),
+                const SizedBox(width:8),
+                Text(dt('تأكيد الطلب • الدفع عند الاستلام')),
+              ]),
+          ),
+          const SizedBox(height:9),
+          Center(child:Text(dt('لن يتم تحصيل أي مبلغ إلكترونياً في هذه الخطوة'),style:const TextStyle(color:DarbColors.muted,fontSize:10))),
+        ],
+      ),
+  );
+}
+}
 
 class CustomerOrders extends StatelessWidget {const CustomerOrders({super.key});@override Widget build(BuildContext context)=>_DataList(path:'/orders/mine',title: dt('طلباتك'),empty: dt('لا توجد طلبات حتى الآن'));}
 class VendorOrders extends StatelessWidget {const VendorOrders({super.key});@override Widget build(BuildContext context)=>_DataList(path:'/orders/vendor',title: dt('طلبات المتجر'),empty: dt('لا توجد طلبات واردة'));}
