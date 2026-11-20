@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException, ServiceUnavailableException, TooManyRequestsException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AiDraftIntent, AiDraftSource, AiDraftStatus, Locale } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -115,7 +115,12 @@ export class AiOrderAssistantService {
           })),
         };
       }));
+      const matchedVendorIds = new Set(preparedItems.filter(item => item.productId).map(item => item.candidates.find(candidate => candidate.productId === item.productId)?.vendorId).filter(Boolean));
+      if (!draftInfo.vendorId && matchedVendorIds.size > 1) {
+        preparedItems.forEach(item => { item.productId = null; });
+      }
       const warnings = [...new Set([
+        ...(!draftInfo.vendorId && matchedVendorIds.size > 1 ? ['المنتجات المقترحة من متاجر مختلفة؛ اختر متجراً واحداً لإكمال الطلب'] : []),
         ...parsed.missingFields,
         ...(parsed.intent === 'STORE_ORDER' && !preparedItems.length ? ['لم يتم تحديد منتجات'] : []),
         ...preparedItems.flatMap(item => item.productId ? [] : ['تحقق من المنتج: ' + item.rawName]),
