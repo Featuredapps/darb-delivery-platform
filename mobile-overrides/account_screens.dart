@@ -58,7 +58,7 @@ class _AccountPageState extends State<AccountPage> {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (dialogContext, setDialogState) => AlertDialog(
-          title: const Text('تعديل الملف الشخصي'),
+          title: Text(dt('تعديل الملف الشخصي')),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -67,7 +67,7 @@ class _AccountPageState extends State<AccountPage> {
                 maxLength: 120,
                 textInputAction: TextInputAction.done,
                 decoration: const InputDecoration(
-                  labelText: 'الاسم',
+                  labelText: dt('الاسم'),
                   prefixIcon: Icon(Icons.person_outline_rounded),
                 ),
               ),
@@ -75,11 +75,11 @@ class _AccountPageState extends State<AccountPage> {
               DropdownButtonFormField<String>(
                 value: locale,
                 decoration: const InputDecoration(
-                  labelText: 'لغة التطبيق',
+                  labelText: dt('لغة التطبيق'),
                   prefixIcon: Icon(Icons.language_rounded),
                 ),
                 items: const [
-                  DropdownMenuItem(value: 'ar', child: Text('العربية')),
+                  DropdownMenuItem(value: 'ar', child: Text(dt('العربية'))),
                   DropdownMenuItem(value: 'en', child: Text('English')),
                   DropdownMenuItem(value: 'tr', child: Text('Türkçe')),
                 ],
@@ -94,11 +94,11 @@ class _AccountPageState extends State<AccountPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('إلغاء'),
+              child: Text(dt('إلغاء')),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('حفظ التغييرات'),
+              child: Text(dt('حفظ التغييرات')),
             ),
           ],
         ),
@@ -162,7 +162,7 @@ class _AccountPageState extends State<AccountPage> {
                     TextField(
                       controller: storeName,
                       decoration: const InputDecoration(
-                        labelText: 'اسم المتجر',
+                        labelText: dt('اسم المتجر'),
                         prefixIcon: Icon(Icons.storefront_outlined),
                       ),
                     ),
@@ -170,7 +170,7 @@ class _AccountPageState extends State<AccountPage> {
                     TextField(
                       controller: activity,
                       decoration: const InputDecoration(
-                        labelText: 'نوع النشاط',
+                        labelText: dt('نوع النشاط'),
                         prefixIcon: Icon(Icons.category_outlined),
                       ),
                     ),
@@ -178,7 +178,7 @@ class _AccountPageState extends State<AccountPage> {
                     TextField(
                       controller: activity,
                       decoration: const InputDecoration(
-                        labelText: 'نوع المركبة (اختياري)',
+                        labelText: dt('نوع المركبة (اختياري)'),
                         prefixIcon: Icon(Icons.two_wheeler_outlined),
                       ),
                     ),
@@ -187,7 +187,7 @@ class _AccountPageState extends State<AccountPage> {
                     value: cityId,
                     isExpanded: true,
                     decoration: const InputDecoration(
-                      labelText: 'المدينة',
+                      labelText: dt('المدينة'),
                       prefixIcon: Icon(Icons.location_city_outlined),
                     ),
                     items: [
@@ -213,7 +213,7 @@ class _AccountPageState extends State<AccountPage> {
                     TextField(
                       controller: address,
                       decoration: const InputDecoration(
-                        labelText: 'عنوان المتجر (اختياري)',
+                        labelText: dt('عنوان المتجر (اختياري)'),
                         prefixIcon: Icon(Icons.place_outlined),
                       ),
                     ),
@@ -262,11 +262,11 @@ class _AccountPageState extends State<AccountPage> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext, false),
-                child: const Text('إلغاء'),
+                child: Text(dt('إلغاء')),
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(dialogContext, true),
-                child: const Text('إرسال الطلب'),
+                child: Text(dt('إرسال الطلب')),
               ),
             ],
           ),
@@ -317,19 +317,19 @@ class _AccountPageState extends State<AccountPage> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         icon: const Icon(Icons.logout_rounded, color: DarbColors.danger),
-        title: const Text('تسجيل الخروج؟'),
-        content: const Text('ستحتاج إلى تسجيل الدخول مجدداً للوصول إلى حسابك.'),
+        title: Text(dt('تسجيل الخروج؟')),
+        content: Text(dt('ستحتاج إلى تسجيل الدخول مجدداً للوصول إلى حسابك.')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('إلغاء'),
+            child: Text(dt('إلغاء')),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: DarbColors.danger,
             ),
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('تسجيل الخروج'),
+            child: Text(dt('تسجيل الخروج')),
           ),
         ],
       ),
@@ -492,8 +492,7 @@ class _AccountPageState extends State<AccountPage> {
                       size: 16,
                     ),
                     const SizedBox(width: 7),
-                    Text(
-                      'حسابك ضمن شبكة دَرْب',
+                    Text(dt('حسابك ضمن شبكة دَرْب'),
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: .86),
                         fontSize: 11,
@@ -686,7 +685,7 @@ class _AccountPageState extends State<AccountPage> {
               child: FilledButton.tonalIcon(
                 onPressed: applying ? null : onApply,
                 icon: const Icon(Icons.arrow_forward_rounded, size: 18),
-                label: const Text('ابدأ طلب الانضمام'),
+                label: Text(dt('ابدأ طلب الانضمام')),
               ),
             ),
         ],
@@ -797,8 +796,7 @@ class _AccountPageState extends State<AccountPage> {
           _sectionTitle('وسّع دورك مع دَرْب'),
           const Padding(
             padding: EdgeInsets.only(bottom: 14),
-            child: Text(
-              'انضم إلى شبكة التوصيل أو افتح متجرك على دَرْب. ستراجع الإدارة طلبك قبل تفعيل الصلاحيات.',
+            child: Text(dt('انضم إلى شبكة التوصيل أو افتح متجرك على دَرْب. ستراجع الإدارة طلبك قبل تفعيل الصلاحيات.'),
               style: TextStyle(
                 color: DarbColors.muted,
                 fontSize: 12,
@@ -861,7 +859,7 @@ class _AccountPageState extends State<AccountPage> {
         OutlinedButton.icon(
           onPressed: _confirmLogout,
           icon: const Icon(Icons.logout_rounded),
-          label: const Text('تسجيل الخروج'),
+          label: Text(dt('تسجيل الخروج')),
           style: OutlinedButton.styleFrom(
             foregroundColor: DarbColors.danger,
             minimumSize: const Size.fromHeight(52),
@@ -875,8 +873,7 @@ class _AccountPageState extends State<AccountPage> {
         ),
         const SizedBox(height: 18),
         const Center(
-          child: Text(
-            'دَرْب • طريقك الأسهل',
+          child: Text(dt('دَرْب • طريقك الأسهل'),
             style: TextStyle(
               color: DarbColors.muted,
               fontSize: 11,
@@ -930,7 +927,7 @@ class _ErrorPanel extends StatelessWidget {
             Text(message, style: const TextStyle(color: Colors.red)),
             TextButton(
               onPressed: retry,
-              child: const Text('إعادة المحاولة'),
+              child: Text(dt('إعادة المحاولة')),
             ),
           ],
         ),
