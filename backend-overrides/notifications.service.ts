@@ -52,6 +52,14 @@ export class NotificationsService {
       return { targetedDrivers: 0, failed: 0, skipped: true };
     }
   }
+  async notifyDriver(driverId: string, title: string, body: string, data: Record<string,string>) {
+    try {
+      const driver = await this.prisma.driver.findUnique({ where: { id: driverId }, select: { userId: true } });
+      if (driver) await this.notifyUser(driver.userId, title, body, data);
+    } catch (error) {
+      this.logger.error('Could not notify the assigned driver; order processing will continue.');
+    }
+  }
   async notifyCustomer(customerId: string, title: string, body: string, data: Record<string,string>) {
     await this.notifyUser(customerId, title, body, data);
   }

@@ -52,8 +52,17 @@ export class OrdersController {
     return this.orders.deliveryOffersForCustomer(user.id, id);
   }
   @Post(':id/offers/:offerId/select') @Roles(UserRole.CUSTOMER)
-  selectDeliveryOffer(@CurrentUser() user: {id:string}, @Param('id') id: string, @Param('offerId') offerId: string) {
-    return this.orders.selectDeliveryOffer(user.id, id, offerId);
+  async selectDeliveryOffer(@CurrentUser() user: {id:string}, @Param('id') id: string, @Param('offerId') offerId: string) {
+    const order = await this.orders.selectDeliveryOffer(user.id, id, offerId);
+    if (order?.driverId) {
+      await this.notifications.notifyDriver(
+        order.driverId,
+        'تم اختيار عرضك',
+        'اختار العميل عرضك وأُسند إليك طلب التوصيل',
+        { type: 'DELIVERY_OFFER_SELECTED', orderId: id },
+      );
+    }
+    return order;
   }
   @Post(':id/claim') @Roles(UserRole.DRIVER)
   async claim(@CurrentUser() user: {id:string}, @Param('id') id: string) {
