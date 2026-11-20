@@ -217,8 +217,23 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Widget _languageBar() => Row(
-    mainAxisAlignment: MainAxisAlignment.end,
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
+      PopupMenuButton<ThemeMode>(
+        tooltip: dt('مظهر التطبيق'),
+        icon: Icon(
+          Theme.of(context).brightness == Brightness.dark
+              ? Icons.dark_mode_rounded
+              : Icons.light_mode_rounded,
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
+        onSelected: DarbTheme.setMode,
+        itemBuilder: (context) => [
+          PopupMenuItem(value: ThemeMode.system, child: Text(dt('حسب الجهاز'))),
+          PopupMenuItem(value: ThemeMode.light, child: Text(dt('نهاري'))),
+          PopupMenuItem(value: ThemeMode.dark, child: Text(dt('ليلي'))),
+        ],
+      ),
       _languageChip('AR', const Locale('ar')),
       const SizedBox(width: 6),
       _languageChip('EN', const Locale('en')),
