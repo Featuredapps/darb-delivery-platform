@@ -257,10 +257,10 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
     if (destination == null || pickupPosition == null) return;
 
     final noteParts = <String>[
-      'نوع الغرض: ${itemType.text.trim()}',
-      'وصف الغرض: ${itemDescription.text.trim()}',
+      dt('نوع الغرض: ${itemType.text.trim()}'),
+      dt('وصف الغرض: ${itemDescription.text.trim()}'),
       if (driverInstructions.text.trim().isNotEmpty)
-        'تعليمات للسائق: ${driverInstructions.text.trim()}',
+        dt('تعليمات للسائق: ${driverInstructions.text.trim()}'),
     ];
 
     setState(() { sending = true; error = null; });
