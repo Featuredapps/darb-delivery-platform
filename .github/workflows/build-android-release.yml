@@ -214,7 +214,7 @@ jobs:
               "versionName": name,
               "apkUrl": "https://github.com/anasgdxj/darb-delivery-platform/releases/download/latest/app-release.apk",
               "sha256": digest,
-              "releaseNotes": "\\n".join([
+              "releaseNotes": "\n".join([
                   "تصميم محدّث وأكثر عصرية لواجهات التطبيق",
                   "تحسين عرض الطلبات وبطاقات المندوبين",
                   "تطوير واجهات المتاجر والمنتجات ولوحة الإدارة",
