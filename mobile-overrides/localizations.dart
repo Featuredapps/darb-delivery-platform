@@ -51,6 +51,10 @@ class AppLocalizations {
       return locale.languageCode == 'tr' ? 'Adım $step / 3' : 'Step $step of 3';
     }
     if (source.startsWith('تم تحديد الموقع بدقة: ')) return dynamicValue('تم تحديد الموقع بدقة: ', 'Location set precisely: ', 'Konum hassas şekilde belirlendi: ');
+    if (source.startsWith('أضيف ') && source.endsWith(' إلى السلة')) {
+      final product = source.substring('أضيف '.length, source.length - ' إلى السلة'.length);
+      return locale.languageCode == 'tr' ? '$product sepete eklendi' : '$product added to cart';
+    }
     return source;
   }
 
@@ -226,7 +230,7 @@ class AppLocalizations {
     "تعديل الملف الشخصي": "Edit profile|Profili düzenle",
     "حفظ التغييرات": "Save changes|Değişiklikleri kaydet",
     "تم تحديث بيانات حسابك": "Your account details were updated|Hesap bilgileriniz güncellendi",
-    "تعذر قراءة قائمة المدن": "Could not load the city list|Şehir listesi yüklenemedi",
+    "تعذر قراءة قائمة المدن": "Could not read the city list|Şehir listesi okunamadı",
     "لا توجد مدن مفعّلة حالياً": "No active cities at the moment|Şu anda etkin şehir yok",
     "اسم المتجر": "Store name|Mağaza adı",
     "نوع النشاط": "Business type|İşletme türü",
@@ -281,6 +285,9 @@ class AppLocalizations {
     "لم تُضف رسوم توصيل بعد": "No delivery fees have been added yet|Henüz teslimat ücreti eklenmedi",
     "إعداد رسوم التوصيل": "Delivery fee settings|Teslimat ücreti ayarları",
     "يُضبط رسم واحد لكل مدينة. احتساب رسم الكيلومتر يتطلب تحديد موقع المتجر وموقع عنوان العميل.": "One fee is configured per city. Per-kilometer pricing requires the store and customer address locations.|Her şehir için tek ücret ayarlanır. Kilometre başına ücret için mağaza ve müşteri adresinin konumu gerekir.",
+    "تأكيد وإرسال الطلب": "Confirm and send request|Talebi onayla ve gönder",
+    "متابعة": "Continue|Devam et",
+    "العربية": "Arabic|Arapça",
   };
   static const Map<String, Map<String, String>> _values = {
     'ar': {
