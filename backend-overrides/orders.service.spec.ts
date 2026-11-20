@@ -204,6 +204,8 @@ describe('Peer delivery offers', () => {
   const prisma: any = {
     $transaction: jest.fn(),
     driver: { findUnique: jest.fn() },
+    order: { findFirst: jest.fn() },
+    deliveryOffer: { findMany: jest.fn() },
   };
   let service: OrdersService;
   beforeEach(() => { jest.clearAllMocks(); service = new OrdersService(prisma); });
@@ -288,13 +290,13 @@ describe('Peer delivery offers', () => {
   });
 
   it('does not expose offers to a customer who does not own the peer order', async () => {
-    const findFirst = jest.fn().mockResolvedValue(null);
-    const findMany = jest.fn();
-    prisma.$transaction.mockImplementation(async (callback: (tx: any) => unknown) => callback({
-      order: { findFirst }, deliveryOffer: { findMany },
-    }));
+    prisma.order.findFirst.mockResolvedValue(null);
     await expect(service.deliveryOffersForCustomer('another-customer', 'order-1')).rejects.toBeInstanceOf(NotFoundException);
-    expect(findMany).not.toHaveBeenCalled();
+    expect(prisma.order.findFirst).toHaveBeenCalledWith({
+      where: { id: 'order-1', customerId: 'another-customer', type: 'PEER_DELIVERY' },
+      select: { id: true, status: true },
+    });
+    expect(prisma.deliveryOffer.findMany).not.toHaveBeenCalled();
   });
 
   it('rejects selecting an offer when the customer does not own the order', async () => {
