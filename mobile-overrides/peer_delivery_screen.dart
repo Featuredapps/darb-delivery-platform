@@ -59,7 +59,7 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
 
   Future<Position> _currentPosition() async {
     if (!await Geolocator.isLocationServiceEnabled()) {
-      throw Exception('فعّل خدمة الموقع على الهاتف');
+      throw Exception(dt('فعّل خدمة الموقع على الهاتف'));
     }
     var permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
@@ -67,7 +67,7 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
     }
     if (permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever) {
-      throw Exception('يلزم السماح بالوصول إلى الموقع');
+      throw Exception(dt('يلزم السماح بالوصول إلى الموقع'));
     }
     return Geolocator.getCurrentPosition(
       locationSettings: LocationSettings(
@@ -132,8 +132,8 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
                   icon: Icon(position == null ? Icons.my_location : Icons.check_circle),
                   label: Text(
                     locatingAddress
-                        ? 'جارٍ تحديد الموقع...'
-                        : position == null ? 'تحديد موقع العنوان' : 'تم تحديد الموقع',
+                        ? dt('جارٍ تحديد الموقع...')
+                        : position == null ? dt('تحديد موقع العنوان') : dt('تم تحديد الموقع'),
                   ),
                 ),
                 if (position != null)
@@ -165,7 +165,7 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
 
     if (saved == true) {
       if (details.text.trim().length < 3 || position == null) {
-        if (mounted) setState(() => error = 'أكمل العنوان وحدد موقعه الجغرافي');
+        if (mounted) setState(() => error = dt('أكمل العنوان وحدد موقعه الجغرافي'));
       } else {
         setState(() { savingAddress = true; error = null; });
         try {
@@ -202,8 +202,8 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
   }
 
   String _addressLabel(Map<String, dynamic>? address) {
-    if (address == null) return 'لم يتم اختيار عنوان';
-    final label = (address['label'] ?? 'عنوان التسليم').toString();
+    if (address == null) return dt('لم يتم اختيار عنوان');
+    final label = (address['label'] ?? dt('عنوان التسليم')).toString();
     final details = (address['details'] ?? '').toString();
     return details.isEmpty ? label : '$label — $details';
   }
@@ -212,25 +212,25 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
     setState(() => error = null);
     if (step == 0) {
       if (pickup.text.trim().length < 5) {
-        setState(() => error = 'اكتب وصفاً واضحاً لمكان الاستلام');
+        setState(() => error = dt('اكتب وصفاً واضحاً لمكان الاستلام'));
         return false;
       }
       if (pickupPosition == null) {
-        setState(() => error = 'حدد موقع الاستلام أولاً');
+        setState(() => error = dt('حدد موقع الاستلام أولاً'));
         return false;
       }
       final destination = _selectedAddress;
       if (destination == null || destination['hasLocation'] != true) {
-        setState(() => error = 'اختر عنوان تسليم محفوظاً مع موقع جغرافي أو أضف عنواناً جديداً');
+        setState(() => error = dt('اختر عنوان تسليم محفوظاً مع موقع جغرافي أو أضف عنواناً جديداً'));
         return false;
       }
     } else if (step == 1) {
       if (itemType.text.trim().length < 2) {
-        setState(() => error = 'اكتب نوع الغرض الذي تريد إرساله');
+        setState(() => error = dt('اكتب نوع الغرض الذي تريد إرساله'));
         return false;
       }
       if (itemDescription.text.trim().length < 3) {
-        setState(() => error = 'أضف وصفاً مختصراً للغرض');
+        setState(() => error = dt('أضف وصفاً مختصراً للغرض'));
         return false;
       }
     }
@@ -284,7 +284,7 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('رقم الطلب: ${order['orderNumber'] ?? order['id']}'),
+              Text(dt('رقم الطلب: ${order['orderNumber'] ?? order['id']}')),
               SizedBox(height: 8),
               Text(dt('سيظهر طلبك للسائقين المتاحين في مدينتك. سيقدم كل سائق أجرته، ويمكنك مقارنة العروض واختيار الأنسب قبل تأكيد التوصيل.')),
             ],
@@ -312,7 +312,7 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
         Row(
           children: [
             Text(
-              'الخطوة ${step + 1} من 3',
+              dt('الخطوة ${step + 1} من 3'),
               style: TextStyle(color: DarbColors.muted, fontSize: 12, fontWeight: FontWeight.w700),
             ),
             Spacer(),
@@ -366,14 +366,14 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
               ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
               : Icon(pickupPosition == null ? Icons.my_location : Icons.check_circle),
           label: Text(
-            locating ? 'جارٍ تحديد الموقع...' : pickupPosition == null ? 'استخدام موقعي الحالي' : 'تم تحديد موقع الاستلام',
+            locating ? dt('جارٍ تحديد الموقع...') : pickupPosition == null ? dt('استخدام موقعي الحالي') : dt('تم تحديد موقع الاستلام'),
           ),
         ),
         if (pickupPosition != null)
           Padding(
             padding: const EdgeInsets.only(top: 6),
             child: Text(
-              'تم تحديد الموقع بدقة: ${pickupPosition!.latitude.toStringAsFixed(4)}, ${pickupPosition!.longitude.toStringAsFixed(4)}',
+              dt('تم تحديد الموقع بدقة: ${pickupPosition!.latitude.toStringAsFixed(4)}, ${pickupPosition!.longitude.toStringAsFixed(4)}'),
               style: TextStyle(color: DarbColors.muted, fontSize: 11),
             ),
           ),
@@ -509,16 +509,16 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
           ),
           child: Column(
             children: [
-              _summaryRow(Icons.trip_origin, 'موقع الاستلام', pickup.text.trim()),
+              _summaryRow(Icons.trip_origin, dt('موقع الاستلام'), pickup.text.trim()),
               Divider(height: 1),
-              _summaryRow(Icons.location_on_outlined, 'عنوان التسليم', _addressLabel(_selectedAddress)),
+              _summaryRow(Icons.location_on_outlined, dt('عنوان التسليم'), _addressLabel(_selectedAddress)),
               Divider(height: 1),
-              _summaryRow(Icons.inventory_2_outlined, 'نوع الغرض', itemType.text.trim()),
+              _summaryRow(Icons.inventory_2_outlined, dt('نوع الغرض'), itemType.text.trim()),
               Divider(height: 1),
-              _summaryRow(Icons.description_outlined, 'الوصف', itemDescription.text.trim()),
+              _summaryRow(Icons.description_outlined, dt('الوصف'), itemDescription.text.trim()),
               if (driverInstructions.text.trim().isNotEmpty) ...[
                 Divider(height: 1),
-                _summaryRow(Icons.notes_rounded, 'تعليمات السائق', driverInstructions.text.trim()),
+                _summaryRow(Icons.notes_rounded, dt('تعليمات السائق'), driverInstructions.text.trim()),
               ],
             ],
           ),
@@ -624,7 +624,7 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
                                 : step == 2 ? _submit : _next,
                             child: sending
                                 ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                                : Text(step == 2 ? 'تأكيد وإرسال الطلب' : 'متابعة'),
+                                : Text(step == 2 ? dt('تأكيد وإرسال الطلب') : dt('متابعة')),
                           ),
                         ),
                       ],
