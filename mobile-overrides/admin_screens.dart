@@ -33,7 +33,7 @@ class _AdminQueueState extends State<AdminQueue> {
     const SizedBox(height: 14),
     if (loading) const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator())),
     if (error != null) _ErrorPanel(message: error!, retry: _load),
-    if (!loading && error == null && rows.isEmpty) const _EmptyPanel(text: dt('لا توجد طلبات معلّقة حالياً')),
+    if (!loading && error == null && rows.isEmpty) _EmptyPanel(text: dt('لا توجد طلبات معلّقة حالياً')),
     for (final row in rows) _requestCard(row),
   ]));
   Widget _requestCard(dynamic row) {
