@@ -1,6 +1,6 @@
-import { ServiceUnavailableException } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 import { AiRoleAssistantService } from './ai-role-assistant.service';
+import { AiTextProvider } from './ai-text-provider';
 
 describe('AiRoleAssistantService role isolation', () => {
   const prisma: any = {
@@ -10,12 +10,12 @@ describe('AiRoleAssistantService role isolation', () => {
     product: { count: jest.fn() },
     city: { count: jest.fn() },
   };
-  const config: any = { get: jest.fn() };
+  const aiProvider = { generate: jest.fn().mockResolvedValue('إجابة آمنة') } as unknown as AiTextProvider;
   let service: AiRoleAssistantService;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    service = new AiRoleAssistantService(prisma, config);
+    service = new AiRoleAssistantService(prisma, aiProvider);
   });
 
   it('builds driver context only from the authenticated driver profile and city', async () => {
@@ -47,9 +47,13 @@ describe('AiRoleAssistantService role isolation', () => {
     expect(prisma.order.findMany).toBeUndefined();
   });
 
-  it('does not call the AI provider when the server key is missing', async () => {
-    config.get.mockReturnValue(undefined);
-    prisma.order.count.mockResolvedValue(0);
-    await expect(service.ask({ id: 'customer-1', role: UserRole.CUSTOMER }, 'كيف طلبي؟')).rejects.toBeInstanceOf(ServiceUnavailableException);
+  it('sends the role-scoped context and question to the configured provider', async () => {
+    prisma.order.count.mockResolvedValue(3);
+    const result = await service.ask({ id: 'customer-1', role: UserRole.CUSTOMER }, 'كم طلباً لدي؟');
+    expect(aiProvider.generate).toHaveBeenCalledWith(expect.objectContaining({
+      context: { activeOrders: 3, deliveredOrders: 3 },
+      message: 'كم طلباً لدي؟',
+    }));
+    expect(result).toEqual({ role: UserRole.CUSTOMER, answer: 'إجابة آمنة', mode: 'READ_ONLY_ASSISTANT' });
   });
 });
