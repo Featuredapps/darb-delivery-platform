@@ -15,9 +15,9 @@ String _localizedCatalogName(dynamic entity, String fallback) {
 class _VendorTile extends StatelessWidget {final Map<String,dynamic> vendor;final String cityId;const _VendorTile({required this.vendor,required this.cityId});@override Widget build(BuildContext context){final name=_localizedCatalogName(vendor,'متجر');return Card(child:ListTile(contentPadding:const EdgeInsets.all(12),leading:Container(width:54,height:54,decoration:BoxDecoration(color:Color(0xFFE7F1EC),borderRadius:BorderRadius.circular(16)),child:Icon(Icons.storefront,color:green,size:28)),title:Text(name,style:TextStyle(fontWeight:FontWeight.bold)),subtitle:Text(dt('${vendor['_count']?['products']??0} منتج متاح')),trailing:Icon(Icons.chevron_left),onTap:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>VendorCatalog(vendorId:vendor['id'].toString(),name:name,cityId:cityId)))));}}
 class VendorCatalog extends StatefulWidget {final String vendorId,name,cityId;const VendorCatalog({super.key,required this.vendorId,required this.name,required this.cityId});@override State<VendorCatalog> createState()=>_VendorCatalogState();}
 String _productName(dynamic p)=>_localizedCatalogName(p,'منتج');
-class _VendorCatalogState extends State<VendorCatalog>{bool loading=true;String? error;int _loadGeneration=0;List products=[];final Map<String,Map<String,dynamic>> cart={};@override void initState(){super.initState();darbLocale.addListener(_onLocaleChanged);_load();}void _onLocaleChanged()=>_load();@override void dispose(){darbLocale.removeListener(_onLocaleChanged);super.dispose();}Future<void> _load()async{final generation=++_loadGeneration;if(mounted)setState(()=>loading=true);try{final loaded=await Api.instance.get('/vendors/${widget.vendorId}/products?locale=${darbLocale.value.languageCode}') as List;if(generation!=_loadGeneration)return;products=loaded;error=null;}catch(e){if(generation==_loadGeneration)error=e.toString();}finally{if(mounted&&generation==_loadGeneration)setState(()=>loading=false);}}void _add(dynamic p){final id=p['id'].toString();setState((){final old=cart[id];cart[id]={'productId':id,'name':_productName(p),'price':p['basePrice'],'currency':p['currency'],'quantity':(old?['quantity']??0)+1};});ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(dt('أضيف ${_productName(p)} إلى السلة')),duration:Duration(milliseconds:900)));} @override
+class _VendorCatalogState extends State<VendorCatalog>{bool loading=true;String? error;int _loadGeneration=0;List products=[];final Map<String,Map<String,dynamic>> cart={};final TextEditingController search=TextEditingController();@override void initState(){super.initState();darbLocale.addListener(_onLocaleChanged);search.addListener(_refresh);_load();}void _refresh(){if(mounted)setState((){});}void _onLocaleChanged()=>_load();@override void dispose(){darbLocale.removeListener(_onLocaleChanged);search.removeListener(_refresh);search.dispose();super.dispose();}Future<void> _load()async{final generation=++_loadGeneration;if(mounted)setState(()=>loading=true);try{final loaded=await Api.instance.get('/vendors/${widget.vendorId}/products?locale=${darbLocale.value.languageCode}') as List;if(generation!=_loadGeneration)return;products=loaded;error=null;}catch(e){if(generation==_loadGeneration)error=e.toString();}finally{if(mounted&&generation==_loadGeneration)setState(()=>loading=false);}}void _add(dynamic p){final id=p['id'].toString();setState((){final old=cart[id];cart[id]={'productId':id,'name':_productName(p),'price':p['basePrice'],'currency':p['currency'],'quantity':(old?['quantity']??0)+1};});ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(dt('أضيف ${_productName(p)} إلى السلة')),duration:Duration(milliseconds:900)));}void _changeQuantity(dynamic p,int delta){final id=p['id'].toString();final current=cart[id]?['quantity'] as int? ?? 0;final next=current+delta;setState((){if(next<=0){cart.remove(id);}else{cart[id]={'productId':id,'name':_productName(p),'price':p['basePrice'],'currency':p['currency'],'quantity':next};}});} @override
 Widget build(BuildContext context) {
-  final quantity=cart.values.fold<int>(0,(total,item)=>total+(item['quantity'] as int));
+  final quantity=cart.values.fold<int>(0,(total,item)=>total+(item['quantity'] as int));final query=search.text.trim().toLowerCase();final visibleProducts=products.where((p)=>_productName(p).toLowerCase().contains(query)).toList();
   return Scaffold(
     appBar:AppBar(
       title:Text(widget.name,maxLines:1,overflow:TextOverflow.ellipsis),
@@ -63,7 +63,10 @@ Widget build(BuildContext context) {
                 ]),
               ),
               const SizedBox(height:15),
-              for(final product in products)Card(
+              TextField(controller:search,textInputAction:TextInputAction.search,decoration:InputDecoration(hintText:dt('ابحث عن منتج...'),prefixIcon:const Icon(Icons.search_rounded,color:DarbColors.forest),suffixIcon:search.text.isEmpty?null:IconButton(onPressed:search.clear,icon:const Icon(Icons.close_rounded)))),
+              const SizedBox(height:13),
+              if(visibleProducts.isEmpty)_EmptyPanel(text:query.isEmpty?dt('لا توجد منتجات متاحة'):dt('لم نعثر على منتجات مطابقة')),
+              for(final product in visibleProducts)Card(
                 margin:const EdgeInsets.only(bottom:11),
                 child:Padding(
                   padding:const EdgeInsets.all(13),
@@ -82,12 +85,7 @@ Widget build(BuildContext context) {
                         Text('${product['basePrice']} ${product['currency']}',style:const TextStyle(color:DarbColors.forest,fontWeight:FontWeight.w900,fontSize:13)),
                       ],
                     )),
-                    IconButton.filledTonal(
-                      tooltip:dt('إضافة إلى السلة'),
-                      onPressed:()=>_add(product),
-                      icon:const Icon(Icons.add_rounded),
-                      style:IconButton.styleFrom(backgroundColor:DarbColors.mint.withValues(alpha:.55),foregroundColor:DarbColors.forest),
-                    ),
+                    Builder(builder:(context){final selected=cart[product['id'].toString()]?['quantity'] as int? ?? 0;return selected==0?IconButton.filledTonal(tooltip:dt('إضافة إلى السلة'),onPressed:()=>_add(product),icon:const Icon(Icons.add_rounded),style:IconButton.styleFrom(backgroundColor:DarbColors.mint.withValues(alpha:.55),foregroundColor:DarbColors.forest)):Container(padding:const EdgeInsets.symmetric(horizontal:3,vertical:4),decoration:BoxDecoration(color:DarbColors.canvas,borderRadius:BorderRadius.circular(DarbRadius.pill),border:Border.all(color:DarbColors.line)),child:Row(mainAxisSize:MainAxisSize.min,children:[IconButton(onPressed:()=>_changeQuantity(product,-1),icon:const Icon(Icons.remove_rounded),iconSize:17,constraints:const BoxConstraints.tightFor(width:30,height:30),padding:EdgeInsets.zero),Text('$selected',style:const TextStyle(fontWeight:FontWeight.w900,color:DarbColors.forest)),IconButton(onPressed:()=>_changeQuantity(product,1),icon:const Icon(Icons.add_rounded),iconSize:17,constraints:const BoxConstraints.tightFor(width:30,height:30),padding:EdgeInsets.zero)]));}),
                   ]),
                 ),
               ),
@@ -100,7 +98,7 @@ Widget build(BuildContext context) {
         child:Row(mainAxisAlignment:MainAxisAlignment.center,children:[
           const Icon(Icons.shopping_bag_outlined,size:18),
           const SizedBox(width:8),
-          Text(dt('متابعة إلى السلة • $quantity')),
+          Text(dt('متابعة إلى تأكيد الطلب • $quantity')), 
         ]),
       ),
     ),
