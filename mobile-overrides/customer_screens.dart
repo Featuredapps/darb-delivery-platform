@@ -97,8 +97,10 @@ class _CustomerHomeState extends State<CustomerHome> {
   }
 
   void _openStores() {
+    final target = storesKey.currentContext;
+    if (target == null) return;
     Scrollable.ensureVisible(
-      storesKey.currentContext!,
+      target,
       duration: Duration(milliseconds: 520),
       curve: Curves.easeOutCubic,
       alignment: .04,
@@ -312,18 +314,18 @@ class _CustomerHomeState extends State<CustomerHome> {
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                       Icon(Icons.route_rounded, color: Color(0xFFC8F169), size: 14),
                       SizedBox(width: 6),
-                      Text(dt('توصيل من الباب إلى الباب'),
+                      Text(dt('خدمة التوصيل المستقل'),
                         style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800)),
                     ]),
                   ),
                   SizedBox(height: 17),
-                  Text(dt('غرضك بأي مكان…\\nودَرْب يوصّله.'),
+                  Text(dt('من بابك إلى وجهتك،\\nدَرْب يتولى الطريق.'),
                     style: TextStyle(
                       color: Colors.white, fontSize: 27, height: 1.22,
                       fontWeight: FontWeight.w900, letterSpacing: -.35,
                     )),
                   SizedBox(height: 8),
-                  Text(dt('اطلب سائقاً ليستلم غرضك من موقعك ويوصله إلى العنوان الذي تختاره.'),
+                  Text(dt('أرسل غرضك بسهولة، واستقبل عروض السائقين واختر الأجرة المناسبة لك.'),
                     style: TextStyle(color: Color(0xFFD0DED7), fontSize: 12, height: 1.55)),
                   SizedBox(height: 19),
                   SizedBox(
@@ -339,7 +341,7 @@ class _CustomerHomeState extends State<CustomerHome> {
                       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                         Icon(Icons.near_me_rounded, size: 18),
                         SizedBox(width: 8),
-                        Text(dt('اطلب توصيلاً الآن'), style: TextStyle(fontWeight: FontWeight.w900)),
+                        Text(dt('ابدأ طلب توصيل'), style: TextStyle(fontWeight: FontWeight.w900)),
                       ]),
                     ),
                   ),
@@ -347,7 +349,7 @@ class _CustomerHomeState extends State<CustomerHome> {
                   Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                     Icon(Icons.verified_user_outlined, color: Color(0xFFB9D4C5), size: 13),
                     SizedBox(width: 5),
-                    Text(dt('تتابع حالة طلبك من داخل التطبيق'),
+                    Text(dt('قارن عروض السائقين قبل اختيار الأجرة'),
                       style: TextStyle(color: Color(0xFFB9D4C5), fontSize: 10, fontWeight: FontWeight.w600)),
                   ]),
                 ]),
@@ -355,7 +357,7 @@ class _CustomerHomeState extends State<CustomerHome> {
             ]),
           ),
           SizedBox(height: 22),
-          _sectionTitle(dt('اختر الخدمة'), dt('مساران واضحان لكل احتياجات التوصيل')),
+          _sectionTitle(dt('كيف تريد استخدام دَرْب؟'), dt('اختر المسار الذي يناسب احتياجك')),
           SizedBox(height: 12),
           _serviceCard(
             icon: Icons.inventory_2_outlined,
@@ -373,7 +375,7 @@ class _CustomerHomeState extends State<CustomerHome> {
           ),
           SizedBox(height: 25),
           Container(key: storesKey),
-          _sectionTitle(dt('المتاجر المتاحة'), dt('متاجر مدينتك التي يمكنك الطلب منها')),
+          _sectionTitle(dt('متاجر مدينتك'), dt('تصفح المتاجر المتاحة وابدأ طلبك')),
           SizedBox(height: 12),
           TextField(
             controller: search,
@@ -441,7 +443,7 @@ class _CustomerHomeState extends State<CustomerHome> {
                   style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: 14),
                 ),
                 SizedBox(height: 6),
-                Text(dt('هذا لا يمنعك من استخدام دَرْب لإرسال غرضك بشكل مستقل.'),
+                Text(dt('يمكنك استخدام خدمة التوصيل المستقل حتى عندما لا تتوفر متاجر في مدينتك.'),
                   textAlign: TextAlign.center,
                   style: TextStyle(color: DarbColors.muted, fontSize: 11, height: 1.5),
                 ),
@@ -449,7 +451,7 @@ class _CustomerHomeState extends State<CustomerHome> {
                 OutlinedButton.icon(
                   onPressed: _openPeerDelivery,
                   icon: Icon(Icons.near_me_rounded, size: 17),
-                  label: Text(dt('إرسال غرض بدلاً من ذلك')),
+                  label: Text(dt('إنشاء طلب توصيل مستقل')),
                 ),
               ]),
             )
