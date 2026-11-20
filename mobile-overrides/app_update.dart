@@ -193,8 +193,9 @@ class DarbUpdater {
       downloadedApkPath = file.path;
       downloadProgress.value = 1;
       return file.path;
-    } catch (_) {
+    } catch (error, stackTrace) {
       downloadProgress.value = null;
+      debugPrint('[DARB_UPDATE][download] $error\\n$stackTrace');
       rethrow;
     } finally {
       client.close();
@@ -229,8 +230,9 @@ class _DarbUpdateDialogState extends State<DarbUpdateDialog> {
     try {
       await DarbUpdater.instance.downloadUpdate(widget.info);
       if (mounted) setState(() {});
-    } catch (_) {
-      if (mounted) setState(() => _error = dt('تعذر تنزيل التحديث'));
+    } catch (error, stackTrace) {
+      debugPrint('[DARB_UPDATE][download_ui] $error\\n$stackTrace');
+      if (mounted) setState(() => _error = '${dt('فشل تنزيل التحديث')}: $error');
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -243,8 +245,9 @@ class _DarbUpdateDialogState extends State<DarbUpdateDialog> {
       if (result == 'permission_required') {
         if (mounted) setState(() => _error = dt('اسمح لدَرْب بتثبيت التحديثات من إعدادات أندرويد ثم ارجع واضغط تثبيت'));
       }
-    } catch (_) {
-      if (mounted) setState(() => _error = dt('تعذر تنزيل التحديث'));
+    } catch (error, stackTrace) {
+      debugPrint('[DARB_UPDATE][install_ui] $error\\n$stackTrace');
+      if (mounted) setState(() => _error = '${dt('فشل فتح مُثبّت أندرويد')}: $error');
     } finally {
       if (mounted) setState(() => _busy = false);
     }
