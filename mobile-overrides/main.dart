@@ -10,7 +10,6 @@ import 'design_system.dart';
 const ink = DarbColors.forest;
 const green = DarbColors.forestSoft;
 const paper = DarbColors.canvas;
-final ValueNotifier<Locale> darbLocale = ValueNotifier(const Locale('ar'));
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,7 +34,7 @@ class DarbApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       theme: DarbTheme.light,
-      home: const DarbLaunchGate(),
+      home: DarbLaunchGate(locale: locale),
     ),
   );
 }
@@ -44,7 +43,8 @@ class DarbApp extends StatelessWidget {
 /// authentication session are restored. Temporary bootstrap failures do not
 /// clear credentials; AppShell/LoginScreen handle the next recoverable state.
 class DarbLaunchGate extends StatefulWidget {
-  const DarbLaunchGate({super.key});
+  final Locale locale;
+  const DarbLaunchGate({super.key, required this.locale});
 
   @override
   State<DarbLaunchGate> createState() => _DarbLaunchGateState();
@@ -82,8 +82,8 @@ class _DarbLaunchGateState extends State<DarbLaunchGate> {
     switchOutCurve: Curves.easeInCubic,
     child: _ready
         ? (Api.instance.accessToken == null
-            ? const LoginScreen(key: ValueKey('login'))
-            : const AppShell(key: ValueKey('app')))
+            ? LoginScreen(key: ValueKey('login-${widget.locale.languageCode}'))
+            : AppShell(key: ValueKey('app-${widget.locale.languageCode}')))
         : const DarbSplashScreen(key: ValueKey('splash')),
   );
 }
@@ -198,7 +198,7 @@ class _DarbSplashScreenState extends State<DarbSplashScreen>
                   ),
                   const SizedBox(height: 9),
                   Text(
-                    'كل طريق يبدأ بخطوة',
+                    dt('كل طريق يبدأ بخطوة'),
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: .72),
                       fontSize: 14,

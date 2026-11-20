@@ -27,13 +27,13 @@ class _AccountPageState extends State<AccountPage> {
   String get _roleLabel {
     switch (_role) {
       case 'ADMIN':
-        return 'إدارة دَرْب';
+        return dt('إدارة دَرْب');
       case 'DRIVER':
-        return 'حساب سائق';
+        return dt('حساب سائق');
       case 'VENDOR':
-        return 'حساب تاجر';
+        return dt('حساب تاجر');
       default:
-        return 'حساب عميل';
+        return dt('حساب عميل');
     }
   }
 
@@ -58,7 +58,7 @@ class _AccountPageState extends State<AccountPage> {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (dialogContext, setDialogState) => AlertDialog(
-          title: const Text('تعديل الملف الشخصي'),
+          title: Text(dt('تعديل الملف الشخصي')),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -66,20 +66,20 @@ class _AccountPageState extends State<AccountPage> {
                 controller: name,
                 maxLength: 120,
                 textInputAction: TextInputAction.done,
-                decoration: const InputDecoration(
-                  labelText: 'الاسم',
+                decoration: InputDecoration(
+                  labelText: dt('الاسم'),
                   prefixIcon: Icon(Icons.person_outline_rounded),
                 ),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
               DropdownButtonFormField<String>(
                 value: locale,
-                decoration: const InputDecoration(
-                  labelText: 'لغة التطبيق',
+                decoration: InputDecoration(
+                  labelText: dt('لغة التطبيق'),
                   prefixIcon: Icon(Icons.language_rounded),
                 ),
-                items: const [
-                  DropdownMenuItem(value: 'ar', child: Text('العربية')),
+                items: [
+                  DropdownMenuItem(value: 'ar', child: Text(dt('العربية'))),
                   DropdownMenuItem(value: 'en', child: Text('English')),
                   DropdownMenuItem(value: 'tr', child: Text('Türkçe')),
                 ],
@@ -94,11 +94,11 @@ class _AccountPageState extends State<AccountPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('إلغاء'),
+              child: Text(dt('إلغاء')),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('حفظ التغييرات'),
+              child: Text(dt('حفظ التغييرات')),
             ),
           ],
         ),
@@ -115,9 +115,9 @@ class _AccountPageState extends State<AccountPage> {
         if (!mounted) return;
         setState(() => profile = Map<String, dynamic>.from(updated));
         darbLocale.value = Locale(locale);
-        _showMessage('تم تحديث بيانات حسابك');
+        _showMessage(dt('تم تحديث بيانات حسابك'));
       } catch (error) {
-        if (mounted) _showMessage('تعذر حفظ التغييرات: $error', isError: true);
+        if (mounted) _showMessage(dt('تعذر حفظ التغييرات: $error'), isError: true);
       } finally {
         if (mounted) setState(() => saving = false);
       }
@@ -132,12 +132,12 @@ class _AccountPageState extends State<AccountPage> {
     try {
       final response = await Api.instance.get('/cities');
       if (response is! List) {
-        throw const FormatException('تعذر قراءة قائمة المدن');
+        throw FormatException(dt('تعذر قراءة قائمة المدن'));
       }
       final cities = response;
       if (!mounted) return;
       if (cities.isEmpty) {
-        _showMessage('لا توجد مدن مفعّلة حالياً', isError: true);
+        _showMessage(dt('لا توجد مدن مفعّلة حالياً'), isError: true);
         return;
       }
 
@@ -153,7 +153,7 @@ class _AccountPageState extends State<AccountPage> {
         context: context,
         builder: (dialogContext) => StatefulBuilder(
           builder: (dialogContext, setDialogState) => AlertDialog(
-            title: Text(vendor ? 'طلب انضمام متجر' : 'طلب انضمام سائق'),
+            title: Text(vendor ? dt('طلب انضمام متجر') : dt('طلب انضمام سائق')),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -161,33 +161,33 @@ class _AccountPageState extends State<AccountPage> {
                   if (vendor) ...[
                     TextField(
                       controller: storeName,
-                      decoration: const InputDecoration(
-                        labelText: 'اسم المتجر',
+                      decoration: InputDecoration(
+                        labelText: dt('اسم المتجر'),
                         prefixIcon: Icon(Icons.storefront_outlined),
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    SizedBox(height: 10),
                     TextField(
                       controller: activity,
-                      decoration: const InputDecoration(
-                        labelText: 'نوع النشاط',
+                      decoration: InputDecoration(
+                        labelText: dt('نوع النشاط'),
                         prefixIcon: Icon(Icons.category_outlined),
                       ),
                     ),
                   ] else
                     TextField(
                       controller: activity,
-                      decoration: const InputDecoration(
-                        labelText: 'نوع المركبة (اختياري)',
+                      decoration: InputDecoration(
+                        labelText: dt('نوع المركبة (اختياري)'),
                         prefixIcon: Icon(Icons.two_wheeler_outlined),
                       ),
                     ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10),
                   DropdownButtonFormField<String>(
                     value: cityId,
                     isExpanded: true,
-                    decoration: const InputDecoration(
-                      labelText: 'المدينة',
+                    decoration: InputDecoration(
+                      labelText: dt('المدينة'),
                       prefixIcon: Icon(Icons.location_city_outlined),
                     ),
                     items: [
@@ -209,20 +209,20 @@ class _AccountPageState extends State<AccountPage> {
                     },
                   ),
                   if (vendor) ...[
-                    const SizedBox(height: 10),
+                    SizedBox(height: 10),
                     TextField(
                       controller: address,
-                      decoration: const InputDecoration(
-                        labelText: 'عنوان المتجر (اختياري)',
+                      decoration: InputDecoration(
+                        labelText: dt('عنوان المتجر (اختياري)'),
                         prefixIcon: Icon(Icons.place_outlined),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     OutlinedButton.icon(
                       onPressed: () async {
                         try {
                           if (!await Geolocator.isLocationServiceEnabled()) {
-                            throw Exception('فعّل خدمة الموقع أولاً');
+                            throw Exception(dt('فعّل خدمة الموقع أولاً'));
                           }
                           var permission = await Geolocator.checkPermission();
                           if (permission == LocationPermission.denied) {
@@ -230,7 +230,7 @@ class _AccountPageState extends State<AccountPage> {
                           }
                           if (permission == LocationPermission.denied ||
                               permission == LocationPermission.deniedForever) {
-                            throw Exception('لم يتم منح إذن الموقع');
+                            throw Exception(dt('لم يتم منح إذن الموقع'));
                           }
                           final point = await Geolocator.getCurrentPosition();
                           latitude = point.latitude;
@@ -251,8 +251,8 @@ class _AccountPageState extends State<AccountPage> {
                       ),
                       label: Text(
                         locationSelected
-                            ? 'تم تحديد موقع المتجر'
-                            : 'تحديد موقع المتجر',
+                            ? dt('تم تحديد موقع المتجر')
+                            : dt('تحديد موقع المتجر'),
                       ),
                     ),
                   ],
@@ -262,11 +262,11 @@ class _AccountPageState extends State<AccountPage> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext, false),
-                child: const Text('إلغاء'),
+                child: Text(dt('إلغاء')),
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(dialogContext, true),
-                child: const Text('إرسال الطلب'),
+                child: Text(dt('إرسال الطلب')),
               ),
             ],
           ),
@@ -296,9 +296,9 @@ class _AccountPageState extends State<AccountPage> {
           final fresh = await Api.instance.get('/auth/me');
           if (!mounted) return;
           setState(() => profile = Map<String, dynamic>.from(fresh));
-          _showMessage('تم إرسال الطلب. ستراجع الإدارة بياناتك قبل تفعيل الصلاحيات.');
+          _showMessage(dt('تم إرسال الطلب. ستراجع الإدارة بياناتك قبل تفعيل الصلاحيات.'));
         } catch (error) {
-          if (mounted) _showMessage('تعذر إرسال الطلب: $error', isError: true);
+          if (mounted) _showMessage(dt('تعذر إرسال الطلب: $error'), isError: true);
         }
       }
 
@@ -306,7 +306,7 @@ class _AccountPageState extends State<AccountPage> {
       activity.dispose();
       address.dispose();
     } catch (error) {
-      if (mounted) _showMessage('تعذر تحميل المدن: $error', isError: true);
+      if (mounted) _showMessage(dt('تعذر تحميل المدن: $error'), isError: true);
     } finally {
       if (mounted) setState(() => applying = false);
     }
@@ -316,20 +316,20 @@ class _AccountPageState extends State<AccountPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        icon: const Icon(Icons.logout_rounded, color: DarbColors.danger),
-        title: const Text('تسجيل الخروج؟'),
-        content: const Text('ستحتاج إلى تسجيل الدخول مجدداً للوصول إلى حسابك.'),
+        icon: Icon(Icons.logout_rounded, color: DarbColors.danger),
+        title: Text(dt('تسجيل الخروج؟')),
+        content: Text(dt('ستحتاج إلى تسجيل الدخول مجدداً للوصول إلى حسابك.')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('إلغاء'),
+            child: Text(dt('إلغاء')),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: DarbColors.danger,
             ),
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('تسجيل الخروج'),
+            child: Text(dt('تسجيل الخروج')),
           ),
         ],
       ),
@@ -351,15 +351,15 @@ class _AccountPageState extends State<AccountPage> {
   String _statusLabel(dynamic value) {
     switch (value?.toString()) {
       case 'PENDING':
-        return 'قيد مراجعة الإدارة';
+        return dt('قيد مراجعة الإدارة');
       case 'APPROVED':
-        return 'تمت الموافقة';
+        return dt('تمت الموافقة');
       case 'REJECTED':
-        return 'لم تتم الموافقة';
+        return dt('لم تتم الموافقة');
       case 'SUSPENDED':
-        return 'معلّق من الإدارة';
+        return dt('معلّق من الإدارة');
       default:
-        return 'لم يُرسل طلب بعد';
+        return dt('لم يُرسل طلب بعد');
     }
   }
 
@@ -385,7 +385,7 @@ class _AccountPageState extends State<AccountPage> {
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 color: DarbColors.ink,
                 fontSize: 17,
                 fontWeight: FontWeight.w900,
@@ -399,7 +399,7 @@ class _AccountPageState extends State<AccountPage> {
   }
 
   Widget _profileHero() {
-    final initial = _name.isNotEmpty ? _name.characters.first : 'د';
+    final initial = _name.isNotEmpty ? _name.characters.first : dt('د');
     return ClipRRect(
       borderRadius: BorderRadius.circular(DarbRadius.hero),
       child: Stack(
@@ -407,7 +407,7 @@ class _AccountPageState extends State<AccountPage> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.fromLTRB(22, 25, 22, 22),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topRight,
                 end: Alignment.bottomLeft,
@@ -433,14 +433,14 @@ class _AccountPageState extends State<AccountPage> {
                       ),
                       child: Text(
                         initial,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontSize: 29,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
                     ),
-                    const Spacer(),
+                    Spacer(),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
@@ -452,7 +452,7 @@ class _AccountPageState extends State<AccountPage> {
                       ),
                       child: Text(
                         _roleLabel,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: DarbColors.forest,
                           fontSize: 11,
                           fontWeight: FontWeight.w900,
@@ -461,20 +461,20 @@ class _AccountPageState extends State<AccountPage> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 22),
+                SizedBox(height: 22),
                 Text(
-                  _name.isEmpty ? 'مرحباً بك في دَرْب' : _name,
+                  _name.isEmpty ? dt('مرحباً بك في دَرْب') : _name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
                     fontSize: 23,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-                const SizedBox(height: 6),
+                SizedBox(height: 6),
                 Text(
-                  _phone.isNotEmpty ? _phone : (_email.isNotEmpty ? _email : 'أكمل بيانات حسابك'),
+                  _phone.isNotEmpty ? _phone : (_email.isNotEmpty ? _email  : dt('أكمل بيانات حسابك')),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -483,17 +483,16 @@ class _AccountPageState extends State<AccountPage> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
                 Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.verified_user_outlined,
                       color: DarbColors.lime,
                       size: 16,
                     ),
-                    const SizedBox(width: 7),
-                    Text(
-                      'حسابك ضمن شبكة دَرْب',
+                    SizedBox(width: 7),
+                    Text(dt('حسابك ضمن شبكة دَرْب'),
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: .86),
                         fontSize: 11,
@@ -548,7 +547,7 @@ class _AccountPageState extends State<AccountPage> {
           ),
           title: Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               color: DarbColors.muted,
               fontSize: 11,
               fontWeight: FontWeight.w600,
@@ -556,14 +555,14 @@ class _AccountPageState extends State<AccountPage> {
           ),
           subtitle: Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               color: DarbColors.ink,
               fontSize: 14,
               fontWeight: FontWeight.w700,
             ),
           ),
         ),
-        if (!last) const Divider(height: 1, indent: 72, endIndent: 16),
+        if (!last) Divider(height: 1, indent: 72, endIndent: 16),
       ],
     );
   }
@@ -600,23 +599,23 @@ class _AccountPageState extends State<AccountPage> {
                 ),
                 child: Icon(icon, color: DarbColors.forest, size: 25),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: DarbColors.ink,
                         fontSize: 15,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
                       description,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: DarbColors.muted,
                         fontSize: 11,
                         height: 1.4,
@@ -627,7 +626,7 @@ class _AccountPageState extends State<AccountPage> {
               ),
             ],
           ),
-          const SizedBox(height: 15),
+          SizedBox(height: 15),
           if (submitted)
             Container(
               width: double.infinity,
@@ -648,7 +647,7 @@ class _AccountPageState extends State<AccountPage> {
                     color: color,
                     size: 18,
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -661,14 +660,14 @@ class _AccountPageState extends State<AccountPage> {
                             fontWeight: FontWeight.w900,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: 4),
                         Text(
                           status == 'PENDING'
-                              ? 'استلمنا طلبك. ستراجع الإدارة بياناتك قبل تفعيل الصلاحيات.'
+                              ? dt('استلمنا طلبك. ستراجع الإدارة بياناتك قبل تفعيل الصلاحيات.')
                               : status == 'APPROVED'
-                                  ? 'تم اعتماد طلبك. حدّث بيانات الحساب لتظهر صلاحياتك الجديدة.'
-                                  : 'يمكنك التواصل مع الدعم لمعرفة تفاصيل القرار.',
-                          style: const TextStyle(
+                                  ? dt('تم اعتماد طلبك. حدّث بيانات الحساب لتظهر صلاحياتك الجديدة.')
+                                  : dt('يمكنك التواصل مع الدعم لمعرفة تفاصيل القرار.'),
+                          style: TextStyle(
                             color: DarbColors.muted,
                             fontSize: 11,
                             height: 1.45,
@@ -685,8 +684,8 @@ class _AccountPageState extends State<AccountPage> {
               width: double.infinity,
               child: FilledButton.tonalIcon(
                 onPressed: applying ? null : onApply,
-                icon: const Icon(Icons.arrow_forward_rounded, size: 18),
-                label: const Text('ابدأ طلب الانضمام'),
+                icon: Icon(Icons.arrow_forward_rounded, size: 18),
+                label: Text(dt('ابدأ طلب الانضمام')),
               ),
             ),
         ],
@@ -715,7 +714,7 @@ class _AccountPageState extends State<AccountPage> {
       ),
       title: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           color: DarbColors.ink,
           fontSize: 13,
           fontWeight: FontWeight.w800,
@@ -723,9 +722,9 @@ class _AccountPageState extends State<AccountPage> {
       ),
       subtitle: Text(
         subtitle,
-        style: const TextStyle(color: DarbColors.muted, fontSize: 11),
+        style: TextStyle(color: DarbColors.muted, fontSize: 11),
       ),
-      trailing: trailing ?? const Icon(
+      trailing: trailing ?? Icon(
         Icons.chevron_left_rounded,
         color: DarbColors.muted,
       ),
@@ -747,19 +746,19 @@ class _AccountPageState extends State<AccountPage> {
           ),
           child: _profileHero(),
         ),
-        const SizedBox(height: 28),
+        SizedBox(height: 28),
         _sectionTitle(
-          'بيانات الحساب',
+          dt('بيانات الحساب'),
           action: TextButton.icon(
             onPressed: saving ? null : _edit,
             icon: saving
-                ? const SizedBox(
+                ? SizedBox(
                     width: 15,
                     height: 15,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Icon(Icons.edit_rounded, size: 16),
-            label: Text(saving ? 'جارٍ الحفظ' : 'تعديل'),
+                : Icon(Icons.edit_rounded, size: 16),
+            label: Text(saving ? dt('جارٍ الحفظ') : dt('تعديل')),
           ),
         ),
         Container(
@@ -773,19 +772,19 @@ class _AccountPageState extends State<AccountPage> {
             children: [
               _infoRow(
                 icon: Icons.person_outline_rounded,
-                label: 'الاسم',
-                value: _name.isEmpty ? 'غير محدد' : _name,
+                label: dt('الاسم'),
+                value: _name.isEmpty ? dt('غير محدد') : _name,
               ),
               _infoRow(
                 icon: Icons.alternate_email_rounded,
-                label: 'البريد الإلكتروني',
-                value: _email.isEmpty ? 'غير مرتبط' : _email,
+                label: dt('البريد الإلكتروني'),
+                value: _email.isEmpty ? dt('غير مرتبط') : _email,
                 last: _phone.isEmpty,
               ),
               if (_phone.isNotEmpty)
                 _infoRow(
                   icon: Icons.phone_iphone_rounded,
-                  label: 'رقم الهاتف',
+                  label: dt('رقم الهاتف'),
                   value: _phone,
                   last: true,
                 ),
@@ -793,12 +792,11 @@ class _AccountPageState extends State<AccountPage> {
           ),
         ),
         if (_role == 'CUSTOMER') ...[
-          const SizedBox(height: 30),
-          _sectionTitle('وسّع دورك مع دَرْب'),
-          const Padding(
+          SizedBox(height: 30),
+          _sectionTitle(dt('وسّع دورك مع دَرْب')),
+          Padding(
             padding: EdgeInsets.only(bottom: 14),
-            child: Text(
-              'انضم إلى شبكة التوصيل أو افتح متجرك على دَرْب. ستراجع الإدارة طلبك قبل تفعيل الصلاحيات.',
+            child: Text(dt('انضم إلى شبكة التوصيل أو افتح متجرك على دَرْب. ستراجع الإدارة طلبك قبل تفعيل الصلاحيات.'),
               style: TextStyle(
                 color: DarbColors.muted,
                 fontSize: 12,
@@ -807,23 +805,23 @@ class _AccountPageState extends State<AccountPage> {
             ),
           ),
           _applicationCard(
-            title: 'كن سائقاً في دَرْب',
-            description: 'استقبل طلبات التوصيل وقدّم عروض الأجرة للعملاء',
+            title: dt('كن سائقاً في دَرْب'),
+            description: dt('استقبل طلبات التوصيل وقدّم عروض الأجرة للعملاء'),
             icon: Icons.delivery_dining_rounded,
             status: profile?['driverApplication'],
             onApply: () => _apply(false),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           _applicationCard(
-            title: 'انضم بمتجرك',
-            description: 'اعرض منتجات متجرك واستقبل طلبات العملاء',
+            title: dt('انضم بمتجرك'),
+            description: dt('اعرض منتجات متجرك واستقبل طلبات العملاء'),
             icon: Icons.storefront_rounded,
             status: profile?['vendorApplication'],
             onApply: () => _apply(true),
           ),
         ],
-        const SizedBox(height: 30),
-        _sectionTitle('التفضيلات والدعم'),
+        SizedBox(height: 30),
+        _sectionTitle(dt('التفضيلات والدعم')),
         Container(
           decoration: BoxDecoration(
             color: DarbColors.surface,
@@ -834,21 +832,21 @@ class _AccountPageState extends State<AccountPage> {
             children: [
               _settingsTile(
                 icon: Icons.language_rounded,
-                title: 'لغة التطبيق',
+                title: dt('لغة التطبيق'),
                 subtitle: switch (profile?['locale']?.toString() ?? 'ar') {
                   'en' => 'English',
                   'tr' => 'Türkçe',
-                  _ => 'العربية',
+                  _ => dt('العربية'),
                 },
                 onTap: saving ? null : _openLanguageSettings,
               ),
-              const Divider(height: 1, indent: 72, endIndent: 16),
+              Divider(height: 1, indent: 72, endIndent: 16),
               _settingsTile(
                 icon: Icons.support_agent_rounded,
-                title: 'المساعدة والدعم',
-                subtitle: 'تواصل معنا عند الحاجة',
+                title: dt('المساعدة والدعم'),
+                subtitle: dt('تواصل معنا عند الحاجة'),
                 onTap: null,
-                trailing: const Icon(
+                trailing: Icon(
                   Icons.info_outline_rounded,
                   color: DarbColors.muted,
                   size: 19,
@@ -857,11 +855,11 @@ class _AccountPageState extends State<AccountPage> {
             ],
           ),
         ),
-        const SizedBox(height: 22),
+        SizedBox(height: 22),
         OutlinedButton.icon(
           onPressed: _confirmLogout,
-          icon: const Icon(Icons.logout_rounded),
-          label: const Text('تسجيل الخروج'),
+          icon: Icon(Icons.logout_rounded),
+          label: Text(dt('تسجيل الخروج')),
           style: OutlinedButton.styleFrom(
             foregroundColor: DarbColors.danger,
             minimumSize: const Size.fromHeight(52),
@@ -873,10 +871,9 @@ class _AccountPageState extends State<AccountPage> {
             ),
           ),
         ),
-        const SizedBox(height: 18),
-        const Center(
-          child: Text(
-            'دَرْب • طريقك الأسهل',
+        SizedBox(height: 18),
+        Center(
+          child: Text(dt('دَرْب • طريقك الأسهل'),
             style: TextStyle(
               color: DarbColors.muted,
               fontSize: 11,
@@ -904,7 +901,7 @@ class _EmptyPanel extends StatelessWidget {
         child: Text(
           text,
           textAlign: TextAlign.center,
-          style: const TextStyle(color: Colors.black54),
+          style: TextStyle(color: Colors.black54),
         ),
       );
 }
@@ -922,15 +919,15 @@ class _ErrorPanel extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFEEEE),
+          color: Color(0xFFFFEEEE),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
           children: [
-            Text(message, style: const TextStyle(color: Colors.red)),
+            Text(message, style: TextStyle(color: Colors.red)),
             TextButton(
               onPressed: retry,
-              child: const Text('إعادة المحاولة'),
+              child: Text(dt('إعادة المحاولة')),
             ),
           ],
         ),

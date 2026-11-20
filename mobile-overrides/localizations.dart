@@ -1,5 +1,9 @@
 import 'package:flutter/widgets.dart';
 
+final ValueNotifier<Locale> darbLocale = ValueNotifier(const Locale('ar'));
+
+String dt(String source) => AppLocalizations(darbLocale.value).translateSource(source);
+
 class AppLocalizations {
   final Locale locale;
   const AppLocalizations(this.locale);
@@ -9,6 +13,293 @@ class AppLocalizations {
   static const LocalizationsDelegate<AppLocalizations> delegate = _DarbLocalizationsDelegate();
 
   String t(String key) => (_values[locale.languageCode] ?? _values['ar']!)[key] ?? key;
+
+  String translateSource(String source) {
+    if (locale.languageCode == 'ar') return source;
+    final value = _sourceValues[source];
+    if (value != null) {
+      final parts = value.split('|');
+      return locale.languageCode == 'tr' ? parts.last : parts.first;
+    }
+    String dynamicValue(String prefix, String en, String tr) {
+      final suffix = source.substring(prefix.length);
+      return locale.languageCode == 'tr' ? '$tr$suffix' : '$en$suffix';
+    }
+    if (source.endsWith(' منتج متاح')) {
+      final count = source.substring(0, source.length - ' منتج متاح'.length);
+      return locale.languageCode == 'tr' ? '$count ürün mevcut' : '$count products available';
+    }
+    if (source.startsWith('مسافة التوصيل: ') && source.endsWith(' كم')) {
+      final distance = source.substring('مسافة التوصيل: '.length, source.length - ' كم'.length);
+      return locale.languageCode == 'tr' ? 'Teslimat mesafesi: $distance km' : 'Delivery distance: $distance km';
+    }
+    if (source.startsWith('تعذر تحميل العروض: ')) return dynamicValue('تعذر تحميل العروض: ', 'Could not load offers: ', 'Teklifler yüklenemedi: ');
+    if (source.startsWith('تعذر حفظ التغييرات: ')) return dynamicValue('تعذر حفظ التغييرات: ', 'Could not save changes: ', 'Değişiklikler kaydedilemedi: ');
+    if (source.startsWith('تعذر إرسال الطلب: ')) return dynamicValue('تعذر إرسال الطلب: ', 'Could not submit the application: ', 'Başvuru gönderilemedi: ');
+    if (source.startsWith('تعذر تحميل المدن: ')) return dynamicValue('تعذر تحميل المدن: ', 'Could not load cities: ', 'Şehirler yüklenemedi: ');
+    if (source.startsWith('رمز المدينة: ')) return dynamicValue('رمز المدينة: ', 'City code: ', 'Şehir kodu: ');
+    if (source.startsWith('رقم الطلب: ')) return dynamicValue('رقم الطلب: ', 'Order number: ', 'Sipariş numarası: ');
+    if (source.startsWith('حالة المتجر: ')) return dynamicValue('حالة المتجر: ', 'Store status: ', 'Mağaza durumu: ');
+    if (source.startsWith('تعذر تحميل المناطق: ')) return dynamicValue('تعذر تحميل المناطق: ', 'Could not load zones: ', 'Bölgeler yüklenemedi: ');
+    if (source.startsWith('الكمية: ')) return dynamicValue('الكمية: ', 'Quantity: ', 'Miktar: ');
+    if (source.startsWith('نوع الغرض: ')) return dynamicValue('نوع الغرض: ', 'Item type: ', 'Eşya türü: ');
+    if (source.startsWith('وصف الغرض: ')) return dynamicValue('وصف الغرض: ', 'Item description: ', 'Eşya açıklaması: ');
+    if (source.startsWith('تعليمات للسائق: ')) return dynamicValue('تعليمات للسائق: ', 'Driver instructions: ', 'Kurye talimatları: ');
+    if (source.startsWith('المجموع الفرعي: ')) return dynamicValue('المجموع الفرعي: ', 'Subtotal: ', 'Ara toplam: ');
+    if (source.startsWith('السلة (') && source.endsWith(')')) {
+      final count = source.substring('السلة ('.length, source.length - 1);
+      return locale.languageCode == 'tr' ? 'Sepet ($count)' : 'Cart ($count)';
+    }
+    if (source.startsWith('الخطوة ') && source.endsWith(' من 3')) {
+      final step = source.substring('الخطوة '.length, source.length - ' من 3'.length);
+      return locale.languageCode == 'tr' ? 'Adım $step / 3' : 'Step $step of 3';
+    }
+    if (source.startsWith('تم تحديد الموقع بدقة: ')) return dynamicValue('تم تحديد الموقع بدقة: ', 'Location set precisely: ', 'Konum hassas şekilde belirlendi: ');
+    if (source.startsWith('رسوم المنطقة: ')) return dynamicValue('رسوم المنطقة: ', 'Zone fees: ', 'Bölge ücretleri: ');
+    if (source.startsWith('أضيف ') && source.endsWith(' إلى السلة')) {
+      final product = source.substring('أضيف '.length, source.length - ' إلى السلة'.length);
+      return locale.languageCode == 'tr' ? '$product sepete eklendi' : '$product added to cart';
+    }
+    return source;
+  }
+
+  static const Map<String, String> _sourceValues = {
+    "كل طريق يبدأ بخطوة": "Every journey starts with a step|Her yolculuk bir adımla başlar",
+    "طلبات المتاجر": "Store orders|Mağaza siparişleri",
+    "طلبات السائقين": "Driver applications|Kurye başvuruları",
+    "رسوم التوصيل": "Delivery fees|Teslimat ücretleri",
+    "حسابي": "My account|Hesabım",
+    "الرئيسية": "Home|Ana sayfa",
+    "طلباتي": "My orders|Siparişlerim",
+    "طلبات المتجر": "Store orders|Mağaza siparişleri",
+    "المنتجات": "Products|Ürünler",
+    "الطلبات المتاحة": "Available orders|Mevcut siparişler",
+    "متجر": "Store|Mağaza",
+    "اختر الخدمة": "Choose a service|Hizmet seçin",
+    "مساران واضحان لكل احتياجات التوصيل": "Two clear ways to meet your delivery needs|Teslimat ihtiyaçlarınız için iki net seçenek",
+    "إرسال غرض مستقل": "Send an item|Bağımsız gönderi",
+    "أرسل طرداً أو غرضاً من أي عنوان إلى آخر": "Send a parcel or item from any address to another|Bir paketi veya eşyayı istediğiniz adresten başka bir adrese gönderin",
+    "الطلب من المتاجر": "Order from stores|Mağazalardan sipariş verin",
+    "تصفح المتاجر والمنتجات واطلب إلى بابك": "Browse stores and products, delivered to your door|Mağazalara ve ürünlere göz atın, kapınıza teslim edilsin",
+    "المتاجر المتاحة": "Available stores|Mevcut mağazalar",
+    "متاجر مدينتك التي يمكنك الطلب منها": "Stores in your city you can order from|Şehrinizde sipariş verebileceğiniz mağazalar",
+    "ابحث عن متجر أو نشاط...": "Search for a store or business…|Mağaza veya işletme ara…",
+    "لا توجد متاجر متاحة في هذه المدينة": "No stores available in this city|Bu şehirde mağaza yok",
+    "لم نعثر على نتائج مطابقة": "No matching results found|Eşleşen sonuç bulunamadı",
+    "طلباتك": "Your orders|Siparişleriniz",
+    "لا توجد طلبات حتى الآن": "No orders yet|Henüz sipariş yok",
+    "لا توجد طلبات واردة": "No incoming orders|Gelen sipariş yok",
+    "الاسم": "Name|Ad",
+    "لغة التطبيق": "App language|Uygulama dili",
+    "إدارة دَرْب": "DARB administration|DARB yönetimi",
+    "حساب سائق": "Driver account|Kurye hesabı",
+    "حساب تاجر": "Merchant account|Satıcı hesabı",
+    "حساب عميل": "Customer account|Müşteri hesabı",
+    "تم إرسال الطلب. ستراجع الإدارة بياناتك قبل تفعيل الصلاحيات.": "Application submitted. The team will review your details before enabling access.|Başvuru gönderildi. Erişim etkinleştirilmeden önce bilgileriniz incelenecek.",
+    "تم تحديد موقع المتجر": "Store location set|Mağaza konumu belirlendi",
+    "طلب انضمام متجر": "Store application|Mağaza başvurusu",
+    "طلب انضمام سائق": "Driver application|Kurye başvurusu",
+    "طلبات انضمام المتاجر": "Store applications|Mağaza başvuruları",
+    "طلبات انضمام السائقين": "Driver applications|Kurye başvuruları",
+    "لا توجد طلبات معلّقة حالياً": "No pending applications|Bekleyen başvuru yok",
+    "متجر جديد": "New store|Yeni mağaza",
+    "سائق جديد": "New driver|Yeni kurye",
+    "رمز المدينة: ": "City code: |Şehir kodu: ",
+    "منطقة": "Zone|Bölge",
+    "دَرْب": "DARB|DARB",
+    "د": "D|D",
+    "تعذر تحميل حسابك": "Could not load your account|Hesabınız yüklenemedi",
+    "إعادة المحاولة": "Try again|Tekrar dene",
+    "حسابك محفوظ. لن يتم تسجيل خروجك بسبب تعذر الاتصال.": "Your account is safe. You will not be signed out because the connection failed.|Hesabınız güvende. Bağlantı hatası nedeniyle oturumunuz kapatılmadı.",
+    "لا توجد مدينة مفعّلة لخدمة التوصيل حالياً": "No city currently has delivery service enabled|Şu anda teslimat hizmeti etkin olan şehir yok",
+    "موقع التوصيل": "Delivery location|Teslimat konumu",
+    "المدينة غير متاحة": "City unavailable|Şehir kullanılamıyor",
+    "توصيل من الباب إلى الباب": "Door-to-door delivery|Kapıdan kapıya teslimat",
+    "غرضك بأي مكان…\\nودَرْب يوصّله.": "Your item, anywhere…\\nDARB delivers it.|Eşyanız nerede olursa olsun…\\nDARB ulaştırır.",
+    "اطلب سائقاً ليستلم غرضك من موقعك ويوصله إلى العنوان الذي تختاره.": "Request a driver to collect your item and deliver it to your chosen address.|Eşyanızı bulunduğunuz yerden alıp seçtiğiniz adrese teslim etmesi için kurye çağırın.",
+    "اطلب توصيلاً الآن": "Request a delivery now|Şimdi teslimat iste",
+    "تتابع حالة طلبك من داخل التطبيق": "Track your order status in the app|Siparişinizi uygulamadan takip edin",
+    "هذا لا يمنعك من استخدام دَرْب لإرسال غرضك بشكل مستقل.": "You can still use DARB to send an item independently.|Yine de DARB ile bağımsız gönderi oluşturabilirsiniz.",
+    "إرسال غرض بدلاً من ذلك": "Send an item instead|Bunun yerine eşya gönder",
+    "متصل لاستلام الطلبات": "Online to receive orders|Sipariş almak için çevrimiçi",
+    "فعّل الحالة لتظهر لك الطلبات الجاهزة": "Go online to see available orders|Mevcut siparişleri görmek için çevrimiçi olun",
+    "حساب السائق بانتظار اعتماد الإدارة": "Your driver account is awaiting approval|Kurye hesabınız yönetici onayı bekliyor",
+    "طلبات جاهزة للاستلام": "Orders ready for pickup|Teslim alınmaya hazır siparişler",
+    "لا توجد طلبات متاحة حالياً": "No available orders right now|Şu anda uygun sipariş yok",
+    "اتصل لاستقبال الطلبات بعد اعتماد حسابك": "Go online to receive orders after your account is approved|Hesabınız onaylandıktan sonra sipariş almak için çevrimiçi olun",
+    "توصيلاتي": "My deliveries|Teslimatlarım",
+    "لا توجد توصيلات حالياً": "No deliveries yet|Henüz teslimat yok",
+    "قبول": "Accept|Kabul et",
+    "بدء التحضير": "Start preparing|Hazırlamaya başla",
+    "جاهز للاستلام": "Ready for pickup|Teslim almaya hazır",
+    "استلام الطلب": "Pick up order|Siparişi al",
+    "موقع السائق": "Driver location|Kurye konumu",
+    "تم الاستلام": "Picked up|Teslim alındı",
+    "تم التسليم": "Delivered|Teslim edildi",
+    "طلب توصيل مستقل": "Independent delivery request|Bağımsız teslimat talebi",
+    "بانتظار العروض": "Waiting for offers|Teklifler bekleniyor",
+    "الاستلام": "Pickup|Alım",
+    "التسليم": "Delivery|Teslimat",
+    "لم يشارك السائق موقعه بعد": "The driver has not shared their location yet|Kurye henüz konumunu paylaşmadı",
+    "تعذر فتح الخرائط": "Could not open maps|Haritalar açılamadı",
+    "تقديم أجرة التوصيل": "Submit delivery fare|Teslimat ücreti teklif et",
+    "الأجرة بالليرة السورية الجديدة": "Fare in new Syrian pounds|Ücret yeni Suriye lirası cinsinden",
+    "أدخل المبلغ": "Enter amount|Tutarı girin",
+    "إلغاء": "Cancel|İptal",
+    "إرسال العرض": "Send offer|Teklifi gönder",
+    "تم إرسال عرضك للعميل": "Your offer was sent to the customer|Teklifiniz müşteriye gönderildi",
+    "تحديد الأجرة": "Set fare|Ücreti belirle",
+    "تم اختيار السائق وتأكيد الأجرة": "Driver selected and fare confirmed|Kurye seçildi ve ücret onaylandı",
+    "بانتظار عروض السائقين.": "Waiting for driver offers.|Kurye teklifleri bekleniyor.",
+    "تحديث": "Refresh|Yenile",
+    "عروض السائقين": "Driver offers|Kurye teklifleri",
+    "تحديث العروض": "Refresh offers|Teklifleri yenile",
+    "سائق": "Driver|Kurye",
+    "سائق معتمد": "Approved driver|Onaylı kurye",
+    "اختيار": "Select|Seç",
+    "عنوان جديد": "New address|Yeni adres",
+    "اسم العنوان (اختياري)": "Address name (optional)|Adres adı (isteğe bağlı)",
+    "العنوان بالتفصيل": "Full address|Açık adres",
+    "فعّل خدمة الموقع أولاً": "Enable location services first|Önce konum hizmetlerini etkinleştirin",
+    "لم يتم منح إذن الموقع": "Location permission was not granted|Konum izni verilmedi",
+    "تم تحديد إحداثيات موقعك": "Your location coordinates were set|Konum koordinatlarınız belirlendi",
+    "استخدام موقعي الحالي": "Use my current location|Mevcut konumumu kullan",
+    "حفظ": "Save|Kaydet",
+    "أضف عنوان توصيل أولاً": "Add a delivery address first|Önce teslimat adresi ekleyin",
+    "تم إرسال طلبك بنجاح": "Your order was submitted successfully|Siparişiniz başarıyla gönderildi",
+    "تأكيد الطلب": "Confirm order|Siparişi onayla",
+    "ملخص السلة": "Cart summary|Sepet özeti",
+    "عنوان التوصيل": "Delivery address|Teslimat adresi",
+    "لا يوجد عنوان محفوظ": "No saved address|Kayıtlı adres yok",
+    "عنوان": "Address|Adres",
+    "إضافة عنوان": "Add address|Adres ekle",
+    "ملاحظات للمتجر (اختياري)": "Notes for the store (optional)|Mağaza için notlar (isteğe bağlı)",
+    "إرسال الطلب — الدفع عند الاستلام": "Place order — cash on delivery|Siparişi ver — kapıda ödeme",
+    "منتج جديد": "New product|Yeni ürün",
+    "اسم المنتج": "Product name|Ürün adı",
+    "السعر": "Price|Fiyat",
+    "الوصف": "Description|Açıklama",
+    "إضافة": "Add|Ekle",
+    "طلب متجرك قيد المراجعة. ستتمكن من إدارة المنتجات بعد اعتماد الإدارة.": "Your store application is under review. You can manage products after approval.|Mağaza başvurunuz inceleniyor. Onaylandıktan sonra ürünleri yönetebilirsiniz.",
+    "لم تضف أي منتجات بعد": "You have not added any products yet|Henüz ürün eklemediniz",
+    "إضافة منتج": "Add product|Ürün ekle",
+    "منتجات متجرك": "Your store products|Mağaza ürünleriniz",
+    "المواقع": "Locations|Konumlar",
+    "تفاصيل الغرض": "Item details|Gönderi ayrıntıları",
+    "مراجعة الطلب": "Review request|Talebi gözden geçir",
+    "فعّل خدمة الموقع على الهاتف": "Enable location services on your phone|Telefonunuzda konum hizmetlerini etkinleştirin",
+    "يلزم السماح بالوصول إلى الموقع": "Location access is required|Konum erişimine izin verilmelidir",
+    "إضافة عنوان تسليم": "Add delivery address|Teslimat adresi ekle",
+    "اسم العنوان": "Address name|Adres adı",
+    "الحي، الشارع، البناء، أقرب نقطة دالة": "District, street, building, nearest landmark|Mahalle, sokak, bina, en yakın bilinen nokta",
+    "جارٍ تحديد الموقع...": "Locating…|Konum belirleniyor…",
+    "تحديد موقع العنوان": "Set address location|Adres konumunu belirle",
+    "تم تحديد الموقع": "Location set|Konum belirlendi",
+    "تم حفظ الإحداثيات لهذا العنوان": "Coordinates saved for this address|Bu adresin koordinatları kaydedildi",
+    "يجب تحديد الموقع وأنت موجود في مكان التسليم نفسه.": "Set the location while you are at the delivery point.|Konumu teslimat noktasındayken belirlemelisiniz.",
+    "حفظ العنوان": "Save address|Adresi kaydet",
+    "أكمل العنوان وحدد موقعه الجغرافي": "Complete the address and set its location|Adresi tamamlayıp konumunu belirleyin",
+    "لم يتم اختيار عنوان": "No address selected|Adres seçilmedi",
+    "عنوان التسليم": "Delivery address|Teslimat adresi",
+    "اكتب وصفاً واضحاً لمكان الاستلام": "Describe the pickup location clearly|Alım konumunu açıkça açıklayın",
+    "حدد موقع الاستلام أولاً": "Set the pickup location first|Önce alım konumunu belirleyin",
+    "اختر عنوان تسليم محفوظاً مع موقع جغرافي أو أضف عنواناً جديداً": "Choose a saved delivery address with a location or add a new one|Konumu olan kayıtlı bir teslimat adresi seçin veya yeni adres ekleyin",
+    "اكتب نوع الغرض الذي تريد إرساله": "Enter the type of item you want to send|Göndermek istediğiniz eşyanın türünü yazın",
+    "أضف وصفاً مختصراً للغرض": "Add a short description of the item|Eşya için kısa bir açıklama ekleyin",
+    "إرشادات للسائق": "Driver instructions|Kurye talimatları",
+    "حسناً": "OK|Tamam",
+    "من أين نستلم؟": "Where should we pick it up?|Nereden alalım?",
+    "حدد مكان وجود الغرض حتى يصل السائق إليك.": "Set the item's location so the driver can reach you.|Kurye size ulaşabilsin diye eşyanın konumunu belirleyin.",
+    "وصف مكان الاستلام": "Pickup location description|Alım konumu açıklaması",
+    "مثلاً: أمام صيدلية الشفاء، شارع ...": "Example: In front of Al-Shifa Pharmacy, ... Street|Örnek: Şifa Eczanesi önü, ... Sokak",
+    "تم تحديد موقع الاستلام": "Pickup location set|Alım konumu belirlendi",
+    "إلى أين نوصّل؟": "Where should we deliver it?|Nereye teslim edelim?",
+    "لا يوجد عنوان تسليم محفوظ. أضف عنواناً وحدد موقعه للمتابعة.": "No saved delivery address. Add an address and set its location to continue.|Kayıtlı teslimat adresi yok. Devam etmek için adres ekleyip konumunu belirleyin.",
+    "هذا العنوان لا يحتوي على موقع. أضف عنواناً جديداً وحدد موقعه.": "This address has no location. Add a new address and set its location.|Bu adresin konumu yok. Yeni adres ekleyip konumunu belirleyin.",
+    "ماذا تريد إرسال؟": "What would you like to send?|Ne göndermek istiyorsunuz?",
+    "أخبر السائق بنوع الغرض وحجمه بشكل واضح.": "Tell the driver clearly what the item is and its size.|Sürücüye eşyanın türünü ve boyutunu açıkça belirtin.",
+    "نوع الغرض": "Item type|Eşya türü",
+    "مثلاً: مستندات، حقيبة، قطعة غيار": "Example: documents, bag, spare part|Örnek: belge, çanta, yedek parça",
+    "وصف الغرض": "Item description|Eşya açıklaması",
+    "اذكر الحجم أو أي تفاصيل تساعد السائق": "Include size or details that may help the driver|Boyutu veya sürücüye yardımcı olacak ayrıntıları belirtin",
+    "تعليمات إضافية للسائق (اختياري)": "Additional driver instructions (optional)|Kurye için ek talimatlar (isteğe bağlı)",
+    "وقت مناسب، شخص للتواصل عند الوصول...": "Preferred time, contact person on arrival…|Uygun saat, varışta aranacak kişi…",
+    "راجع طلبك": "Review your request|Talebinizi gözden geçirin",
+    "تأكد من التفاصيل قبل إرسال الطلب للسائقين.": "Check the details before sending your request to drivers.|Talebinizi sürücülere göndermeden önce ayrıntıları kontrol edin.",
+    "موقع الاستلام": "Pickup location|Alım konumu",
+    "تعليمات السائق": "Driver instructions|Kurye talimatları",
+    "بعد إرسال الطلب سيحدد السائقون أجورهم وفق مسافة التوصيل، وستختار العرض المناسب قبل تأكيد الطلب.": "After you submit, drivers will offer fares based on the distance. You can choose an offer before confirming.|Talebi gönderdikten sonra sürücüler mesafeye göre ücret teklif eder. Onaylamadan önce bir teklif seçebilirsiniz.",
+    "توصيل مستقل": "Independent delivery|Bağımsız teslimat",
+    "رجوع": "Back|Geri",
+    "السابق": "Previous|Önceki",
+    "تعديل الملف الشخصي": "Edit profile|Profili düzenle",
+    "حفظ التغييرات": "Save changes|Değişiklikleri kaydet",
+    "تم تحديث بيانات حسابك": "Your account details were updated|Hesap bilgileriniz güncellendi",
+    "تعذر قراءة قائمة المدن": "Could not read the city list|Şehir listesi okunamadı",
+    "لا توجد مدن مفعّلة حالياً": "No active cities at the moment|Şu anda etkin şehir yok",
+    "اسم المتجر": "Store name|Mağaza adı",
+    "نوع النشاط": "Business type|İşletme türü",
+    "نوع المركبة (اختياري)": "Vehicle type (optional)|Araç türü (isteğe bağlı)",
+    "المدينة": "City|Şehir",
+    "عنوان المتجر (اختياري)": "Store address (optional)|Mağaza adresi (isteğe bağlı)",
+    "تحديد موقع المتجر": "Set store location|Mağaza konumunu belirle",
+    "إرسال الطلب": "Submit application|Başvuruyu gönder",
+    "تسجيل الخروج؟": "Sign out?|Oturumu kapat?",
+    "ستحتاج إلى تسجيل الدخول مجدداً للوصول إلى حسابك.": "You will need to sign in again to access your account.|Hesabınıza erişmek için yeniden giriş yapmanız gerekecek.",
+    "تسجيل الخروج": "Sign out|Çıkış yap",
+    "قيد مراجعة الإدارة": "Pending admin review|Yönetici incelemesinde",
+    "تمت الموافقة": "Approved|Onaylandı",
+    "لم تتم الموافقة": "Not approved|Onaylanmadı",
+    "معلّق من الإدارة": "Suspended by admin|Yönetici tarafından askıya alındı",
+    "لم يُرسل طلب بعد": "No application submitted yet|Henüz başvuru gönderilmedi",
+    "مرحباً بك في دَرْب": "Welcome to DARB|DARB'a hoş geldiniz",
+    "أكمل بيانات حسابك": "Complete your account details|Hesap bilgilerinizi tamamlayın",
+    "استلمنا طلبك. ستراجع الإدارة بياناتك قبل تفعيل الصلاحيات.": "We received your application. The team will review it before enabling access.|Başvurunuzu aldık. Erişim etkinleştirilmeden önce incelenecek.",
+    "تم اعتماد طلبك. حدّث بيانات الحساب لتظهر صلاحياتك الجديدة.": "Your application was approved. Update your account details to access your new permissions.|Başvurunuz onaylandı. Yeni yetkilerinizi kullanmak için hesap bilgilerinizi güncelleyin.",
+    "يمكنك التواصل مع الدعم لمعرفة تفاصيل القرار.": "Contact support for details about this decision.|Kararın ayrıntıları için destek ekibiyle iletişime geçin.",
+    "ابدأ طلب الانضمام": "Start your application|Başvurunuzu başlatın",
+    "بيانات الحساب": "Account details|Hesap bilgileri",
+    "جارٍ الحفظ": "Saving…|Kaydediliyor…",
+    "تعديل": "Edit|Düzenle",
+    "غير محدد": "Not specified|Belirtilmedi",
+    "البريد الإلكتروني": "Email|E-posta",
+    "غير مرتبط": "Not linked|Bağlı değil",
+    "رقم الهاتف": "Phone number|Telefon numarası",
+    "وسّع دورك مع دَرْب": "Do more with DARB|DARB ile rolünüzü genişletin",
+    "انضم إلى شبكة التوصيل أو افتح متجرك على دَرْب. ستراجع الإدارة طلبك قبل تفعيل الصلاحيات.": "Join the delivery network or open your store on DARB. Your application will be reviewed before access is enabled.|Teslimat ağına katılın veya mağazanızı DARB'da açın. Erişim etkinleştirilmeden önce başvurunuz incelenecek.",
+    "كن سائقاً في دَرْب": "Become a DARB driver|DARB kuryesi olun",
+    "استقبل طلبات التوصيل وقدّم عروض الأجرة للعملاء": "Receive delivery requests and offer fares to customers|Teslimat talepleri alın ve müşterilere ücret teklif edin",
+    "انضم بمتجرك": "Join with your store|Mağazanızla katılın",
+    "اعرض منتجات متجرك واستقبل طلبات العملاء": "Showcase your products and receive customer orders|Ürünlerinizi sergileyin ve müşteri siparişleri alın",
+    "التفضيلات والدعم": "Preferences & support|Tercihler ve destek",
+    "المساعدة والدعم": "Help & support|Yardım ve destek",
+    "تواصل معنا عند الحاجة": "Contact us whenever you need help|İhtiyaç duyduğunuzda bize ulaşın",
+    "دَرْب • طريقك الأسهل": "DARB • Your easier way|DARB • Kolay yolunuz",
+    "اعتماد": "Approve|Onayla",
+    "رفض": "Reject|Reddet",
+    "تعليق": "Suspend|Askıya al",
+    "لا توجد مدن أخرى تحتاج إلى إعداد رسوم": "No other cities need fee configuration|Ücret ayarı gereken başka şehir yok",
+    "إضافة منطقة توصيل": "Add delivery zone|Teslimat bölgesi ekle",
+    "تعديل رسوم التوصيل": "Edit delivery fees|Teslimat ücretlerini düzenle",
+    "وصف إعداد الرسوم": "Fee configuration description|Ücret ayarı açıklaması",
+    "الرسم الأساسي (ل.س)": "Base fee (SYP)|Temel ücret (SYP)",
+    "الرسم لكل كيلومتر (ل.س)": "Fee per kilometer (SYP)|Kilometre başına ücret (SYP)",
+    "أدخل اسمًا ورسومًا رقمية غير سالبة": "Enter a name and non-negative numeric fees|Bir ad ve negatif olmayan sayısal ücretler girin",
+    "إضافة رسوم لمدينة": "Add city fees|Şehir ücreti ekle",
+    "لم تُضف رسوم توصيل بعد": "No delivery fees have been added yet|Henüz teslimat ücreti eklenmedi",
+    "إعداد رسوم التوصيل": "Delivery fee settings|Teslimat ücreti ayarları",
+    "يُضبط رسم واحد لكل مدينة. احتساب رسم الكيلومتر يتطلب تحديد موقع المتجر وموقع عنوان العميل.": "One fee is configured per city. Per-kilometer pricing requires the store and customer address locations.|Her şehir için tek ücret ayarlanır. Kilometre başına ücret için mağaza ve müşteri adresinin konumu gerekir.",
+    "تأكيد وإرسال الطلب": "Confirm and send request|Talebi onayla ve gönder",
+    "متابعة": "Continue|Devam et",
+    "العربية": "Arabic|Arapça",
+    "منتج": "Product|Ürün",
+    "لا توجد منتجات متاحة": "No products available|Ürün bulunamadı",
+    "تم إرسال طلبك": "Your request was submitted|Talebiniz gönderildi",
+    "سيظهر طلبك للسائقين المتاحين في مدينتك. سيقدم كل سائق أجرته، ويمكنك مقارنة العروض واختيار الأنسب قبل تأكيد التوصيل.": "Drivers available in your city will see your request and submit fares. Compare the offers and choose the best one before confirming delivery.|Şehrinizdeki kuryeler talebinizi görecek ve ücret teklif edecek. Teslimatı onaylamadan önce teklifleri karşılaştırıp en uygun olanı seçebilirsiniz.",
+    "حسابك ضمن شبكة دَرْب": "Your account is part of the DARB network|Hesabınız DARB ağının bir parçası",
+    "غرضك بأي مكان…\\\\nودَرْب يوصّله.": "Your item, anywhere…\\\\nDARB delivers it.|Eşyanız nerede olursa olsun…\\\\nDARB ulaştırır.",
+    "رسوم المنطقة: ": "Zone fees: |Bölge ücretleri: ",
+  };
   static const Map<String, Map<String, String>> _values = {
     'ar': {
       'welcomeTitle':'أهلاً بك في دَرْب','welcomeSubtitle':'طريقك الأسهل لاكتشاف المتاجر وطلب ما تحتاجه',

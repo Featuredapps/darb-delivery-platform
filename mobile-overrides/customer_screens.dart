@@ -59,13 +59,13 @@ class _CustomerHomeState extends State<CustomerHome> {
     for (final item in translations) {
       if (item is Map && item['locale'] == 'ar') return item['name'].toString();
     }
-    return translations.isEmpty ? 'متجر' : translations.first['name']?.toString() ?? 'متجر';
+    return translations.isEmpty ? dt('متجر') : translations.first['name']?.toString() ?? dt('متجر');
   }
 
   void _openPeerDelivery() {
     if (cityId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('لا توجد مدينة مفعّلة لخدمة التوصيل حالياً')),
+        SnackBar(content: Text(dt('لا توجد مدينة مفعّلة لخدمة التوصيل حالياً'))),
       );
       return;
     }
@@ -77,7 +77,7 @@ class _CustomerHomeState extends State<CustomerHome> {
   void _openStores() {
     Scrollable.ensureVisible(
       storesKey.currentContext!,
-      duration: const Duration(milliseconds: 520),
+      duration: Duration(milliseconds: 520),
       curve: Curves.easeOutCubic,
       alignment: .04,
     );
@@ -86,9 +86,9 @@ class _CustomerHomeState extends State<CustomerHome> {
   Widget _sectionTitle(String title, String subtitle) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: ink)),
-      const SizedBox(height: 4),
-      Text(subtitle, style: const TextStyle(fontSize: 12, color: DarbColors.muted, height: 1.45)),
+      Text(title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: ink)),
+      SizedBox(height: 4),
+      Text(subtitle, style: TextStyle(fontSize: 12, color: DarbColors.muted, height: 1.45)),
     ],
   );
 
@@ -116,17 +116,17 @@ class _CustomerHomeState extends State<CustomerHome> {
             Container(
               width: 48, height: 48,
               decoration: BoxDecoration(
-                color: primary ? Colors.white.withValues(alpha: .12) : const Color(0xFFEAF2EC),
+                color: primary ? Colors.white.withValues(alpha: .12) : Color(0xFFEAF2EC),
                 borderRadius: BorderRadius.circular(15),
               ),
-              child: Icon(icon, color: primary ? const Color(0xFFC8F169) : green, size: 23),
+              child: Icon(icon, color: primary ? Color(0xFFC8F169) : green, size: 23),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             Expanded(child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: TextStyle(color: foreground, fontSize: 14, fontWeight: FontWeight.w900)),
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 Text(subtitle, style: TextStyle(
                   color: primary ? Colors.white.withValues(alpha: .72) : DarbColors.muted,
                   fontSize: 11, height: 1.4,
@@ -168,25 +168,25 @@ class _CustomerHomeState extends State<CustomerHome> {
               Container(
                 width: 54, height: 54,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
+                  gradient: LinearGradient(
                     colors: [Color(0xFFE6F1E9), Color(0xFFF4F7E9)],
                   ),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Icon(Icons.storefront_rounded, color: green, size: 25),
+                child: Icon(Icons.storefront_rounded, color: green, size: 25),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Expanded(child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(name, maxLines: 1, overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: ink, fontSize: 14, fontWeight: FontWeight.w900)),
-                  const SizedBox(height: 5),
-                  Text('$count منتج متاح',
-                    style: const TextStyle(color: DarbColors.muted, fontSize: 11)),
+                    style: TextStyle(color: ink, fontSize: 14, fontWeight: FontWeight.w900)),
+                  SizedBox(height: 5),
+                  Text(dt('$count منتج متاح'),
+                    style: TextStyle(color: DarbColors.muted, fontSize: 11)),
                 ],
               )),
-              const Icon(Icons.chevron_left_rounded, color: green, size: 23),
+              Icon(Icons.chevron_left_rounded, color: green, size: 23),
             ]),
           ),
         ),
@@ -205,31 +205,31 @@ class _CustomerHomeState extends State<CustomerHome> {
       onRefresh: _load,
       color: green,
       child: ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
+        physics: AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(18, 8, 18, 30),
         children: [
           Row(children: [
             Container(
               width: 38, height: 38,
               decoration: BoxDecoration(
-                color: const Color(0xFFE8F0EA),
+                color: Color(0xFFE8F0EA),
                 borderRadius: BorderRadius.circular(13),
               ),
-              child: const Icon(Icons.location_on_rounded, color: green, size: 20),
+              child: Icon(Icons.location_on_rounded, color: green, size: 20),
             ),
-            const SizedBox(width: 10),
+            SizedBox(width: 10),
             Expanded(child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('موقع التوصيل', style: TextStyle(color: DarbColors.muted, fontSize: 10)),
-                const SizedBox(height: 2),
+                Text(dt('موقع التوصيل'), style: TextStyle(color: DarbColors.muted, fontSize: 10)),
+                SizedBox(height: 2),
                 if (cities.isNotEmpty)
                   DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
                       isDense: true,
                       value: cityId,
-                      icon: const Icon(Icons.keyboard_arrow_down_rounded, color: green),
-                      style: const TextStyle(color: ink, fontSize: 13, fontWeight: FontWeight.w900),
+                      icon: Icon(Icons.keyboard_arrow_down_rounded, color: green),
+                      style: TextStyle(color: ink, fontSize: 13, fontWeight: FontWeight.w900),
                       items: [for (final c in cities)
                         DropdownMenuItem(value: c['id'].toString(), child: Text(_cityName(c)))],
                       onChanged: (value) async {
@@ -240,26 +240,26 @@ class _CustomerHomeState extends State<CustomerHome> {
                     ),
                   )
                 else
-                  const Text('المدينة غير متاحة', style: TextStyle(color: ink, fontSize: 13, fontWeight: FontWeight.w800)),
+                  Text(dt('المدينة غير متاحة'), style: TextStyle(color: ink, fontSize: 13, fontWeight: FontWeight.w800)),
               ],
             )),
             IconButton(
-              tooltip: 'تحديث',
+              tooltip: dt('تحديث'),
               onPressed: _load,
-              icon: const Icon(Icons.refresh_rounded, color: DarbColors.muted),
+              icon: Icon(Icons.refresh_rounded, color: DarbColors.muted),
             ),
           ]),
-          const SizedBox(height: 17),
+          SizedBox(height: 17),
           Container(
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
+              gradient: LinearGradient(
                 begin: Alignment.topRight,
                 end: Alignment.bottomLeft,
                 colors: [Color(0xFF285647), Color(0xFF102B26), Color(0xFF091D19)],
               ),
               borderRadius: BorderRadius.circular(27),
-              boxShadow: const [
+              boxShadow: [
                 BoxShadow(color: Color(0x1D102B26), blurRadius: 22, offset: Offset(0, 10)),
               ],
             ),
@@ -287,81 +287,81 @@ class _CustomerHomeState extends State<CustomerHome> {
                       color: Colors.white.withValues(alpha: .10),
                       borderRadius: BorderRadius.circular(30),
                     ),
-                    child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
                       Icon(Icons.route_rounded, color: Color(0xFFC8F169), size: 14),
                       SizedBox(width: 6),
-                      Text('توصيل من الباب إلى الباب',
+                      Text(dt('توصيل من الباب إلى الباب'),
                         style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800)),
                     ]),
                   ),
-                  const SizedBox(height: 17),
-                  const Text('غرضك بأي مكان…\nودَرْب يوصّله.',
+                  SizedBox(height: 17),
+                  Text(dt('غرضك بأي مكان…\\nودَرْب يوصّله.'),
                     style: TextStyle(
                       color: Colors.white, fontSize: 27, height: 1.22,
                       fontWeight: FontWeight.w900, letterSpacing: -.35,
                     )),
-                  const SizedBox(height: 8),
-                  const Text('اطلب سائقاً ليستلم غرضك من موقعك ويوصله إلى العنوان الذي تختاره.',
+                  SizedBox(height: 8),
+                  Text(dt('اطلب سائقاً ليستلم غرضك من موقعك ويوصله إلى العنوان الذي تختاره.'),
                     style: TextStyle(color: Color(0xFFD0DED7), fontSize: 12, height: 1.55)),
-                  const SizedBox(height: 19),
+                  SizedBox(height: 19),
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(
                       onPressed: cityId == null ? null : _openPeerDelivery,
                       style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFFC8F169),
+                        backgroundColor: Color(0xFFC8F169),
                         foregroundColor: ink,
-                        minimumSize: const Size(0, 52),
+                        minimumSize: Size(0, 52),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                       ),
-                      child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                         Icon(Icons.near_me_rounded, size: 18),
                         SizedBox(width: 8),
-                        Text('اطلب توصيلاً الآن', style: TextStyle(fontWeight: FontWeight.w900)),
+                        Text(dt('اطلب توصيلاً الآن'), style: TextStyle(fontWeight: FontWeight.w900)),
                       ]),
                     ),
                   ),
-                  const SizedBox(height: 11),
-                  const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  SizedBox(height: 11),
+                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                     Icon(Icons.verified_user_outlined, color: Color(0xFFB9D4C5), size: 13),
                     SizedBox(width: 5),
-                    Text('تتابع حالة طلبك من داخل التطبيق',
+                    Text(dt('تتابع حالة طلبك من داخل التطبيق'),
                       style: TextStyle(color: Color(0xFFB9D4C5), fontSize: 10, fontWeight: FontWeight.w600)),
                   ]),
                 ]),
               ),
             ]),
           ),
-          const SizedBox(height: 22),
-          _sectionTitle('اختر الخدمة', 'مساران واضحان لكل احتياجات التوصيل'),
-          const SizedBox(height: 12),
+          SizedBox(height: 22),
+          _sectionTitle(dt('اختر الخدمة'), dt('مساران واضحان لكل احتياجات التوصيل')),
+          SizedBox(height: 12),
           _serviceCard(
             icon: Icons.inventory_2_outlined,
-            title: 'إرسال غرض مستقل',
-            subtitle: 'أرسل طرداً أو غرضاً من أي عنوان إلى آخر',
+            title: dt('إرسال غرض مستقل'),
+            subtitle: dt('أرسل طرداً أو غرضاً من أي عنوان إلى آخر'),
             onTap: _openPeerDelivery,
             primary: true,
           ),
-          const SizedBox(height: 9),
+          SizedBox(height: 9),
           _serviceCard(
             icon: Icons.storefront_outlined,
-            title: 'الطلب من المتاجر',
-            subtitle: 'تصفح المتاجر والمنتجات واطلب إلى بابك',
+            title: dt('الطلب من المتاجر'),
+            subtitle: dt('تصفح المتاجر والمنتجات واطلب إلى بابك'),
             onTap: _openStores,
           ),
-          const SizedBox(height: 25),
+          SizedBox(height: 25),
           Container(key: storesKey),
-          _sectionTitle('المتاجر المتاحة', 'متاجر مدينتك التي يمكنك الطلب منها'),
-          const SizedBox(height: 12),
+          _sectionTitle(dt('المتاجر المتاحة'), dt('متاجر مدينتك التي يمكنك الطلب منها')),
+          SizedBox(height: 12),
           TextField(
             controller: search,
             textInputAction: TextInputAction.search,
             decoration: InputDecoration(
-              hintText: 'ابحث عن متجر أو نشاط...',
-              prefixIcon: const Icon(Icons.search_rounded, color: green),
+              hintText: dt('ابحث عن متجر أو نشاط...'),
+              prefixIcon: Icon(Icons.search_rounded, color: green),
               suffixIcon: search.text.isEmpty ? null : IconButton(
                 onPressed: search.clear,
-                icon: const Icon(Icons.close_rounded),
+                icon: Icon(Icons.close_rounded),
               ),
               filled: true,
               fillColor: Colors.white,
@@ -371,15 +371,15 @@ class _CustomerHomeState extends State<CustomerHome> {
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: DarbColors.line),
+                borderSide: BorderSide(color: DarbColors.line),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: DarbColors.forest, width: 1.4),
+                borderSide: BorderSide(color: DarbColors.forest, width: 1.4),
               ),
             ),
           ),
-          const SizedBox(height: 13),
+          SizedBox(height: 13),
           if (loading)
             ...List.generate(3, (index) => Padding(
               padding: const EdgeInsets.only(bottom: 10),
@@ -390,7 +390,7 @@ class _CustomerHomeState extends State<CustomerHome> {
                   borderRadius: BorderRadius.circular(19),
                   border: Border.all(color: DarbColors.line),
                 ),
-                child: const Center(child: LinearProgressIndicator(minHeight: 2)),
+                child: Center(child: LinearProgressIndicator(minHeight: 2)),
               ),
             ))
           else if (error != null)
@@ -407,28 +407,27 @@ class _CustomerHomeState extends State<CustomerHome> {
                 Container(
                   width: 55, height: 55,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEAF2EC),
+                    color: Color(0xFFEAF2EC),
                     borderRadius: BorderRadius.circular(17),
                   ),
-                  child: const Icon(Icons.storefront_outlined, color: green, size: 27),
+                  child: Icon(Icons.storefront_outlined, color: green, size: 27),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Text(
-                  query.isEmpty ? 'لا توجد متاجر متاحة في هذه المدينة' : 'لم نعثر على نتائج مطابقة',
+                  query.isEmpty ? dt('لا توجد متاجر متاحة في هذه المدينة') : dt('لم نعثر على نتائج مطابقة'),
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: 14),
+                  style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: 14),
                 ),
-                const SizedBox(height: 6),
-                const Text(
-                  'هذا لا يمنعك من استخدام دَرْب لإرسال غرضك بشكل مستقل.',
+                SizedBox(height: 6),
+                Text(dt('هذا لا يمنعك من استخدام دَرْب لإرسال غرضك بشكل مستقل.'),
                   textAlign: TextAlign.center,
                   style: TextStyle(color: DarbColors.muted, fontSize: 11, height: 1.5),
                 ),
-                const SizedBox(height: 13),
+                SizedBox(height: 13),
                 OutlinedButton.icon(
                   onPressed: _openPeerDelivery,
-                  icon: const Icon(Icons.near_me_rounded, size: 17),
-                  label: const Text('إرسال غرض بدلاً من ذلك'),
+                  icon: Icon(Icons.near_me_rounded, size: 17),
+                  label: Text(dt('إرسال غرض بدلاً من ذلك')),
                 ),
               ]),
             )
