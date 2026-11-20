@@ -4,6 +4,8 @@ class DriverLocationReporter {
   static Timer? _timer;
   static bool _sending = false;
   static bool _refreshing = false;
+  static bool _refreshRequested = false;
+  static int _generation = 0;
 
   static void start() {
     if (_timer != null || _refreshing) return;
@@ -11,24 +13,35 @@ class DriverLocationReporter {
   }
 
   static Future<void> refresh() async {
-    if (_refreshing) return;
+    if (_refreshing) {
+      _refreshRequested = true;
+      return;
+    }
     _refreshing = true;
+    final generation = ++_generation;
     _timer?.cancel();
     _timer = null;
     try {
       final driver = Map<String, dynamic>.from(await Api.instance.get('/drivers/me'));
-      if (driver['status'] != 'APPROVED' || driver['isOnline'] != true) return;
+      if (generation != _generation || driver['status'] != 'APPROVED' || driver['isOnline'] != true) return;
       await _sendLocation();
+      if (generation != _generation) return;
       _timer = Timer.periodic(const Duration(seconds: 30), (_) => _sendLocation());
     } catch (_) {
       _timer?.cancel();
       _timer = null;
     } finally {
       _refreshing = false;
+      if (_refreshRequested) {
+        _refreshRequested = false;
+        unawaited(refresh());
+      }
     }
   }
 
   static void stop() {
+    _generation++;
+    _refreshRequested = false;
     _timer?.cancel();
     _timer = null;
   }
