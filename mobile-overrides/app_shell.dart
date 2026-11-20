@@ -81,14 +81,13 @@ class _AppShellState extends State<AppShell> {
               children: [
                 const Icon(Icons.cloud_off_rounded, size: 42, color: DarbColors.muted),
                 const SizedBox(height: 14),
-                const Text('تعذر تحميل حسابك', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                Text(dt('تعذر تحميل حسابك'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 6),
                 Text(error!, textAlign: TextAlign.center, style: const TextStyle(color: DarbColors.muted)),
                 const SizedBox(height: 18),
-                FilledButton(onPressed: loading ? null : _load, child: const Text('إعادة المحاولة')),
+                FilledButton(onPressed: loading ? null : _load, child: Text(dt('إعادة المحاولة'))),
                 const SizedBox(height: 10),
-                const Text(
-                  'حسابك محفوظ. لن يتم تسجيل خروجك بسبب تعذر الاتصال.',
+                Text(dt('حسابك محفوظ. لن يتم تسجيل خروجك بسبب تعذر الاتصال.'),
                   textAlign: TextAlign.center,
                   style: TextStyle(color: DarbColors.muted, fontSize: 12),
                 ),
@@ -137,14 +136,14 @@ class _AppShellState extends State<AppShell> {
                 gradient: const LinearGradient(colors: [DarbColors.forestSoft, DarbColors.forest]),
                 borderRadius: BorderRadius.circular(13),
               ),
-              child: const Text('د', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 23)),
+              child: Text(dt('د'), style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 23)),
             ),
             const SizedBox(width: 11),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('دَرْب', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, height: 1.1)),
+                Text(dt('دَرْب'), style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, height: 1.1)),
                 Text(titles[tab], style: const TextStyle(color: DarbColors.muted, fontSize: 11, fontWeight: FontWeight.w600)),
               ],
             ),
@@ -152,7 +151,7 @@ class _AppShellState extends State<AppShell> {
         ),
         actions: [
           IconButton(
-            tooltip: 'تحديث',
+            tooltip: dt('تحديث'),
             onPressed: () { setState(() => loading = true); _load(); },
             icon: const Icon(Icons.refresh_rounded),
           ),
