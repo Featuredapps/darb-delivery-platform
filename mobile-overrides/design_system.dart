@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -31,11 +33,168 @@ abstract final class DarbRadius {
 }
 
 abstract final class DarbMotion {
+  static const Duration press = Duration(milliseconds: 120);
   static const Duration fast = Duration(milliseconds: 160);
   static const Duration standard = Duration(milliseconds: 260);
+  static const Duration route = Duration(milliseconds: 340);
   static const Duration expressive = Duration(milliseconds: 420);
+  static const Duration staggerStep = Duration(milliseconds: 55);
+
   static const Curve enter = Curves.easeOutCubic;
   static const Curve exit = Curves.easeInCubic;
+  static const Curve pressCurve = Curves.easeOutCubic;
+  static const Curve expressiveCurve = Curves.easeOutBack;
+
+  /// Honors Android/iOS accessibility settings for reduced motion.
+  static bool reduceMotion(BuildContext context) =>
+      MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+
+  static Duration effectiveDuration(
+    BuildContext context,
+    Duration duration,
+  ) => reduceMotion(context) ? Duration.zero : duration;
+
+  static Duration staggerDelay(int index) {
+    if (index <= 0) return Duration.zero;
+    return Duration(milliseconds: staggerStep.inMilliseconds * index);
+  }
+}
+
+/// Reusable entrance motion for content blocks and list items.
+/// The optional delay enables a controlled stagger without extra packages.
+class DarbFadeSlide extends StatefulWidget {
+  const DarbFadeSlide({
+    super.key,
+    required this.child,
+    this.duration = DarbMotion.standard,
+    this.delay = Duration.zero,
+    this.offset = const Offset(0, .10),
+    this.curve = DarbMotion.enter,
+  });
+
+  final Widget child;
+  final Duration duration;
+  final Duration delay;
+  final Offset offset;
+  final Curve curve;
+
+  @override
+  State<DarbFadeSlide> createState() => _DarbFadeSlideState();
+}
+
+class _DarbFadeSlideState extends State<DarbFadeSlide>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  Timer? _delayTimer;
+  bool _hasScheduled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: widget.duration,
+      value: 0,
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (DarbMotion.reduceMotion(context)) {
+      _delayTimer?.cancel();
+      _controller.value = 1;
+      return;
+    }
+    if (_hasScheduled) return;
+    _hasScheduled = true;
+    _controller.value = 0;
+    if (widget.delay == Duration.zero) {
+      _controller.forward();
+    } else {
+      _delayTimer = Timer(widget.delay, () {
+        if (mounted) _controller.forward();
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant DarbFadeSlide oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.duration != widget.duration) {
+      _controller.duration = widget.duration;
+    }
+  }
+
+  @override
+  void dispose() {
+    _delayTimer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final animation = CurvedAnimation(
+      parent: _controller,
+      curve: widget.curve,
+    );
+    return FadeTransition(
+      opacity: animation,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: widget.offset,
+          end: Offset.zero,
+        ).animate(animation),
+        child: widget.child,
+      ),
+    );
+  }
+}
+
+/// Adds tactile press feedback while respecting reduced-motion settings.
+class DarbPressScale extends StatefulWidget {
+  const DarbPressScale({
+    super.key,
+    required this.child,
+    this.onTap,
+    this.pressedScale = .97,
+    this.behavior = HitTestBehavior.opaque,
+  });
+
+  final Widget child;
+  final VoidCallback? onTap;
+  final double pressedScale;
+  final HitTestBehavior behavior;
+
+  @override
+  State<DarbPressScale> createState() => _DarbPressScaleState();
+}
+
+class _DarbPressScaleState extends State<DarbPressScale> {
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (_pressed != value) setState(() => _pressed = value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final reduceMotion = DarbMotion.reduceMotion(context);
+    return AnimatedScale(
+      scale: _pressed && !reduceMotion ? widget.pressedScale : 1,
+      duration: DarbMotion.effectiveDuration(context, DarbMotion.press),
+      curve: DarbMotion.pressCurve,
+      child: GestureDetector(
+        behavior: widget.behavior,
+        onTapDown: widget.onTap == null ? null : (_) => _setPressed(true),
+        onTapUp: widget.onTap == null ? null : (_) => _setPressed(false),
+        onTapCancel: widget.onTap == null ? null : () => _setPressed(false),
+        onTap: widget.onTap,
+        child: widget.child,
+      ),
+    );
+  }
 }
 
 abstract final class DarbElevation {
