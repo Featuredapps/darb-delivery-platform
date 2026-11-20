@@ -232,6 +232,7 @@ jobs:
         run: |
           set -euo pipefail
           APK="extracted/darb-project/mobile/build/app/outputs/flutter-apk/app-release.apk"
+          APK_DIR="$(dirname "$APK")"
           if gh release view latest >/dev/null 2>&1; then
             gh release upload latest "$APK#app-release.apk" "$APK_DIR/app-update.json#app-update.json" --clobber
             gh release edit latest --title "دَرْب — أحدث إصدار أندرويد" --notes "إصدار أندرويد الرسمي الموقّع من دَرْب. تحقق من SHA-256 في ملخص عملية البناء."
