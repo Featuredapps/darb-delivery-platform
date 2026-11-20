@@ -105,23 +105,19 @@ class DarbUpdater {
       if (response.statusCode != 200) throw Exception('HTTP ${response.statusCode}');
       final file = File('${Directory.systemTemp.path}/darb-update-${info.versionCode}.apk');
       final sink = file.openWrite();
-      final digestSink = AccumulatorSink<Digest>();
-      final hashSink = sha256.startChunkedConversion(digestSink);
       var received = 0;
       final total = response.contentLength ?? 0;
       try {
         await for (final chunk in response.stream.timeout(const Duration(seconds: 45))) {
           sink.add(chunk);
-          hashSink.add(chunk);
           received += chunk.length;
           if (total > 0) downloadProgress.value = received / total;
         }
         await sink.flush();
       } finally {
         await sink.close();
-        hashSink.close();
       }
-      final actualHash = digestSink.events.single.toString();
+      final actualHash = (await sha256.bind(file.openRead()).first).toString();
       if (actualHash != info.sha256) {
         await file.delete().catchError((_) => file);
         throw const FormatException('APK checksum mismatch');
