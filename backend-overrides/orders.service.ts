@@ -127,6 +127,10 @@ export class OrdersService {
     const driver = await this.prisma.driver.findUnique({ where: { userId } });
     if (!driver || driver.status !== 'APPROVED' || !driver.isOnline) throw new ForbiddenException('يجب أن يكون حساب السائق معتمداً ومتصلًا');
     return this.prisma.$transaction(async tx => {
+      // Serialize offer submission against customer selection for this order.
+      // Without the row lock, an offer can be inserted after selection rejects
+      // all pending offers, leaving a stale PENDING offer on an assigned order.
+      await tx.$queryRaw`SELECT "id" FROM "Order" WHERE "id" = ${orderId} FOR UPDATE`;
       const order = await tx.order.findFirst({ where: { id: orderId, cityId: driver.cityId, type: 'PEER_DELIVERY', status: 'PENDING', driverId: null }, select: { id: true, currency: true } });
       if (!order) throw new BadRequestException('الطلب لم يعد متاحاً لتقديم عرض');
       return tx.deliveryOffer.upsert({
@@ -149,6 +153,9 @@ export class OrdersService {
 
   async selectDeliveryOffer(userId: string, orderId: string, offerId: string) {
     return this.prisma.$transaction(async tx => {
+      // Use the same row lock as offer submission so no new offer can appear
+      // after this transaction closes the pending offers and assigns the order.
+      await tx.$queryRaw`SELECT "id" FROM "Order" WHERE "id" = ${orderId} FOR UPDATE`;
       const order = await tx.order.findFirst({ where: { id: orderId, customerId: userId, type: 'PEER_DELIVERY', status: 'PENDING', driverId: null }, select: { id: true } });
       if (!order) throw new BadRequestException('لا يمكن اختيار عرض لهذا الطلب');
       const offer = await tx.deliveryOffer.findFirst({
