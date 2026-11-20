@@ -2,7 +2,7 @@ part of 'app_shell.dart';
 
 class AdminQueue extends StatefulWidget {
   final String kind;
-  AdminQueue({super.key, required this.kind});
+  const AdminQueue({super.key, required this.kind});
   @override State<AdminQueue> createState() => _AdminQueueState();
 }
 
@@ -59,7 +59,7 @@ class _AdminQueueState extends State<AdminQueue> {
 }
 
 class AdminDeliveryZones extends StatefulWidget {
-  AdminDeliveryZones({super.key});
+  const AdminDeliveryZones({super.key});
   @override State<AdminDeliveryZones> createState() => _AdminDeliveryZonesState();
 }
 class _AdminDeliveryZonesState extends State<AdminDeliveryZones> {
