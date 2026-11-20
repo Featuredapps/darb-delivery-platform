@@ -67,9 +67,11 @@ jobs:
           permission='<uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />'
           notification_permission='<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />'
           if notification_permission not in m:
-              m=m.replace(permission, permission+"\\n    "+notification_permission, 1)
+              m=m.replace(permission, permission+"\n    "+notification_permission, 1)
           if permission not in m:
               m=m.replace("<application", permission+"\n    <application", 1)
+          if notification_permission not in m:
+              m=m.replace(permission, permission+"\n    "+notification_permission, 1)
           provider="""    <provider
                   android:name="androidx.core.content.FileProvider"
                   android:authorities="${applicationId}.fileprovider"
