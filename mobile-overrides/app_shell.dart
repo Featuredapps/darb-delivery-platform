@@ -102,12 +102,12 @@ class _AppShellState extends State<AppShell> {
     final isCustomer = role == 'CUSTOMER';
     final isVendor = role == 'VENDOR';
     final titles = isAdmin
-        ? ['طلبات المتاجر', 'طلبات السائقين', 'رسوم التوصيل', 'حسابي']
+        ? [dt('طلبات المتاجر'), dt('طلبات السائقين'), dt('رسوم التوصيل'), dt('حسابي')]
         : isCustomer
-            ? ['الرئيسية', 'طلباتي', 'حسابي']
+            ? [dt('الرئيسية'), dt('طلباتي'), dt('حسابي')]
             : isVendor
-                ? ['طلبات المتجر', 'المنتجات', 'حسابي']
-                : ['الطلبات المتاحة', 'توصيلاتي', 'حسابي'];
+                ? [dt('طلبات المتجر'), dt('المنتجات'), dt('حسابي')]
+                : [dt('الطلبات المتاحة'), dt('توصيلاتي'), dt('حسابي')];
     final pages = isAdmin
         ? [AdminQueue(kind: 'vendors'), AdminQueue(kind: 'drivers'), AdminDeliveryZones(), AccountPage(me: me, onLogout: _logout)]
         : isCustomer
