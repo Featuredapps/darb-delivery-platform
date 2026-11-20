@@ -209,6 +209,23 @@ class DarbUpdater {
     }
     return await _channel.invokeMethod<String>('installApk', {'path': path}) ?? 'unknown';
   }
+
+  Future<void> startBackgroundDownload(DarbUpdateInfo info) async {
+    await _channel.invokeMethod<int>('startBackgroundDownload', {
+      'url': info.apkUrl,
+      'sha256': info.sha256,
+      'versionCode': info.versionCode,
+    });
+  }
+
+  Future<Map<String, dynamic>> backgroundDownloadState() async {
+    final value = await _channel.invokeMapMethod<String, dynamic>('getBackgroundDownloadState');
+    return value ?? <String, dynamic>{'status': 'idle', 'progress': 0};
+  }
+
+  Future<String> installBackgroundUpdate() async {
+    return await _channel.invokeMethod<String>('installBackgroundUpdate') ?? 'unknown';
+  }
 }
 
 class DarbUpdateDialog extends StatefulWidget {
@@ -221,15 +238,69 @@ class DarbUpdateDialog extends StatefulWidget {
 
 class _DarbUpdateDialogState extends State<DarbUpdateDialog> {
   bool _busy = false;
+  bool _backgroundReady = false;
+  Timer? _backgroundPoll;
   String? _error;
-  bool get _downloaded => DarbUpdater.instance.downloadedApkPath != null &&
-      File(DarbUpdater.instance.downloadedApkPath!).existsSync();
+  bool get _downloaded => _backgroundReady || (DarbUpdater.instance.downloadedApkPath != null &&
+      File(DarbUpdater.instance.downloadedApkPath!).existsSync());
+
+  @override
+  void initState() {
+    super.initState();
+    _restoreBackgroundState();
+  }
+
+  @override
+  void dispose() {
+    _backgroundPoll?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _restoreBackgroundState() async {
+    try {
+      final state = await DarbUpdater.instance.backgroundDownloadState();
+      if (!mounted) return;
+      final status = state['status']?.toString();
+      if (status == 'ready') {
+        setState(() => _backgroundReady = true);
+      } else if (status == 'downloading') {
+        _watchBackgroundDownload();
+      } else if (status == 'failed') {
+        setState(() => _error = '${dt('فشل التنزيل')}: ${state['error'] ?? ''}');
+      }
+    } catch (error) {
+      debugPrint('[DARB_UPDATE][restore] $error');
+    }
+  }
+
+  void _watchBackgroundDownload() {
+    _backgroundPoll?.cancel();
+    _backgroundPoll = Timer.periodic(const Duration(seconds: 2), (_) async {
+      try {
+        final state = await DarbUpdater.instance.backgroundDownloadState();
+        final status = state['status']?.toString();
+        final progress = (state['progress'] as num?)?.toDouble() ?? 0;
+        DarbUpdater.instance.downloadProgress.value = progress / 100;
+        if (!mounted) return;
+        if (status == 'ready') {
+          _backgroundPoll?.cancel();
+          setState(() { _backgroundReady = true; _error = null; });
+        } else if (status == 'failed') {
+          _backgroundPoll?.cancel();
+          setState(() => _error = '${dt('فشل التنزيل')}: ${state['error'] ?? ''}');
+        }
+      } catch (error) {
+        debugPrint('[DARB_UPDATE][poll] $error');
+      }
+    });
+  }
 
   Future<void> _download() async {
     setState(() { _busy = true; _error = null; });
     try {
-      await DarbUpdater.instance.downloadUpdate(widget.info);
-      if (mounted) setState(() {});
+      await DarbUpdater.instance.startBackgroundDownload(widget.info);
+      if (mounted) setState(() => _error = dt('سيستمر التنزيل في الخلفية ويمكنك إغلاق التطبيق'));
+      _watchBackgroundDownload();
     } catch (error, stackTrace) {
       debugPrint('[DARB_UPDATE][download_ui] $error\\n$stackTrace');
       if (mounted) setState(() => _error = '${dt('فشل تنزيل التحديث')}: $error');
@@ -241,7 +312,9 @@ class _DarbUpdateDialogState extends State<DarbUpdateDialog> {
   Future<void> _install() async {
     setState(() { _busy = true; _error = null; });
     try {
-      final result = await DarbUpdater.instance.installDownloadedApk();
+      final result = _backgroundReady
+          ? await DarbUpdater.instance.installBackgroundUpdate()
+          : await DarbUpdater.instance.installDownloadedApk();
       if (result == 'permission_required') {
         if (mounted) setState(() => _error = dt('اسمح لدَرْب بتثبيت التحديثات من إعدادات أندرويد ثم ارجع واضغط تثبيت'));
       }
@@ -307,7 +380,7 @@ class _DarbUpdateDialogState extends State<DarbUpdateDialog> {
         TextButton(onPressed: _busy ? null : () => Navigator.pop(context), child: Text(dt('لاحقاً'))),
         FilledButton(
           onPressed: _busy ? null : (_downloaded ? _install : _download),
-          child: Text(_busy ? dt('جارٍ تنزيل التحديث') : (_downloaded ? dt('تثبيت التحديث') : dt('تحديث الآن'))),
+          child: Text(_busy ? dt('جارٍ تجهيز التحديث') : (_downloaded ? dt('تثبيت التحديث') : dt('تنزيل التحديث'))),
         ),
       ],
     );
