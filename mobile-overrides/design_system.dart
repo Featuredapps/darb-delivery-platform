@@ -6,21 +6,24 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Shared visual language for DARB. Keep product screens on these tokens.
 abstract final class DarbColors {
-  static const forest = Color(0xFF102B26);
-  static const forestSoft = Color(0xFF1C443B);
-  static const mint = Color(0xFFB9E4D2);
-  static const lime = Color(0xFFC8F169);
-  static const canvas = Color(0xFFF5F6F2);
-  static const surface = Color(0xFFFFFFFF);
-  static const ink = Color(0xFF17231F);
-  static const muted = Color(0xFF77837D);
-  static const line = Color(0xFFE4E9E3);
-  static const danger = Color(0xFFB94747);
-  static const success = Color(0xFF287A50);
-  static const warning = Color(0xFFB7791F);
-  static const info = Color(0xFF356D9A);
-  static const borderStrong = Color(0xFFCBD5CE);
-  static const scrim = Color(0x990B1713);
+  static bool get _dark => DarbTheme.brightness.value == Brightness.dark;
+
+  // Brand anchors remain stable; semantic surfaces and foregrounds adapt.
+  static Color get forest => const Color(0xFF102B26);
+  static Color get forestSoft => const Color(0xFF1C443B);
+  static Color get mint => const Color(0xFFB9E4D2);
+  static Color get lime => const Color(0xFFC8F169);
+  static Color get canvas => _dark ? const Color(0xFF0B1512) : const Color(0xFFF5F6F2);
+  static Color get surface => _dark ? const Color(0xFF13221D) : const Color(0xFFFFFFFF);
+  static Color get ink => _dark ? const Color(0xFFF1F5F1) : const Color(0xFF17231F);
+  static Color get muted => _dark ? const Color(0xFFA4B2AA) : const Color(0xFF77837D);
+  static Color get line => _dark ? const Color(0xFF2A3B33) : const Color(0xFFE4E9E3);
+  static Color get danger => _dark ? const Color(0xFFE47777) : const Color(0xFFB94747);
+  static Color get success => _dark ? const Color(0xFF75C99A) : const Color(0xFF287A50);
+  static Color get warning => _dark ? const Color(0xFFE5B968) : const Color(0xFFB7791F);
+  static Color get info => _dark ? const Color(0xFF83B8E0) : const Color(0xFF356D9A);
+  static Color get borderStrong => _dark ? const Color(0xFF40534A) : const Color(0xFFCBD5CE);
+  static Color get scrim => _dark ? const Color(0xB8000000) : const Color(0x990B1713);
 }
 
 abstract final class DarbSpace {
@@ -212,6 +215,11 @@ abstract final class DarbTheme {
   static const _storage = FlutterSecureStorage();
   static const _modeKey = 'darb_theme_mode';
   static final ValueNotifier<ThemeMode> mode = ValueNotifier(ThemeMode.system);
+  static final ValueNotifier<Brightness> brightness = ValueNotifier(Brightness.light);
+
+  static void updateBrightness(Brightness value) {
+    if (brightness.value != value) brightness.value = value;
+  }
 
   static Future<void> restoreMode() async {
     try {
