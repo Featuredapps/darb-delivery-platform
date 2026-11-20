@@ -64,6 +64,18 @@ class AppLocalizations {
   }
 
   static const Map<String, String> _sourceValues = {
+    "طلب": "Order|Sipariş",
+    "رقم الطلب": "Order number|Sipariş numarası",
+    "الحالة": "Status|Durum",
+    "بانتظار عروض السائقين": "Waiting for driver offers|Kurye teklifleri bekleniyor",
+    "بانتظار التأكيد": "Awaiting confirmation|Onay bekleniyor",
+    "تم قبول الطلب": "Order accepted|Sipariş kabul edildi",
+    "قيد التحضير": "Preparing|Hazırlanıyor",
+    "جاهز للاستلام": "Ready for pickup|Teslim almaya hazır",
+    "تم تعيين سائق": "Driver assigned|Kurye atandı",
+    "تم استلام الطلب": "Order picked up|Sipariş teslim alındı",
+    "تم التسليم": "Delivered|Teslim edildi",
+    "ملغي": "Cancelled|İptal edildi",
     "كل طريق يبدأ بخطوة": "Every journey starts with a step|Her yolculuk bir adımla başlar",
     "طلبات المتاجر": "Store orders|Mağaza siparişleri",
     "طلبات السائقين": "Driver applications|Kurye başvuruları",
