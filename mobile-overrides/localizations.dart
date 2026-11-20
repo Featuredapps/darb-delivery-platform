@@ -64,6 +64,10 @@ class AppLocalizations {
   }
 
   static const Map<String, String> _sourceValues = {
+    'مظهر التطبيق': 'Appearance|Görünüm',
+    'حسب الجهاز': 'System default|Sistem varsayılanı',
+    'نهاري': 'Light|Açık',
+    'ليلي': 'Dark|Koyu',
     'إضافة عنوان توصيل': 'Add delivery address|Teslimat adresi ekle',
     'اسم العنوان طويل جداً': 'Address name is too long|Adres adı çok uzun',
     'أدخل تفاصيل العنوان': 'Enter the address details|Adres ayrıntılarını girin',
