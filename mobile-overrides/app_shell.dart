@@ -18,7 +18,7 @@ part 'account_screens.dart';
 part 'account_pages.dart';
 
 class AppShell extends StatefulWidget {
-  const AppShell({super.key});
+  AppShell({super.key});
   @override
   State<AppShell> createState() => _AppShellState();
 }
@@ -60,7 +60,7 @@ class _AppShellState extends State<AppShell> {
     await Api.instance.clear();
     if (mounted) {
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        MaterialPageRoute(builder: (_) => LoginScreen()),
         (_) => false,
       );
     }
@@ -69,7 +69,7 @@ class _AppShellState extends State<AppShell> {
   @override
   Widget build(BuildContext context) {
     if (loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     if (error != null) {
       return Scaffold(
@@ -79,14 +79,14 @@ class _AppShellState extends State<AppShell> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.cloud_off_rounded, size: 42, color: DarbColors.muted),
-                const SizedBox(height: 14),
+                Icon(Icons.cloud_off_rounded, size: 42, color: DarbColors.muted),
+                SizedBox(height: 14),
                 Text(dt('تعذر تحميل حسابك'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-                const SizedBox(height: 6),
-                Text(error!, textAlign: TextAlign.center, style: const TextStyle(color: DarbColors.muted)),
-                const SizedBox(height: 18),
+                SizedBox(height: 6),
+                Text(error!, textAlign: TextAlign.center, style: TextStyle(color: DarbColors.muted)),
+                SizedBox(height: 18),
                 FilledButton(onPressed: loading ? null : _load, child: Text(dt('إعادة المحاولة'))),
-                const SizedBox(height: 10),
+                SizedBox(height: 10),
                 Text(dt('حسابك محفوظ. لن يتم تسجيل خروجك بسبب تعذر الاتصال.'),
                   textAlign: TextAlign.center,
                   style: TextStyle(color: DarbColors.muted, fontSize: 12),
@@ -109,12 +109,12 @@ class _AppShellState extends State<AppShell> {
                 ? ['طلبات المتجر', 'المنتجات', 'حسابي']
                 : ['الطلبات المتاحة', 'توصيلاتي', 'حسابي'];
     final pages = isAdmin
-        ? [const AdminQueue(kind: 'vendors'), const AdminQueue(kind: 'drivers'), const AdminDeliveryZones(), AccountPage(me: me, onLogout: _logout)]
+        ? [AdminQueue(kind: 'vendors'), AdminQueue(kind: 'drivers'), AdminDeliveryZones(), AccountPage(me: me, onLogout: _logout)]
         : isCustomer
-            ? [const CustomerHome(), const CustomerOrders(), AccountPage(me: me, onLogout: _logout)]
+            ? [CustomerHome(), CustomerOrders(), AccountPage(me: me, onLogout: _logout)]
             : isVendor
-                ? [const VendorOrders(), const VendorProducts(), AccountPage(me: me, onLogout: _logout)]
-                : [const DriverAvailable(), const DriverOrders(), AccountPage(me: me, onLogout: _logout)];
+                ? [VendorOrders(), VendorProducts(), AccountPage(me: me, onLogout: _logout)]
+                : [DriverAvailable(), DriverOrders(), AccountPage(me: me, onLogout: _logout)];
     final icons = isAdmin
         ? [Icons.storefront_outlined, Icons.delivery_dining_rounded, Icons.payments_outlined, Icons.person_outline_rounded]
         : isCustomer
@@ -133,18 +133,18 @@ class _AppShellState extends State<AppShell> {
               height: 38,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [DarbColors.forestSoft, DarbColors.forest]),
+                gradient: LinearGradient(colors: [DarbColors.forestSoft, DarbColors.forest]),
                 borderRadius: BorderRadius.circular(13),
               ),
               child: Text(dt('د'), style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 23)),
             ),
-            const SizedBox(width: 11),
+            SizedBox(width: 11),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(dt('دَرْب'), style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, height: 1.1)),
-                Text(titles[tab], style: const TextStyle(color: DarbColors.muted, fontSize: 11, fontWeight: FontWeight.w600)),
+                Text(titles[tab], style: TextStyle(color: DarbColors.muted, fontSize: 11, fontWeight: FontWeight.w600)),
               ],
             ),
           ],
@@ -153,19 +153,19 @@ class _AppShellState extends State<AppShell> {
           IconButton(
             tooltip: dt('تحديث'),
             onPressed: () { setState(() => loading = true); _load(); },
-            icon: const Icon(Icons.refresh_rounded),
+            icon: Icon(Icons.refresh_rounded),
           ),
-          const SizedBox(width: 6),
+          SizedBox(width: 6),
         ],
       ),
       body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 260),
+        duration: Duration(milliseconds: 260),
         switchInCurve: Curves.easeOutCubic,
         switchOutCurve: Curves.easeInCubic,
         transitionBuilder: (child, animation) => FadeTransition(
           opacity: animation,
           child: SlideTransition(
-            position: Tween<Offset>(begin: const Offset(0, .025), end: Offset.zero).animate(animation),
+            position: Tween<Offset>(begin: Offset(0, .025), end: Offset.zero).animate(animation),
             child: child,
           ),
         ),
