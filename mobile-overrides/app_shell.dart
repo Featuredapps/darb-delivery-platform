@@ -55,6 +55,10 @@ class _AppShellState extends State<AppShell> {
       }
       error = null;
     } catch (e) {
+      if (Api.instance.sessionInvalidated) {
+        await _logout();
+        return;
+      }
       error = e.toString();
     } finally {
       if (mounted) setState(() => loading = false);
