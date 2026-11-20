@@ -4,7 +4,7 @@ class AccountPage extends StatefulWidget {
   final Map<String, dynamic>? me;
   final VoidCallback onLogout;
 
-  AccountPage({
+  const AccountPage({
     super.key,
     required this.me,
     required this.onLogout,
@@ -889,7 +889,7 @@ class _AccountPageState extends State<AccountPage> {
 class _EmptyPanel extends StatelessWidget {
   final String text;
 
-  _EmptyPanel({required this.text});
+  const _EmptyPanel({required this.text});
 
   @override
   Widget build(BuildContext context) => Container(
@@ -910,7 +910,7 @@ class _ErrorPanel extends StatelessWidget {
   final String message;
   final Future<void> Function() retry;
 
-  _ErrorPanel({
+  const _ErrorPanel({
     required this.message,
     required this.retry,
   });
