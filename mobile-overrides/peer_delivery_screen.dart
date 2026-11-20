@@ -2,7 +2,7 @@ part of 'app_shell.dart';
 
 class PeerDeliveryScreen extends StatefulWidget {
   final String cityId;
-  const PeerDeliveryScreen({super.key, required this.cityId});
+  PeerDeliveryScreen({super.key, required this.cityId});
 
   @override
   State<PeerDeliveryScreen> createState() => _PeerDeliveryScreenState();
@@ -70,7 +70,7 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
       throw Exception('يلزم السماح بالوصول إلى الموقع');
     }
     return Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(
+      locationSettings: LocationSettings(
         accuracy: LocationAccuracy.high,
         timeLimit: Duration(seconds: 20),
       ),
@@ -108,7 +108,7 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
                   controller: label,
                   decoration: InputDecoration(labelText: dt('اسم العنوان')),
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: 10),
                 TextField(
                   controller: details,
                   maxLines: 2,
@@ -117,7 +117,7 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
                     hintText: dt('الحي، الشارع، البناء، أقرب نقطة دالة'),
                   ),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 OutlinedButton.icon(
                   onPressed: locatingAddress ? null : () async {
                     setDialogState(() { locatingAddress = true; dialogError = null; });
@@ -141,8 +141,8 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
                     style: TextStyle(color: DarbColors.forest, fontSize: 12),
                   ),
                 if (dialogError != null)
-                  Text(dialogError!, style: const TextStyle(color: DarbColors.danger)),
-                const SizedBox(height: 6),
+                  Text(dialogError!, style: TextStyle(color: DarbColors.danger)),
+                SizedBox(height: 6),
                 Text(dt('يجب تحديد الموقع وأنت موجود في مكان التسليم نفسه.'),
                   style: TextStyle(color: DarbColors.muted, fontSize: 12),
                 ),
@@ -278,14 +278,14 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
         context: context,
         barrierDismissible: false,
         builder: (dialogContext) => AlertDialog(
-          icon: const Icon(Icons.check_circle, color: DarbColors.forest, size: 42),
+          icon: Icon(Icons.check_circle, color: DarbColors.forest, size: 42),
           title: Text(dt('تم إرسال طلبك')),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('رقم الطلب: ${order['orderNumber'] ?? order['id']}'),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               Text(dt('سيظهر طلبك للسائقين المتاحين في مدينتك. سيقدم كل سائق أجرته، ويمكنك مقارنة العروض واختيار الأنسب قبل تأكيد التوصيل.')),
             ],
           ),
@@ -313,20 +313,20 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
           children: [
             Text(
               'الخطوة ${step + 1} من 3',
-              style: const TextStyle(color: DarbColors.muted, fontSize: 12, fontWeight: FontWeight.w700),
+              style: TextStyle(color: DarbColors.muted, fontSize: 12, fontWeight: FontWeight.w700),
             ),
-            const Spacer(),
+            Spacer(),
             Text(
               _stepTitles[step],
-              style: const TextStyle(color: DarbColors.forest, fontSize: 13, fontWeight: FontWeight.w800),
+              style: TextStyle(color: DarbColors.forest, fontSize: 13, fontWeight: FontWeight.w800),
             ),
           ],
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: 10),
         Row(
           children: List.generate(3, (index) => Expanded(
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 260),
+              duration: Duration(milliseconds: 260),
               height: 5,
               margin: EdgeInsetsDirectional.only(end: index == 2 ? 0 : 6),
               decoration: BoxDecoration(
@@ -346,9 +346,9 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(dt('من أين نستلم؟'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: DarbColors.ink)),
-        const SizedBox(height: 6),
+        SizedBox(height: 6),
         Text(dt('حدد مكان وجود الغرض حتى يصل السائق إليك.'), style: TextStyle(color: DarbColors.muted)),
-        const SizedBox(height: 18),
+        SizedBox(height: 18),
         TextField(
           controller: pickup,
           maxLines: 2,
@@ -359,11 +359,11 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
             prefixIcon: Icon(Icons.inventory_2_outlined),
           ),
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: 10),
         OutlinedButton.icon(
           onPressed: locating ? null : _locatePickup,
           icon: locating
-              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+              ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
               : Icon(pickupPosition == null ? Icons.my_location : Icons.check_circle),
           label: Text(
             locating ? 'جارٍ تحديد الموقع...' : pickupPosition == null ? 'استخدام موقعي الحالي' : 'تم تحديد موقع الاستلام',
@@ -374,16 +374,16 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
             padding: const EdgeInsets.only(top: 6),
             child: Text(
               'تم تحديد الموقع بدقة: ${pickupPosition!.latitude.toStringAsFixed(4)}, ${pickupPosition!.longitude.toStringAsFixed(4)}',
-              style: const TextStyle(color: DarbColors.muted, fontSize: 11),
+              style: TextStyle(color: DarbColors.muted, fontSize: 11),
             ),
           ),
-        const SizedBox(height: 24),
+        SizedBox(height: 24),
         Row(
           children: [
-            const Expanded(child: Text(dt('إلى أين نوصّل؟'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900))),
+            Expanded(child: Text(dt('إلى أين نوصّل؟'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900))),
             TextButton.icon(
               onPressed: savingAddress ? null : _addAddress,
-              icon: const Icon(Icons.add_location_alt_outlined),
+              icon: Icon(Icons.add_location_alt_outlined),
               label: Text(dt('إضافة عنوان')),
             ),
           ],
@@ -418,7 +418,7 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
             onChanged: (value) => setState(() => addressId = value),
           ),
         if (selected != null && selected['hasLocation'] != true)
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(top: 8),
             child: Text(dt('هذا العنوان لا يحتوي على موقع. أضف عنواناً جديداً وحدد موقعه.'), style: TextStyle(color: DarbColors.danger, fontSize: 12)),
           ),
@@ -431,9 +431,9 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(dt('ماذا تريد إرسال؟'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: DarbColors.ink)),
-        const SizedBox(height: 6),
+        SizedBox(height: 6),
         Text(dt('أخبر السائق بنوع الغرض وحجمه بشكل واضح.'), style: TextStyle(color: DarbColors.muted)),
-        const SizedBox(height: 20),
+        SizedBox(height: 20),
         TextField(
           controller: itemType,
           textInputAction: TextInputAction.next,
@@ -443,7 +443,7 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
             prefixIcon: Icon(Icons.category_outlined),
           ),
         ),
-        const SizedBox(height: 14),
+        SizedBox(height: 14),
         TextField(
           controller: itemDescription,
           minLines: 3,
@@ -454,7 +454,7 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
             alignLabelWithHint: true,
           ),
         ),
-        const SizedBox(height: 14),
+        SizedBox(height: 14),
         TextField(
           controller: driverInstructions,
           minLines: 2,
@@ -476,14 +476,14 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, color: DarbColors.forest, size: 21),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(color: DarbColors.muted, fontSize: 12)),
-                const SizedBox(height: 3),
-                Text(value, style: const TextStyle(color: DarbColors.ink, fontSize: 14, fontWeight: FontWeight.w700)),
+                Text(title, style: TextStyle(color: DarbColors.muted, fontSize: 12)),
+                SizedBox(height: 3),
+                Text(value, style: TextStyle(color: DarbColors.ink, fontSize: 14, fontWeight: FontWeight.w700)),
               ],
             ),
           ),
@@ -497,9 +497,9 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(dt('راجع طلبك'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: DarbColors.ink)),
-        const SizedBox(height: 6),
+        SizedBox(height: 6),
         Text(dt('تأكد من التفاصيل قبل إرسال الطلب للسائقين.'), style: TextStyle(color: DarbColors.muted)),
-        const SizedBox(height: 18),
+        SizedBox(height: 18),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
@@ -510,27 +510,27 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
           child: Column(
             children: [
               _summaryRow(Icons.trip_origin, 'موقع الاستلام', pickup.text.trim()),
-              const Divider(height: 1),
+              Divider(height: 1),
               _summaryRow(Icons.location_on_outlined, 'عنوان التسليم', _addressLabel(_selectedAddress)),
-              const Divider(height: 1),
+              Divider(height: 1),
               _summaryRow(Icons.inventory_2_outlined, 'نوع الغرض', itemType.text.trim()),
-              const Divider(height: 1),
+              Divider(height: 1),
               _summaryRow(Icons.description_outlined, 'الوصف', itemDescription.text.trim()),
               if (driverInstructions.text.trim().isNotEmpty) ...[
-                const Divider(height: 1),
+                Divider(height: 1),
                 _summaryRow(Icons.notes_rounded, 'تعليمات السائق', driverInstructions.text.trim()),
               ],
             ],
           ),
         ),
-        const SizedBox(height: 14),
+        SizedBox(height: 14),
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: DarbColors.mint.withValues(alpha: .35),
             borderRadius: BorderRadius.circular(16),
           ),
-          child: const Row(
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(Icons.payments_outlined, color: DarbColors.forest),
@@ -555,11 +555,11 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
         leading: IconButton(
           tooltip: dt('رجوع'),
           onPressed: _back,
-          icon: const Icon(Icons.arrow_back_rounded),
+          icon: Icon(Icons.arrow_back_rounded),
         ),
       ),
       body: loading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator())
           : SafeArea(
               child: Column(
                 children: [
@@ -568,9 +568,9 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
                       padding: const EdgeInsets.fromLTRB(20, 12, 20, 18),
                       children: [
                         _progressHeader(),
-                        const SizedBox(height: 28),
+                        SizedBox(height: 28),
                         AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 280),
+                          duration: Duration(milliseconds: 280),
                           switchInCurve: Curves.easeOutCubic,
                           switchOutCurve: Curves.easeInCubic,
                           child: KeyedSubtree(
@@ -579,7 +579,7 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
                           ),
                         ),
                         if (error != null) ...[
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
@@ -589,9 +589,9 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Icon(Icons.error_outline, color: DarbColors.danger, size: 20),
-                                const SizedBox(width: 8),
-                                Expanded(child: Text(error!, style: const TextStyle(color: DarbColors.danger, fontSize: 12))),
+                                Icon(Icons.error_outline, color: DarbColors.danger, size: 20),
+                                SizedBox(width: 8),
+                                Expanded(child: Text(error!, style: TextStyle(color: DarbColors.danger, fontSize: 12))),
                               ],
                             ),
                           ),
@@ -601,7 +601,7 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
                   ),
                   Container(
                     padding: const EdgeInsets.fromLTRB(20, 12, 20, 18),
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: DarbColors.surface,
                       border: Border(top: BorderSide(color: DarbColors.line)),
                     ),
@@ -614,7 +614,7 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
                               child: Text(dt('السابق')),
                             ),
                           ),
-                          const SizedBox(width: 10),
+                          SizedBox(width: 10),
                         ],
                         Expanded(
                           flex: step == 0 ? 1 : 2,
@@ -623,7 +623,7 @@ class _PeerDeliveryScreenState extends State<PeerDeliveryScreen> {
                                 ? null
                                 : step == 2 ? _submit : _next,
                             child: sending
-                                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                                 : Text(step == 2 ? 'تأكيد وإرسال الطلب' : 'متابعة'),
                           ),
                         ),
