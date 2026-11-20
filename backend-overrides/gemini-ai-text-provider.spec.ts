@@ -39,8 +39,11 @@ describe('GeminiAiTextProvider', () => {
     const [url, options] = fetchMock.mock.calls[0];
     expect(url).toContain('/v1beta/models/gemini-3.8-flash:generateContent');
     expect(options.headers['x-goog-api-key']).toBe('test-gemini-key');
-    expect(options.body).toContain('"activeOrders":2');
-    expect(options.body).toContain('كم طلباً لدي؟');
+    const requestBody = JSON.parse(options.body);
+    const systemInstruction = requestBody.systemInstruction.parts[0].text as string;
+    const userMessage = requestBody.contents[0].parts[0].text as string;
+    expect(systemInstruction).toContain('"activeOrders":2');
+    expect(userMessage).toBe('كم طلباً لدي؟');
   });
 
   it('fails closed when the API key is missing', async () => {
