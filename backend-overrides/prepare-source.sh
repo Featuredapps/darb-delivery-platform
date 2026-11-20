@@ -4,6 +4,9 @@ ROOT="${1:?source root required}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MIGRATION_DIR="$ROOT/backend/prisma/migrations/20261119120000_delivery_offers"
 mkdir -p "$MIGRATION_DIR"
+AI_MIGRATION_DIR="$ROOT/backend/prisma/migrations/20261120120000_ai_order_assistant"
+mkdir -p "$AI_MIGRATION_DIR"
+cp "$SCRIPT_DIR/ai-order-assistant.migration.sql" "$AI_MIGRATION_DIR/migration.sql"
 cp "$SCRIPT_DIR/delivery-offers.migration.sql" "$MIGRATION_DIR/migration.sql"
 python3 - "$ROOT" <<'PY'
 from pathlib import Path
