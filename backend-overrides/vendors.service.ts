@@ -26,11 +26,11 @@ export class VendorsService {
   list(cityId?: string, locale = 'ar') {
     return this.prisma.vendor.findMany({ where: { status: 'APPROVED', ...(cityId ? { cities: { some: { cityId } } } : {}) },
       orderBy: [{ ratingAvg: 'desc' }, { createdAt: 'desc' }],
-      select: { id: true, type: true, ratingAvg: true, translations: { where: { locale: locale as any }, take: 1 }, location: { select: { address: true, cityId: true } }, _count: { select: { products: true } } } });
+      select: { id: true, type: true, ratingAvg: true, translations: { where: { locale: { in: [locale, 'ar'] } as any } }, location: { select: { address: true, cityId: true } }, _count: { select: { products: true } } } });
   }
   async get(id: string, locale = 'ar') {
     const vendor = await this.prisma.vendor.findFirst({ where: { id, status: 'APPROVED' },
-      select: { id: true, type: true, ratingAvg: true, translations: { where: { locale: locale as any }, take: 1 }, location: { select: { address: true, cityId: true } }, cities: { select: { city: { select: { id: true, code: true, names: true } } } } } });
+      select: { id: true, type: true, ratingAvg: true, translations: { where: { locale: { in: [locale, 'ar'] } as any } }, location: { select: { address: true, cityId: true } }, cities: { select: { city: { select: { id: true, code: true, names: true } } } } } });
     if (!vendor) throw new NotFoundException('المتجر غير موجود');
     return vendor;
   }
