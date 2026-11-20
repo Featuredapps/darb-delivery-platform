@@ -171,7 +171,7 @@ class _CustomerHomeState extends State<CustomerHome> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Material(
-        color: Colors.white,
+        color: DarbColors.surface,
         borderRadius: BorderRadius.circular(19),
         child: InkWell(
           borderRadius: BorderRadius.circular(19),
@@ -315,13 +315,13 @@ class _CustomerHomeState extends State<CustomerHome> {
                       Icon(Icons.route_rounded, color: Color(0xFFC8F169), size: 14),
                       SizedBox(width: 6),
                       Text(dt('خدمة التوصيل المستقل'),
-                        style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800)),
+                        style: TextStyle(color: DarbColors.surface, fontSize: 10, fontWeight: FontWeight.w800)),
                     ]),
                   ),
                   SizedBox(height: 17),
                   Text(dt('من بابك إلى وجهتك،\\nدَرْب يتولى الطريق.'),
                     style: TextStyle(
-                      color: Colors.white, fontSize: 27, height: 1.22,
+                      color: DarbColors.surface, fontSize: 27, height: 1.22,
                       fontWeight: FontWeight.w900, letterSpacing: -.35,
                     )),
                   SizedBox(height: 8),
@@ -410,7 +410,7 @@ class _CustomerHomeState extends State<CustomerHome> {
               child: Container(
                 height: 78,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: DarbColors.surface,
                   borderRadius: BorderRadius.circular(19),
                   border: Border.all(color: DarbColors.line),
                 ),
@@ -423,7 +423,7 @@ class _CustomerHomeState extends State<CustomerHome> {
             Container(
               padding: const EdgeInsets.fromLTRB(20, 24, 20, 22),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: DarbColors.surface,
                 borderRadius: BorderRadius.circular(21),
                 border: Border.all(color: DarbColors.line),
               ),
