@@ -65,7 +65,7 @@ class _CustomerHomeState extends State<CustomerHome> {
   void _openPeerDelivery() {
     if (cityId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('لا توجد مدينة مفعّلة لخدمة التوصيل حالياً')),
+        const SnackBar(content: Text(dt('لا توجد مدينة مفعّلة لخدمة التوصيل حالياً'))),
       );
       return;
     }
@@ -182,7 +182,7 @@ class _CustomerHomeState extends State<CustomerHome> {
                   Text(name, maxLines: 1, overflow: TextOverflow.ellipsis,
                     style: const TextStyle(color: ink, fontSize: 14, fontWeight: FontWeight.w900)),
                   const SizedBox(height: 5),
-                  Text('$count منتج متاح',
+                  Text(dt('$count منتج متاح'),
                     style: const TextStyle(color: DarbColors.muted, fontSize: 11)),
                 ],
               )),
@@ -221,7 +221,7 @@ class _CustomerHomeState extends State<CustomerHome> {
             Expanded(child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('موقع التوصيل', style: TextStyle(color: DarbColors.muted, fontSize: 10)),
+                Text(dt('موقع التوصيل'), style: TextStyle(color: DarbColors.muted, fontSize: 10)),
                 const SizedBox(height: 2),
                 if (cities.isNotEmpty)
                   DropdownButtonHideUnderline(
@@ -240,11 +240,11 @@ class _CustomerHomeState extends State<CustomerHome> {
                     ),
                   )
                 else
-                  const Text('المدينة غير متاحة', style: TextStyle(color: ink, fontSize: 13, fontWeight: FontWeight.w800)),
+                  Text(dt('المدينة غير متاحة'), style: TextStyle(color: ink, fontSize: 13, fontWeight: FontWeight.w800)),
               ],
             )),
             IconButton(
-              tooltip: 'تحديث',
+              tooltip: dt('تحديث'),
               onPressed: _load,
               icon: const Icon(Icons.refresh_rounded, color: DarbColors.muted),
             ),
@@ -290,18 +290,18 @@ class _CustomerHomeState extends State<CustomerHome> {
                     child: const Row(mainAxisSize: MainAxisSize.min, children: [
                       Icon(Icons.route_rounded, color: Color(0xFFC8F169), size: 14),
                       SizedBox(width: 6),
-                      Text('توصيل من الباب إلى الباب',
+                      Text(dt('توصيل من الباب إلى الباب'),
                         style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800)),
                     ]),
                   ),
                   const SizedBox(height: 17),
-                  const Text('غرضك بأي مكان…\nودَرْب يوصّله.',
+                  Text(dt('غرضك بأي مكان…\\nودَرْب يوصّله.'),
                     style: TextStyle(
                       color: Colors.white, fontSize: 27, height: 1.22,
                       fontWeight: FontWeight.w900, letterSpacing: -.35,
                     )),
                   const SizedBox(height: 8),
-                  const Text('اطلب سائقاً ليستلم غرضك من موقعك ويوصله إلى العنوان الذي تختاره.',
+                  Text(dt('اطلب سائقاً ليستلم غرضك من موقعك ويوصله إلى العنوان الذي تختاره.'),
                     style: TextStyle(color: Color(0xFFD0DED7), fontSize: 12, height: 1.55)),
                   const SizedBox(height: 19),
                   SizedBox(
@@ -317,7 +317,7 @@ class _CustomerHomeState extends State<CustomerHome> {
                       child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                         Icon(Icons.near_me_rounded, size: 18),
                         SizedBox(width: 8),
-                        Text('اطلب توصيلاً الآن', style: TextStyle(fontWeight: FontWeight.w900)),
+                        Text(dt('اطلب توصيلاً الآن'), style: TextStyle(fontWeight: FontWeight.w900)),
                       ]),
                     ),
                   ),
@@ -325,7 +325,7 @@ class _CustomerHomeState extends State<CustomerHome> {
                   const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                     Icon(Icons.verified_user_outlined, color: Color(0xFFB9D4C5), size: 13),
                     SizedBox(width: 5),
-                    Text('تتابع حالة طلبك من داخل التطبيق',
+                    Text(dt('تتابع حالة طلبك من داخل التطبيق'),
                       style: TextStyle(color: Color(0xFFB9D4C5), fontSize: 10, fontWeight: FontWeight.w600)),
                   ]),
                 ]),
@@ -357,7 +357,7 @@ class _CustomerHomeState extends State<CustomerHome> {
             controller: search,
             textInputAction: TextInputAction.search,
             decoration: InputDecoration(
-              hintText: 'ابحث عن متجر أو نشاط...',
+              hintText: dt('ابحث عن متجر أو نشاط...'),
               prefixIcon: const Icon(Icons.search_rounded, color: green),
               suffixIcon: search.text.isEmpty ? null : IconButton(
                 onPressed: search.clear,
@@ -419,8 +419,7 @@ class _CustomerHomeState extends State<CustomerHome> {
                   style: const TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: 14),
                 ),
                 const SizedBox(height: 6),
-                const Text(
-                  'هذا لا يمنعك من استخدام دَرْب لإرسال غرضك بشكل مستقل.',
+                Text(dt('هذا لا يمنعك من استخدام دَرْب لإرسال غرضك بشكل مستقل.'),
                   textAlign: TextAlign.center,
                   style: TextStyle(color: DarbColors.muted, fontSize: 11, height: 1.5),
                 ),
@@ -428,7 +427,7 @@ class _CustomerHomeState extends State<CustomerHome> {
                 OutlinedButton.icon(
                   onPressed: _openPeerDelivery,
                   icon: const Icon(Icons.near_me_rounded, size: 17),
-                  label: const Text('إرسال غرض بدلاً من ذلك'),
+                  label: Text(dt('إرسال غرض بدلاً من ذلك')),
                 ),
               ]),
             )
