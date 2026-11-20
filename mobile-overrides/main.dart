@@ -183,7 +183,7 @@ class _DarbSplashScreenState extends State<DarbSplashScreen>
                               ),
                             ],
                           ),
-                          child: const Center(
+                          child: Center(
                             child: Text(
                               'د',
                               style: TextStyle(
@@ -223,7 +223,7 @@ class _DarbSplashScreenState extends State<DarbSplashScreen>
                     width: 116,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(20),
-                      child: const LinearProgressIndicator(
+                      child: LinearProgressIndicator(
                         minHeight: 3,
                         backgroundColor: Color(0x334FFFFF),
                         valueColor: AlwaysStoppedAnimation(DarbColors.lime),
@@ -241,7 +241,7 @@ class _DarbSplashScreenState extends State<DarbSplashScreen>
                     ),
                   ),
                   const SizedBox(height: 6),
-                  const Text(
+                  Text(
                     'anasgdxj',
                     style: TextStyle(
                       color: DarbColors.lime,
