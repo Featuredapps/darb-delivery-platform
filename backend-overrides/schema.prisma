@@ -213,6 +213,7 @@ model Product {
   translations ProductTranslation[]
   variants     ProductVariant[]
   orderItems   OrderItem[]
+  aiDraftItems AiOrderDraftItem[]
 
   @@index([vendorId, isAvailable])
 }
@@ -240,7 +241,6 @@ model ProductVariant {
 
   product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
   orderItems OrderItem[]
-  aiDraftItems AiOrderDraftItem[]
 }
 
 // ============ Addresses & Drivers ============
