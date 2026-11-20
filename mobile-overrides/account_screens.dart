@@ -37,6 +37,19 @@ class _AccountPageState extends State<AccountPage> {
     }
   }
 
+  Future<void> _openLanguageSettings() async {
+    final updated = await Navigator.of(context).push<Map<String, dynamic>>(
+      MaterialPageRoute(
+        builder: (_) => LanguageSelectionPage(
+          initialLocale: darbLocale.value.languageCode,
+        ),
+      ),
+    );
+    if (updated != null && mounted) {
+      setState(() => profile = Map<String, dynamic>.from(updated));
+    }
+  }
+
   Future<void> _edit() async {
     final name = TextEditingController(text: _name);
     var locale = profile?['locale']?.toString() ?? 'ar';
@@ -827,7 +840,7 @@ class _AccountPageState extends State<AccountPage> {
                   'tr' => 'Türkçe',
                   _ => 'العربية',
                 },
-                onTap: saving ? null : _edit,
+                onTap: saving ? null : _openLanguageSettings,
               ),
               const Divider(height: 1, indent: 72, endIndent: 16),
               _settingsTile(
