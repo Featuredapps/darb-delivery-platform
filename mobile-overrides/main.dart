@@ -14,6 +14,7 @@ const paper = DarbColors.canvas;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await DarbTheme.restoreMode();
   runApp(const DarbApp());
 }
 
@@ -23,7 +24,9 @@ class DarbApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ValueListenableBuilder<Locale>(
     valueListenable: darbLocale,
-    builder: (context, locale, _) => MaterialApp(
+    builder: (context, locale, _) => ValueListenableBuilder<ThemeMode>(
+      valueListenable: DarbTheme.mode,
+      builder: (context, themeMode, _) => MaterialApp(
       title: 'دَرْب',
       debugShowCheckedModeBanner: false,
       locale: locale,
@@ -35,7 +38,10 @@ class DarbApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       theme: DarbTheme.light,
+      darkTheme: DarbTheme.dark,
+      themeMode: themeMode,
       home: DarbLaunchGate(locale: locale),
+    ),
     ),
   );
 }
