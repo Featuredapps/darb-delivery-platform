@@ -49,6 +49,7 @@ jobs:
           cp mobile-overrides/vendor_screens.dart "$M/lib/screens/vendor_screens.dart"
           cp mobile-overrides/driver_screens.dart "$M/lib/screens/driver_screens.dart"
           cp mobile-overrides/account_screens.dart "$M/lib/screens/account_screens.dart"
+          cp mobile-overrides/account_pages.dart "$M/lib/screens/account_pages.dart"
           cp mobile-overrides/notifications.dart "$M/lib/notifications.dart"
           cp mobile-overrides/design_system_test.dart "$M/test/widget_test.dart"
           mkdir -p "$M/android/app/src/main/res/drawable"
