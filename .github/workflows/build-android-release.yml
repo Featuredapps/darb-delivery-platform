@@ -198,7 +198,9 @@ jobs:
             echo "::notice::No Flutter test files are present in this source archive; test execution skipped."
             echo "Flutter tests: skipped (no test files supplied)" >> "$GITHUB_STEP_SUMMARY"
           fi
-          BUILD_NUMBER=$((1000 + $(git rev-list --count HEAD)))
+          COMMIT_COUNT="$(git rev-list --count HEAD)"
+          BUILD_NUMBER=$((1000 + COMMIT_COUNT))
+          if [ "$BUILD_NUMBER" -le 32 ]; then BUILD_NUMBER=33; fi
           BUILD_NAME="1.0.$BUILD_NUMBER"
           flutter build apk "${args[@]}" --build-number "$BUILD_NUMBER" --build-name "$BUILD_NAME"
           APK="build/app/outputs/flutter-apk/app-release.apk"
