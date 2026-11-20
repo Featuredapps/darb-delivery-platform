@@ -28,9 +28,9 @@ Widget build(BuildContext context) {
             padding:const EdgeInsets.symmetric(horizontal:11,vertical:7),
             decoration:BoxDecoration(color:DarbColors.mint.withValues(alpha:.45),borderRadius:BorderRadius.circular(DarbRadius.pill)),
             child:Row(mainAxisSize:MainAxisSize.min,children:[
-              const Icon(Icons.shopping_bag_outlined,size:17,color:DarbColors.forest),
+              Icon(Icons.shopping_bag_outlined,size:17,color:DarbColors.forest),
               const SizedBox(width:6),
-              Text('$quantity',style:const TextStyle(fontWeight:FontWeight.w900,color:DarbColors.forest)),
+              Text('$quantity',style:TextStyle(fontWeight:FontWeight.w900,color:DarbColors.forest)),
             ]),
           )),
         ),
@@ -52,18 +52,18 @@ Widget build(BuildContext context) {
               Container(
                 padding:const EdgeInsets.all(16),
                 decoration:BoxDecoration(
-                  gradient:const LinearGradient(colors:[DarbColors.forestSoft,DarbColors.forest]),
+                  gradient:LinearGradient(colors:[DarbColors.forestSoft,DarbColors.forest]),
                   borderRadius:BorderRadius.circular(DarbRadius.xl),
                 ),
                 child:Row(children:[
-                  const Icon(Icons.storefront_rounded,color:DarbColors.lime,size:25),
+                  Icon(Icons.storefront_rounded,color:DarbColors.lime,size:25),
                   const SizedBox(width:11),
                   Expanded(child:Text(dt('منتجات المتجر'),style:const TextStyle(color:Colors.white,fontSize:17,fontWeight:FontWeight.w900))),
-                  Text('${products.length}',style:const TextStyle(color:DarbColors.lime,fontSize:14,fontWeight:FontWeight.w900)),
+                  Text('${products.length}',style:TextStyle(color:DarbColors.lime,fontSize:14,fontWeight:FontWeight.w900)),
                 ]),
               ),
               const SizedBox(height:15),
-              TextField(controller:search,textInputAction:TextInputAction.search,decoration:InputDecoration(hintText:dt('ابحث عن منتج...'),prefixIcon:const Icon(Icons.search_rounded,color:DarbColors.forest),suffixIcon:search.text.isEmpty?null:IconButton(onPressed:search.clear,icon:const Icon(Icons.close_rounded)))),
+              TextField(controller:search,textInputAction:TextInputAction.search,decoration:InputDecoration(hintText:dt('ابحث عن منتج...'),prefixIcon:Icon(Icons.search_rounded,color:DarbColors.forest),suffixIcon:search.text.isEmpty?null:IconButton(onPressed:search.clear,icon:const Icon(Icons.close_rounded)))),
               const SizedBox(height:13),
               if(visibleProducts.isEmpty)_EmptyPanel(text:query.isEmpty?dt('لا توجد منتجات متاحة'):dt('لم نعثر على منتجات مطابقة')),
               for(final product in visibleProducts)Card(
@@ -74,18 +74,18 @@ Widget build(BuildContext context) {
                     Container(
                       width:58,height:58,
                       decoration:BoxDecoration(color:DarbColors.canvas,borderRadius:BorderRadius.circular(16)),
-                      child:const Icon(Icons.inventory_2_outlined,color:DarbColors.forest,size:26),
+                      child:Icon(Icons.inventory_2_outlined,color:DarbColors.forest,size:26),
                     ),
                     const SizedBox(width:12),
                     Expanded(child:Column(
                       crossAxisAlignment:CrossAxisAlignment.start,
                       children:[
-                        Text(_productName(product),style:const TextStyle(fontWeight:FontWeight.w900,fontSize:14,color:DarbColors.ink)),
+                        Text(_productName(product),style:TextStyle(fontWeight:FontWeight.w900,fontSize:14,color:DarbColors.ink)),
                         const SizedBox(height:6),
-                        Text('${product['basePrice']} ${product['currency']}',style:const TextStyle(color:DarbColors.forest,fontWeight:FontWeight.w900,fontSize:13)),
+                        Text('${product['basePrice']} ${product['currency']}',style:TextStyle(color:DarbColors.forest,fontWeight:FontWeight.w900,fontSize:13)),
                       ],
                     )),
-                    Builder(builder:(context){final selected=cart[product['id'].toString()]?['quantity'] as int? ?? 0;return selected==0?IconButton.filledTonal(tooltip:dt('إضافة إلى السلة'),onPressed:()=>_add(product),icon:const Icon(Icons.add_rounded),style:IconButton.styleFrom(backgroundColor:DarbColors.mint.withValues(alpha:.55),foregroundColor:DarbColors.forest)):Container(padding:const EdgeInsets.symmetric(horizontal:3,vertical:4),decoration:BoxDecoration(color:DarbColors.canvas,borderRadius:BorderRadius.circular(DarbRadius.pill),border:Border.all(color:DarbColors.line)),child:Row(mainAxisSize:MainAxisSize.min,children:[IconButton(onPressed:()=>_changeQuantity(product,-1),icon:const Icon(Icons.remove_rounded),iconSize:17,constraints:const BoxConstraints.tightFor(width:30,height:30),padding:EdgeInsets.zero),Text('$selected',style:const TextStyle(fontWeight:FontWeight.w900,color:DarbColors.forest)),IconButton(onPressed:()=>_changeQuantity(product,1),icon:const Icon(Icons.add_rounded),iconSize:17,constraints:const BoxConstraints.tightFor(width:30,height:30),padding:EdgeInsets.zero)]));}),
+                    Builder(builder:(context){final selected=cart[product['id'].toString()]?['quantity'] as int? ?? 0;return selected==0?IconButton.filledTonal(tooltip:dt('إضافة إلى السلة'),onPressed:()=>_add(product),icon:const Icon(Icons.add_rounded),style:IconButton.styleFrom(backgroundColor:DarbColors.mint.withValues(alpha:.55),foregroundColor:DarbColors.forest)):Container(padding:const EdgeInsets.symmetric(horizontal:3,vertical:4),decoration:BoxDecoration(color:DarbColors.canvas,borderRadius:BorderRadius.circular(DarbRadius.pill),border:Border.all(color:DarbColors.line)),child:Row(mainAxisSize:MainAxisSize.min,children:[IconButton(onPressed:()=>_changeQuantity(product,-1),icon:const Icon(Icons.remove_rounded),iconSize:17,constraints:const BoxConstraints.tightFor(width:30,height:30),padding:EdgeInsets.zero),Text('$selected',style:TextStyle(fontWeight:FontWeight.w900,color:DarbColors.forest)),IconButton(onPressed:()=>_changeQuantity(product,1),icon:const Icon(Icons.add_rounded),iconSize:17,constraints:const BoxConstraints.tightFor(width:30,height:30),padding:EdgeInsets.zero)]));}),
                   ]),
                 ),
               ),
@@ -235,14 +235,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                   if (locationError != null) Padding(
                     padding: const EdgeInsets.only(top: 8),
-                    child: Text(locationError!, style: const TextStyle(color: DarbColors.danger, fontSize: 12)),
+                    child: Text(locationError!, style: TextStyle(color: DarbColors.danger, fontSize: 12)),
                   ),
                   if (latitude != null) Padding(
                     padding: const EdgeInsets.only(top: 8),
                     child: Row(children: [
-                      const Icon(Icons.verified_rounded, color: DarbColors.success, size: 16),
+                      Icon(Icons.verified_rounded, color: DarbColors.success, size: 16),
                       const SizedBox(width: 6),
-                      Expanded(child: Text(dt('سيتم حفظ إحداثيات هذا العنوان لحساب مسافة التوصيل'), style: const TextStyle(color: DarbColors.success, fontSize: 11))),
+                      Expanded(child: Text(dt('سيتم حفظ إحداثيات هذا العنوان لحساب مسافة التوصيل'), style: TextStyle(color: DarbColors.success, fontSize: 11))),
                     ]),
                   ),
                 ],
@@ -352,11 +352,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 Container(
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(colors: [DarbColors.forestSoft, DarbColors.forest]),
+                    gradient: LinearGradient(colors: [DarbColors.forestSoft, DarbColors.forest]),
                     borderRadius: BorderRadius.circular(DarbRadius.xl),
                   ),
                   child: Row(children: [
-                    const Icon(Icons.receipt_long_rounded, color: DarbColors.lime, size: 27),
+                    Icon(Icons.receipt_long_rounded, color: DarbColors.lime, size: 27),
                     const SizedBox(width: 12),
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Text(dt('مراجعة طلبك'), style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
@@ -366,7 +366,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ]),
                 ),
                 const SizedBox(height: 22),
-                Text(dt('ملخص السلة'), style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: DarbColors.ink)),
+                Text(dt('ملخص السلة'), style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: DarbColors.ink)),
                 const SizedBox(height: 10),
                 Card(child: Padding(
                   padding: const EdgeInsets.all(14),
@@ -374,28 +374,28 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     for (var index = 0; index < widget.items.length; index++) ...[
                       if (index > 0) const Divider(height: 18),
                       Row(children: [
-                        Container(width: 42, height: 42, decoration: BoxDecoration(color: DarbColors.canvas, borderRadius: BorderRadius.circular(13)), child: const Icon(Icons.inventory_2_outlined, color: DarbColors.forest)),
+                        Container(width: 42, height: 42, decoration: BoxDecoration(color: DarbColors.canvas, borderRadius: BorderRadius.circular(13)), child: Icon(Icons.inventory_2_outlined, color: DarbColors.forest)),
                         const SizedBox(width: 10),
                         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                           Text(widget.items[index]['name'].toString(), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
                           const SizedBox(height: 3),
-                          Text('${dt('الكمية')}: ${widget.items[index]['quantity']}', style: const TextStyle(color: DarbColors.muted, fontSize: 11)),
+                          Text('${dt('الكمية')}: ${widget.items[index]['quantity']}', style: TextStyle(color: DarbColors.muted, fontSize: 11)),
                         ])),
-                        Text('${widget.items[index]['price']} ${widget.items[index]['currency']}', style: const TextStyle(fontWeight: FontWeight.w900, color: DarbColors.forest)),
+                        Text('${widget.items[index]['price']} ${widget.items[index]['currency']}', style: TextStyle(fontWeight: FontWeight.w900, color: DarbColors.forest)),
                       ]),
                     ],
                     const Divider(height: 24),
                     Row(children: [
-                      Expanded(child: Text(dt('المجموع الفرعي التقريبي'), style: const TextStyle(color: DarbColors.muted, fontWeight: FontWeight.w700))),
-                      Text('$subtotal $currency', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: DarbColors.forest)),
+                      Expanded(child: Text(dt('المجموع الفرعي التقريبي'), style: TextStyle(color: DarbColors.muted, fontWeight: FontWeight.w700))),
+                      Text('$subtotal $currency', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: DarbColors.forest)),
                     ]),
                     const SizedBox(height: 7),
-                    Align(alignment: AlignmentDirectional.centerStart, child: Text(dt('السعر النهائي ورسوم التوصيل يؤكدهما الخادم عند إنشاء الطلب'), style: const TextStyle(color: DarbColors.muted, fontSize: 10))),
+                    Align(alignment: AlignmentDirectional.centerStart, child: Text(dt('السعر النهائي ورسوم التوصيل يؤكدهما الخادم عند إنشاء الطلب'), style: TextStyle(color: DarbColors.muted, fontSize: 10))),
                   ]),
                 )),
                 const SizedBox(height: 22),
                 Row(children: [
-                  Expanded(child: Text(dt('عنوان التوصيل'), style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: DarbColors.ink))),
+                  Expanded(child: Text(dt('عنوان التوصيل'), style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: DarbColors.ink))),
                   TextButton.icon(onPressed: addingAddress || sending ? null : _newAddress, icon: const Icon(Icons.add_location_alt_outlined, size: 17), label: Text(dt('إضافة عنوان'))),
                 ]),
                 Card(child: Padding(
@@ -449,7 +449,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ]),
                 ),
                 const SizedBox(height: 9),
-                Center(child: Text(dt('لن يتم تحصيل أي مبلغ إلكترونياً في هذه الخطوة'), style: const TextStyle(color: DarbColors.muted, fontSize: 10))),
+                Center(child: Text(dt('لن يتم تحصيل أي مبلغ إلكترونياً في هذه الخطوة'), style: TextStyle(color: DarbColors.muted, fontSize: 10))),
               ],
             ),
     );
@@ -475,19 +475,19 @@ class OrderCreatedScreen extends StatelessWidget {
           Container(
             width: 92, height: 92, alignment: Alignment.center,
             decoration: BoxDecoration(color: DarbColors.success.withValues(alpha: .10), shape: BoxShape.circle),
-            child: const Icon(Icons.check_rounded, color: DarbColors.success, size: 52),
+            child: Icon(Icons.check_rounded, color: DarbColors.success, size: 52),
           ),
           const SizedBox(height: 22),
-          Text(dt('تم إرسال طلبك بنجاح'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w900, color: DarbColors.ink)),
+          Text(dt('تم إرسال طلبك بنجاح'), textAlign: TextAlign.center, style: TextStyle(fontSize: 23, fontWeight: FontWeight.w900, color: DarbColors.ink)),
           const SizedBox(height: 8),
-          Text(dt('وصل طلبك إلى النظام، ويمكنك متابعة حالته من قسم طلباتي.'), textAlign: TextAlign.center, style: const TextStyle(color: DarbColors.muted, height: 1.5)),
+          Text(dt('وصل طلبك إلى النظام، ويمكنك متابعة حالته من قسم طلباتي.'), textAlign: TextAlign.center, style: TextStyle(color: DarbColors.muted, height: 1.5)),
           const SizedBox(height: 26),
           Card(child: Padding(
             padding: const EdgeInsets.all(18),
             child: Column(children: [
-              Text(dt('رقم الطلب'), style: const TextStyle(color: DarbColors.muted, fontSize: 12)),
+              Text(dt('رقم الطلب'), style: TextStyle(color: DarbColors.muted, fontSize: 12)),
               const SizedBox(height: 6),
-              SelectableText(orderNumber, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: DarbColors.forest)),
+              SelectableText(orderNumber, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: DarbColors.forest)),
               const Divider(height: 28),
               if (deliveryFee != null) _confirmationValue(context, dt('رسوم التوصيل'), '$deliveryFee $currency'),
               _confirmationValue(context, dt('الإجمالي عند الاستلام'), '$total $currency'),
@@ -502,7 +502,7 @@ class OrderCreatedScreen extends StatelessWidget {
             label: Text(dt('العودة إلى الرئيسية')),
           ),
           const SizedBox(height: 10),
-          Text(dt('احتفظ برقم الطلب للرجوع إليه عند الحاجة.'), textAlign: TextAlign.center, style: const TextStyle(color: DarbColors.muted, fontSize: 11)),
+          Text(dt('احتفظ برقم الطلب للرجوع إليه عند الحاجة.'), textAlign: TextAlign.center, style: TextStyle(color: DarbColors.muted, fontSize: 11)),
         ],
       )),
     );
@@ -511,8 +511,8 @@ class OrderCreatedScreen extends StatelessWidget {
   Widget _confirmationValue(BuildContext context, String label, String value) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 7),
     child: Row(children: [
-      Expanded(child: Text(label, style: const TextStyle(color: DarbColors.muted, fontSize: 12))),
-      Flexible(child: Text(value, textAlign: TextAlign.end, style: const TextStyle(color: DarbColors.ink, fontWeight: FontWeight.w800, fontSize: 12))),
+      Expanded(child: Text(label, style: TextStyle(color: DarbColors.muted, fontSize: 12))),
+      Flexible(child: Text(value, textAlign: TextAlign.end, style: TextStyle(color: DarbColors.ink, fontWeight: FontWeight.w800, fontSize: 12))),
     ]),
   );
 }
