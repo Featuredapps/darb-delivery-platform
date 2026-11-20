@@ -111,6 +111,7 @@ model User {
   ordersAsCustomer Order[]   @relation("CustomerOrders")
   reviews          Review[]
   devices          UserDevice[]
+  aiOrderDrafts     AiOrderDraft[]
 }
 
 // ============ Cities ============
