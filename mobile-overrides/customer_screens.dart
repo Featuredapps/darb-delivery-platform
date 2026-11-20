@@ -13,6 +13,7 @@ class _CustomerHomeState extends State<CustomerHome> {
   String? error;
   List<dynamic> cities = [], vendors = [];
   String? cityId;
+  int _loadGeneration = 0;
 
   @override
   void initState() {
@@ -32,22 +33,30 @@ class _CustomerHomeState extends State<CustomerHome> {
   }
 
   Future<void> _load() async {
+    final generation = ++_loadGeneration;
     if (mounted) setState(() { loading = true; error = null; });
     try {
       final loadedCities = await Api.instance.get('/cities') as List;
+      if (generation != _loadGeneration) return;
       cities = loadedCities;
       if (cities.isNotEmpty) {
         cityId ??= cities.first['id'].toString();
         final locale = darbLocale.value.languageCode;
-        vendors = await Api.instance.get('/vendors?cityId=$cityId&locale=$locale') as List;
+        final loadedVendors = await Api.instance.get(
+          '/vendors?cityId=$cityId&locale=$locale',
+        ) as List;
+        if (generation != _loadGeneration) return;
+        vendors = loadedVendors;
       } else {
         cityId = null;
         vendors = [];
       }
     } catch (e) {
-      error = e.toString();
+      if (generation == _loadGeneration) error = e.toString();
     } finally {
-      if (mounted) setState(() => loading = false);
+      if (mounted && generation == _loadGeneration) {
+        setState(() => loading = false);
+      }
     }
   }
 
