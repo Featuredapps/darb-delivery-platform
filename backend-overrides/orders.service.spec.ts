@@ -362,3 +362,70 @@ describe('Peer delivery offers', () => {
     expect(orderUpdateMany).toHaveBeenCalledTimes(2);
   });
 });
+
+
+describe('Driver available-order proximity ranking', () => {
+  const prisma: any = {
+    driver: { findUnique: jest.fn() },
+    order: { findMany: jest.fn() },
+    $queryRaw: jest.fn(),
+  };
+  const service = new OrdersService(prisma);
+  const createdAt = (minute: number) => new Date(Date.UTC(2026, 0, 1, 0, minute));
+
+  beforeEach(() => jest.clearAllMocks());
+
+  it('ranks vendor and peer-delivery pickup tasks by fresh driver distance', async () => {
+    prisma.driver.findUnique.mockResolvedValue({
+      id: 'driver-1', cityId: 'city-1', status: 'APPROVED', isOnline: true,
+    });
+    prisma.order.findMany.mockResolvedValue([
+      { id: 'far', type: 'VENDOR_ORDER', createdAt: createdAt(0) },
+      { id: 'near', type: 'PEER_DELIVERY', createdAt: createdAt(1) },
+      { id: 'middle', type: 'VENDOR_ORDER', createdAt: createdAt(2) },
+    ]);
+    prisma.$queryRaw.mockResolvedValue([
+      { orderId: 'far', distanceKm: 8.2 },
+      { orderId: 'near', distanceKm: 0.7 },
+      { orderId: 'middle', distanceKm: 3.1 },
+    ]);
+
+    const result = await service.availableForDriver('driver-user-1');
+
+    expect(result.map((order: any) => order.id)).toEqual(['near', 'middle', 'far']);
+    expect(result.map((order: any) => order.distanceKm)).toEqual([0.7, 3.1, 8.2]);
+    expect(prisma.$queryRaw).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps orders without a usable fresh distance after ranked orders', async () => {
+    prisma.driver.findUnique.mockResolvedValue({
+      id: 'driver-1', cityId: 'city-1', status: 'APPROVED', isOnline: true,
+    });
+    prisma.order.findMany.mockResolvedValue([
+      { id: 'older-no-gps', type: 'PEER_DELIVERY', createdAt: createdAt(0) },
+      { id: 'near', type: 'VENDOR_ORDER', createdAt: createdAt(1) },
+      { id: 'newer-no-gps', type: 'VENDOR_ORDER', createdAt: createdAt(2) },
+    ]);
+    prisma.$queryRaw.mockResolvedValue([
+      { orderId: 'older-no-gps', distanceKm: null },
+      { orderId: 'near', distanceKm: 1.2 },
+      { orderId: 'newer-no-gps', distanceKm: null },
+    ]);
+
+    const result = await service.availableForDriver('driver-user-1');
+
+    expect(result.map((order: any) => order.id)).toEqual(['near', 'older-no-gps', 'newer-no-gps']);
+    expect((result[1] as any).distanceKm).toBeNull();
+    expect((result[2] as any).distanceKm).toBeNull();
+  });
+
+  it('does not query or return tasks for an offline driver', async () => {
+    prisma.driver.findUnique.mockResolvedValue({
+      id: 'driver-1', cityId: 'city-1', status: 'APPROVED', isOnline: false,
+    });
+
+    await expect(service.availableForDriver('driver-user-1')).rejects.toBeInstanceOf(ForbiddenException);
+    expect(prisma.order.findMany).not.toHaveBeenCalled();
+    expect(prisma.$queryRaw).not.toHaveBeenCalled();
+  });
+});
