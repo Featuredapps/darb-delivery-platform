@@ -182,7 +182,7 @@ class _CustomerHomeState extends State<CustomerHome> {
                   Text(name, maxLines: 1, overflow: TextOverflow.ellipsis,
                     style: TextStyle(color: ink, fontSize: 14, fontWeight: FontWeight.w900)),
                   SizedBox(height: 5),
-                  Text('$count منتج متاح',
+                  Text(dt('$count منتج متاح'),
                     style: TextStyle(color: DarbColors.muted, fontSize: 11)),
                 ],
               )),
@@ -333,7 +333,7 @@ class _CustomerHomeState extends State<CustomerHome> {
             ]),
           ),
           SizedBox(height: 22),
-          _sectionTitle('اختر الخدمة', 'مساران واضحان لكل احتياجات التوصيل'),
+          _sectionTitle(dt('اختر الخدمة'), dt('مساران واضحان لكل احتياجات التوصيل')),
           SizedBox(height: 12),
           _serviceCard(
             icon: Icons.inventory_2_outlined,
@@ -351,7 +351,7 @@ class _CustomerHomeState extends State<CustomerHome> {
           ),
           SizedBox(height: 25),
           Container(key: storesKey),
-          _sectionTitle('المتاجر المتاحة', 'متاجر مدينتك التي يمكنك الطلب منها'),
+          _sectionTitle(dt('المتاجر المتاحة'), dt('متاجر مدينتك التي يمكنك الطلب منها')),
           SizedBox(height: 12),
           TextField(
             controller: search,
@@ -414,7 +414,7 @@ class _CustomerHomeState extends State<CustomerHome> {
                 ),
                 SizedBox(height: 12),
                 Text(
-                  query.isEmpty ? 'لا توجد متاجر متاحة في هذه المدينة' : 'لم نعثر على نتائج مطابقة',
+                  query.isEmpty ? dt('لا توجد متاجر متاحة في هذه المدينة') : dt('لم نعثر على نتائج مطابقة'),
                   textAlign: TextAlign.center,
                   style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: 14),
                 ),
