@@ -34,7 +34,8 @@ class _CustomerHomeState extends State<CustomerHome> {
       cities = loadedCities;
       if (cities.isNotEmpty) {
         cityId ??= cities.first['id'].toString();
-        vendors = await Api.instance.get('/vendors?cityId=$cityId&locale=ar') as List;
+        final locale = darbLocale.value.languageCode;
+        vendors = await Api.instance.get('/vendors?cityId=$cityId&locale=$locale') as List;
       } else {
         cityId = null;
         vendors = [];
@@ -48,6 +49,10 @@ class _CustomerHomeState extends State<CustomerHome> {
 
   String _cityName(dynamic city) {
     final names = city['names'] as List? ?? [];
+    final locale = darbLocale.value.languageCode;
+    for (final item in names) {
+      if (item is Map && item['locale'] == locale) return item['name'].toString();
+    }
     for (final item in names) {
       if (item is Map && item['locale'] == 'ar') return item['name'].toString();
     }
@@ -56,6 +61,10 @@ class _CustomerHomeState extends State<CustomerHome> {
 
   String _vendorName(dynamic vendor) {
     final translations = vendor['translations'] as List? ?? [];
+    final locale = darbLocale.value.languageCode;
+    for (final item in translations) {
+      if (item is Map && item['locale'] == locale) return item['name'].toString();
+    }
     for (final item in translations) {
       if (item is Map && item['locale'] == 'ar') return item['name'].toString();
     }
