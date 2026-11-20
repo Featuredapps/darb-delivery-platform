@@ -18,7 +18,7 @@ part 'account_screens.dart';
 part 'account_pages.dart';
 
 class AppShell extends StatefulWidget {
-  AppShell({super.key});
+  const AppShell({super.key});
   @override
   State<AppShell> createState() => _AppShellState();
 }
