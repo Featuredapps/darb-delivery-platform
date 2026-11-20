@@ -13,10 +13,10 @@ runDatabaseTests('OrdersService PostgreSQL integration', () => {
   let vendorId: string;
   let cityId: string;
   let addressId: string;
-  let productId: string;
+  let productId: string;\n  let driverUserIds: string[] = [];
 
   const createDriver = async (status: 'APPROVED' | 'PENDING' = 'APPROVED') => {
-    const user = await prisma.user.create({ data: { name: 'Integration driver' } });
+    const user = await prisma.user.create({ data: { name: 'Integration driver' } });\n    driverUserIds.push(user.id);
     const driver = await prisma.driver.create({
       data: { userId: user.id, cityId, status, isOnline: true },
     });
@@ -37,7 +37,7 @@ runDatabaseTests('OrdersService PostgreSQL integration', () => {
   });
 
   beforeEach(async () => {
-    suffix = randomUUID();
+    suffix = randomUUID();\n    driverUserIds = [];
     const customer = await prisma.user.create({ data: { name: 'Integration customer' } });
     const vendorUser = await prisma.user.create({ data: { name: 'Integration vendor' } });
     customerId = customer.id;
@@ -77,7 +77,7 @@ runDatabaseTests('OrdersService PostgreSQL integration', () => {
     await prisma.product.deleteMany({ where: { vendorId } });
     await prisma.vendor.deleteMany({ where: { id: vendorId } });
     await prisma.city.deleteMany({ where: { id: cityId } });
-    await prisma.user.deleteMany({ where: { id: { in: [customerId, vendorUserId] } } });
+    await prisma.user.deleteMany({ where: { id: { in: [customerId, vendorUserId, ...driverUserIds] } } });
   });
 
   afterAll(async () => {
