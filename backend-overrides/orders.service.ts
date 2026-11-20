@@ -195,7 +195,12 @@ export class OrdersService {
     };
     if (!transitions[order.status]?.includes(status)) throw new BadRequestException('تسلسل حالة الطلب غير صحيح');
     return this.prisma.$transaction(async tx => {
-      const changed = await tx.order.updateMany({ where: { id: orderId, status: order.status }, data: { status } });
+      // Re-check the actor's assignment inside the atomic write to prevent a stale
+      // vendor/driver session from changing an order after ownership has changed.
+      const ownershipWhere: Record<string, unknown> = { id: orderId, status: order.status };
+      if (role === 'VENDOR') ownershipWhere.vendorId = order.vendorId;
+      if (role === 'DRIVER') ownershipWhere.driverId = order.driverId;
+      const changed = await tx.order.updateMany({ where: ownershipWhere, data: { status } });
       if (!changed.count) throw new BadRequestException('تم تحديث الطلب من مستخدم آخر؛ أعد تحميله');
       if (status === OrderStatus.CANCELLED) {
         // Restore only finite stock reserved when the order was created.
