@@ -63,15 +63,15 @@ class _AdminQueueState extends State<AdminQueue> {
               Expanded(child:Column(
                 crossAxisAlignment:CrossAxisAlignment.start,
                 children:[
-                  Text(title,style:const TextStyle(fontSize:15,fontWeight:FontWeight.w900,color:DarbColors.ink)),
+                  Text(title,style:TextStyle(fontSize:15,fontWeight:FontWeight.w900,color:DarbColors.ink)),
                   const SizedBox(height:4),
-                  Text(user['phone']?.toString()??'',style:const TextStyle(color:DarbColors.muted,fontSize:12)),
+                  Text(user['phone']?.toString()??'',style:TextStyle(color:DarbColors.muted,fontSize:12)),
                 ],
               )),
               Container(
                 padding:const EdgeInsets.symmetric(horizontal:9,vertical:6),
                 decoration:BoxDecoration(color:DarbColors.warning.withValues(alpha:.10),borderRadius:BorderRadius.circular(DarbRadius.pill)),
-                child:Text(dt('قيد المراجعة'),style:const TextStyle(color:DarbColors.warning,fontSize:10,fontWeight:FontWeight.w800)),
+                child:Text(dt('قيد المراجعة'),style:TextStyle(color:DarbColors.warning,fontSize:10,fontWeight:FontWeight.w800)),
               ),
             ]),
             if(detail.isNotEmpty||city.isNotEmpty)...[
@@ -90,7 +90,7 @@ class _AdminQueueState extends State<AdminQueue> {
               const SizedBox(width:9),
               OutlinedButton(
                 onPressed:working?null:()=>_setStatus(id,widget.kind=='vendors'?'REJECTED':'SUSPENDED'),
-                style:OutlinedButton.styleFrom(foregroundColor:DarbColors.danger,side:const BorderSide(color:DarbColors.danger)),
+                style:OutlinedButton.styleFrom(foregroundColor:DarbColors.danger,side:BorderSide(color:DarbColors.danger)),
                 child:Text(widget.kind=='vendors'?dt('رفض'):dt('تعليق')),
               ),
             ]),
