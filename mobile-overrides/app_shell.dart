@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../core/api.dart';
 import '../design_system.dart';
 import '../main.dart';
+import '../localizations.dart';
 import '../notifications.dart';
 import 'login_screen.dart';
 
@@ -14,6 +15,7 @@ part 'peer_delivery_screen.dart';
 part 'vendor_screens.dart';
 part 'driver_screens.dart';
 part 'account_screens.dart';
+part 'account_pages.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -41,6 +43,10 @@ class _AppShellState extends State<AppShell> {
       final data = await Api.instance.get('/auth/me');
       me = Map<String, dynamic>.from(data);
       role = me?['role']?.toString() ?? 'CUSTOMER';
+      final savedLocale = me?['locale']?.toString();
+      if (savedLocale == 'ar' || savedLocale == 'en' || savedLocale == 'tr') {
+        darbLocale.value = Locale(savedLocale!);
+      }
       error = null;
     } catch (e) {
       error = e.toString();
