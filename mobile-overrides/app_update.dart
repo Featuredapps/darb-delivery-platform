@@ -60,7 +60,7 @@ class DarbUpdater {
         },
       ).timeout(const Duration(seconds: 15));
       if (response.statusCode != 200) {
-        if (force) throw Exception('HTTP ${response.statusCode}');
+        if (force) checkFailed = true;
         return;
       }
       final release = jsonDecode(response.body);
