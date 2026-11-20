@@ -175,6 +175,21 @@ class _AppShellState extends State<AppShell> {
           ],
         ),
         actions: [
+          PopupMenuButton<ThemeMode>(
+            tooltip: dt('مظهر التطبيق'),
+            icon: Icon(
+              Theme.of(context).brightness == Brightness.dark
+                  ? Icons.dark_mode_rounded
+                  : Icons.light_mode_rounded,
+              color: Colors.white,
+            ),
+            onSelected: DarbTheme.setMode,
+            itemBuilder: (context) => [
+              PopupMenuItem(value: ThemeMode.system, child: Text(dt('حسب الجهاز'))),
+              PopupMenuItem(value: ThemeMode.light, child: Text(dt('نهاري'))),
+              PopupMenuItem(value: ThemeMode.dark, child: Text(dt('ليلي'))),
+            ],
+          ),
           ValueListenableBuilder<DarbUpdateInfo?>(
             valueListenable: DarbUpdater.instance.availableUpdate,
             builder: (context, update, _) => IconButton(
