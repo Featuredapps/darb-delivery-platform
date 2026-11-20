@@ -71,6 +71,10 @@ export class AiOrderAssistantService {
       });
       if (existing) return { ...existing, created: false };
     }
+    const recentDrafts = await this.prisma.aiOrderDraft.count({
+      where: { userId, createdAt: { gte: new Date(Date.now() - 60 * 60 * 1000) } },
+    });
+    if (recentDrafts >= 10) throw new TooManyRequestsException('وصلت إلى الحد المؤقت لمساعد الطلبات، حاول بعد قليل');
     try {
       const created = await this.prisma.aiOrderDraft.create({
         data: {
@@ -158,7 +162,8 @@ export class AiOrderAssistantService {
     form.append('model', this.config.get<string>('OPENAI_TRANSCRIPTION_MODEL') ?? 'whisper-1');
     form.append('language', 'ar');
     form.append('prompt', 'تسجيل باللهجة السورية عن طلب توصيل أو منتجات وعنوان محلي في سوريا.');
-    form.append('file', new Blob([new Uint8Array(file.buffer)], { type: file.mimetype }), 'customer-audio');
+    const extension = ({ 'audio/mpeg': 'mp3', 'audio/mp4': 'mp4', 'audio/wav': 'wav', 'audio/webm': 'webm', 'audio/ogg': 'ogg', 'audio/x-m4a': 'm4a', 'audio/aac': 'aac' } as Record<string, string>)[file.mimetype] ?? 'audio';
+    form.append('file', new Blob([new Uint8Array(file.buffer)], { type: file.mimetype }), 'customer-audio.' + extension);
     const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST', headers: { Authorization: 'Bearer ' + key }, body: form, signal: AbortSignal.timeout(45000),
     });
