@@ -74,6 +74,24 @@ enum Locale {
   en
 }
 
+enum AiDraftSource {
+  TEXT
+  AUDIO
+}
+
+enum AiDraftStatus {
+  PROCESSING
+  READY
+  NEEDS_REVIEW
+  FAILED
+}
+
+enum AiDraftIntent {
+  STORE_ORDER
+  PEER_DELIVERY
+  UNCLEAR
+}
+
 // ============ Users ============
 
 model User {
@@ -93,6 +111,7 @@ model User {
   ordersAsCustomer Order[]   @relation("CustomerOrders")
   reviews          Review[]
   devices          UserDevice[]
+  aiOrderDrafts     AiOrderDraft[]
 }
 
 // ============ Cities ============
@@ -194,6 +213,7 @@ model Product {
   translations ProductTranslation[]
   variants     ProductVariant[]
   orderItems   OrderItem[]
+  aiDraftItems AiOrderDraftItem[]
 
   @@index([vendorId, isAvailable])
 }
@@ -401,3 +421,73 @@ model UserDevice {
   @@index([userId])
 }
 
+
+
+model AiOrderDraft {
+  id             String         @id @default(uuid())
+  userId         String
+  cityId         String
+  vendorId       String?
+  idempotencyKey String?        @db.VarChar(80)
+  source         AiDraftSource
+  status         AiDraftStatus  @default(PROCESSING)
+  intent         AiDraftIntent  @default(UNCLEAR)
+  originalText   String?        @db.Text
+  transcript     String?        @db.Text
+  locale         Locale         @default(ar)
+  confidence     Float?
+  warnings       Json?
+  extraction     Json?
+  errorCode      String?        @db.VarChar(60)
+  expiresAt      DateTime
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  user    User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items   AiOrderDraftItem[]
+  address AiAddressDraft?
+
+  @@unique([userId, idempotencyKey])
+  @@index([userId, status, createdAt])
+  @@index([expiresAt])
+}
+
+model AiOrderDraftItem {
+  id               String   @id @default(uuid())
+  draftId          String
+  productId        String?
+  rawName          String   @db.VarChar(240)
+  normalizedName   String?  @db.VarChar(240)
+  quantity         Int      @default(1)
+  unit             String?  @db.VarChar(40)
+  confidence       Float?
+  candidates       Json?
+  createdAt        DateTime @default(now())
+
+  draft   AiOrderDraft @relation(fields: [draftId], references: [id], onDelete: Cascade)
+  product Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([draftId])
+  @@index([productId])
+}
+
+model AiAddressDraft {
+  id                String   @id @default(uuid())
+  draftId           String   @unique
+  rawText           String?  @db.Text
+  normalizedText    String?  @db.Text
+  neighborhood      String?  @db.VarChar(160)
+  street            String?  @db.VarChar(200)
+  building          String?  @db.VarChar(160)
+  landmark          String?  @db.VarChar(240)
+  recipientName     String?  @db.VarChar(120)
+  recipientPhone    String?  @db.VarChar(40)
+  deliveryNotes     String?  @db.Text
+  latitude          Float?
+  longitude         Float?
+  geocodeStatus     String   @default("PENDING") @db.VarChar(24)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  draft AiOrderDraft @relation(fields: [draftId], references: [id], onDelete: Cascade)
+}
