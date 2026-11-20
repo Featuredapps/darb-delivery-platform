@@ -16,9 +16,42 @@ class AppLocalizations {
 
   String translateSource(String source) {
     final value = _sourceValues[source];
-    if (value == null) return source;
-    final parts = value.split('|');
-    return locale.languageCode == 'tr' ? parts.last : parts.first;
+    if (value != null) {
+      final parts = value.split('|');
+      return locale.languageCode == 'tr' ? parts.last : parts.first;
+    }
+    String dynamicValue(String prefix, String en, String tr) {
+      final suffix = source.substring(prefix.length);
+      return locale.languageCode == 'tr' ? '$tr$suffix' : '$en$suffix';
+    }
+    if (source.endsWith(' منتج متاح')) {
+      final count = source.substring(0, source.length - ' منتج متاح'.length);
+      return locale.languageCode == 'tr' ? '$count ürün mevcut' : '$count products available';
+    }
+    if (source.startsWith('مسافة التوصيل: ') && source.endsWith(' كم')) {
+      final distance = source.substring('مسافة التوصيل: '.length, source.length - ' كم'.length);
+      return locale.languageCode == 'tr' ? 'Teslimat mesafesi: $distance km' : 'Delivery distance: $distance km';
+    }
+    if (source.startsWith('تعذر تحميل العروض: ')) return dynamicValue('تعذر تحميل العروض: ', 'Could not load offers: ', 'Teklifler yüklenemedi: ');
+    if (source.startsWith('تعذر حفظ التغييرات: ')) return dynamicValue('تعذر حفظ التغييرات: ', 'Could not save changes: ', 'Değişiklikler kaydedilemedi: ');
+    if (source.startsWith('تعذر إرسال الطلب: ')) return dynamicValue('تعذر إرسال الطلب: ', 'Could not submit the application: ', 'Başvuru gönderilemedi: ');
+    if (source.startsWith('تعذر تحميل المدن: ')) return dynamicValue('تعذر تحميل المدن: ', 'Could not load cities: ', 'Şehirler yüklenemedi: ');
+    if (source.startsWith('رمز المدينة: ')) return dynamicValue('رمز المدينة: ', 'City code: ', 'Şehir kodu: ');
+    if (source.startsWith('رقم الطلب: ')) return dynamicValue('رقم الطلب: ', 'Order number: ', 'Sipariş numarası: ');
+    if (source.startsWith('حالة المتجر: ')) return dynamicValue('حالة المتجر: ', 'Store status: ', 'Mağaza durumu: ');
+    if (source.startsWith('تعذر تحميل المناطق: ')) return dynamicValue('تعذر تحميل المناطق: ', 'Could not load zones: ', 'Bölgeler yüklenemedi: ');
+    if (source.startsWith('الكمية: ')) return dynamicValue('الكمية: ', 'Quantity: ', 'Miktar: ');
+    if (source.startsWith('المجموع الفرعي: ')) return dynamicValue('المجموع الفرعي: ', 'Subtotal: ', 'Ara toplam: ');
+    if (source.startsWith('السلة (') && source.endsWith(')')) {
+      final count = source.substring(6, source.length - 1);
+      return locale.languageCode == 'tr' ? 'Sepet ($count)' : 'Cart ($count)';
+    }
+    if (source.startsWith('الخطوة ') && source.endsWith(' من 3')) {
+      final step = source.substring('الخطوة '.length, source.length - ' من 3'.length);
+      return locale.languageCode == 'tr' ? 'Adım $step / 3' : 'Step $step of 3';
+    }
+    if (source.startsWith('تم تحديد الموقع بدقة: ')) return dynamicValue('تم تحديد الموقع بدقة: ', 'Location set precisely: ', 'Konum hassas şekilde belirlendi: ');
+    return source;
   }
 
   static const Map<String, String> _sourceValues = {
