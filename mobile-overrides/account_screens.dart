@@ -895,7 +895,7 @@ class _EmptyPanel extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: DarbColors.surface,
           borderRadius: BorderRadius.circular(18),
         ),
         child: Text(
@@ -919,7 +919,7 @@ class _ErrorPanel extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: Color(0xFFFFEEEE),
+          color: DarbColors.danger.withValues(alpha: .12),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
