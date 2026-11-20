@@ -772,19 +772,19 @@ class _AccountPageState extends State<AccountPage> {
             children: [
               _infoRow(
                 icon: Icons.person_outline_rounded,
-                label: 'الاسم',
+                label: dt('الاسم'),
                 value: _name.isEmpty ? 'غير محدد' : _name,
               ),
               _infoRow(
                 icon: Icons.alternate_email_rounded,
-                label: 'البريد الإلكتروني',
+                label: dt('البريد الإلكتروني'),
                 value: _email.isEmpty ? 'غير مرتبط' : _email,
                 last: _phone.isEmpty,
               ),
               if (_phone.isNotEmpty)
                 _infoRow(
                   icon: Icons.phone_iphone_rounded,
-                  label: 'رقم الهاتف',
+                  label: dt('رقم الهاتف'),
                   value: _phone,
                   last: true,
                 ),
@@ -805,7 +805,7 @@ class _AccountPageState extends State<AccountPage> {
             ),
           ),
           _applicationCard(
-            title: 'كن سائقاً في دَرْب',
+            title: dt('كن سائقاً في دَرْب'),
             description: 'استقبل طلبات التوصيل وقدّم عروض الأجرة للعملاء',
             icon: Icons.delivery_dining_rounded,
             status: profile?['driverApplication'],
@@ -813,7 +813,7 @@ class _AccountPageState extends State<AccountPage> {
           ),
           const SizedBox(height: 12),
           _applicationCard(
-            title: 'انضم بمتجرك',
+            title: dt('انضم بمتجرك'),
             description: 'اعرض منتجات متجرك واستقبل طلبات العملاء',
             icon: Icons.storefront_rounded,
             status: profile?['vendorApplication'],
@@ -832,7 +832,7 @@ class _AccountPageState extends State<AccountPage> {
             children: [
               _settingsTile(
                 icon: Icons.language_rounded,
-                title: 'لغة التطبيق',
+                title: dt('لغة التطبيق'),
                 subtitle: switch (profile?['locale']?.toString() ?? 'ar') {
                   'en' => 'English',
                   'tr' => 'Türkçe',
@@ -843,8 +843,8 @@ class _AccountPageState extends State<AccountPage> {
               const Divider(height: 1, indent: 72, endIndent: 16),
               _settingsTile(
                 icon: Icons.support_agent_rounded,
-                title: 'المساعدة والدعم',
-                subtitle: 'تواصل معنا عند الحاجة',
+                title: dt('المساعدة والدعم'),
+                subtitle: dt('تواصل معنا عند الحاجة'),
                 onTap: null,
                 trailing: const Icon(
                   Icons.info_outline_rounded,
@@ -889,7 +889,7 @@ class _AccountPageState extends State<AccountPage> {
 class _EmptyPanel extends StatelessWidget {
   final String text;
 
-  const _EmptyPanel({required this.text});
+  _EmptyPanel({required this.text});
 
   @override
   Widget build(BuildContext context) => Container(
