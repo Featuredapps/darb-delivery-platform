@@ -5,6 +5,28 @@ class _DriverAvailableState extends State<DriverAvailable>{bool loading=true,wor
 class DriverOrders extends StatelessWidget {const DriverOrders({super.key});@override Widget build(BuildContext context)=>_DataList(path:'/orders/driver/mine',title: dt('توصيلاتي'),empty: dt('لا توجد توصيلات حالياً'));}
 class _DataList extends StatefulWidget {final String path,title,empty;const _DataList({super.key,required this.path,required this.title,required this.empty});@override State<_DataList> createState()=>_DataListState();}
 class _DataListState extends State<_DataList>{bool loading=true;String? error;List rows=[];@override void initState(){super.initState();_load();}Future<void> _load()async{setState(()=>loading=true);try{rows=await Api.instance.get(widget.path) as List;error=null;}catch(e){error=e.toString();}finally{if(mounted)setState(()=>loading=false);}}@override Widget build(BuildContext context)=>RefreshIndicator(onRefresh:_load,child:ListView(padding:const EdgeInsets.all(18),children:[Text(widget.title,style:TextStyle(fontSize:22,fontWeight:FontWeight.w900)),SizedBox(height:14),if(loading)Center(child:CircularProgressIndicator()),if(error!=null)_ErrorPanel(message:error!,retry:_load),if(!loading&&error==null&&rows.isEmpty)_EmptyPanel(text:widget.empty),for(final row in rows)_orderCard(row)]));
+String _statusLabel(String status, {required bool peer}) {
+  switch (status) {
+    case 'PENDING':
+      return peer ? dt('بانتظار عروض السائقين') : dt('بانتظار التأكيد');
+    case 'ACCEPTED':
+      return dt('تم قبول الطلب');
+    case 'PREPARING':
+      return dt('قيد التحضير');
+    case 'READY':
+      return dt('جاهز للاستلام');
+    case 'ASSIGNED':
+      return dt('تم تعيين سائق');
+    case 'PICKED_UP':
+      return dt('تم استلام الطلب');
+    case 'DELIVERED':
+      return dt('تم التسليم');
+    case 'CANCELLED':
+      return dt('ملغي');
+    default:
+      return status;
+  }
+}
 Widget _orderCard(dynamic row){
   final id=row['id']?.toString()??'';
   final status=row['status']?.toString()??'';
@@ -25,7 +47,7 @@ Widget _orderCard(dynamic row){
     if(status=='PICKED_UP')actions.add(_action(id,dt('تم التسليم'),'DELIVERED'));
   }
   return Card(child:Padding(padding:const EdgeInsets.all(12),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-    ListTile(contentPadding:EdgeInsets.zero,title:Text(peer?'طلب توصيل مستقل':'طلب ${row['orderNumber']??id}'),subtitle:Text('رقم الطلب: ${row['orderNumber']??id} • الحالة: $status'),trailing:peer&&row['deliveryFee']==0?Text(dt('بانتظار العروض')):Text('${row['total']??''} ${row['currency']??''}')),
+    ListTile(contentPadding:EdgeInsets.zero,title:Text(peer?dt('طلب توصيل مستقل'):'${dt('طلب')} ${row['orderNumber']??id}'),subtitle:Text('${dt('رقم الطلب')}: ${row['orderNumber']??id} • ${dt('الحالة')}: ${_statusLabel(status, peer: peer)}'),trailing:peer&&row['deliveryFee']==0?Text(dt('بانتظار العروض')):Text('${row['total']??''} ${row['currency']??''}')),
     if(peer&&row['distanceKm']!=null)Padding(padding:const EdgeInsets.symmetric(horizontal:16),child:Text(dt('مسافة التوصيل: ${(row['distanceKm'] as num).toStringAsFixed(1)} كم'),style:TextStyle(fontWeight:FontWeight.w800))),
     if(peer&&pickup!=null)ListTile(dense:true,leading:Icon(Icons.trip_origin),title:Text(dt('الاستلام')),subtitle:Text(pickup)),
     if(peer&&destination!=null)ListTile(dense:true,leading:Icon(Icons.flag_outlined),title:Text(dt('التسليم')),subtitle:Text(destination)),
