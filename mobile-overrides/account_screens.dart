@@ -78,7 +78,7 @@ class _AccountPageState extends State<AccountPage> {
                   labelText: dt('لغة التطبيق'),
                   prefixIcon: Icon(Icons.language_rounded),
                 ),
-                items: const [
+                items: [
                   DropdownMenuItem(value: 'ar', child: Text(dt('العربية'))),
                   DropdownMenuItem(value: 'en', child: Text('English')),
                   DropdownMenuItem(value: 'tr', child: Text('Türkçe')),
