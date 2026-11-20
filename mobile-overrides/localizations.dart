@@ -15,6 +15,7 @@ class AppLocalizations {
   String t(String key) => (_values[locale.languageCode] ?? _values['ar']!)[key] ?? key;
 
   String translateSource(String source) {
+    if (locale.languageCode == 'ar') return source;
     final value = _sourceValues[source];
     if (value != null) {
       final parts = value.split('|');
