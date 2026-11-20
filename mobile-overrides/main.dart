@@ -5,6 +5,7 @@ import 'screens/app_shell.dart';
 import 'screens/login_screen.dart';
 import 'localizations.dart';
 import 'notifications.dart';
+import 'app_update.dart';
 import 'design_system.dart';
 
 const ink = DarbColors.forest;
@@ -68,6 +69,7 @@ class _DarbLaunchGateState extends State<DarbLaunchGate> {
     }
     try {
       await Api.instance.restore();
+      unawaited(DarbUpdater.instance.checkForUpdate());
     } catch (_) {
       // Never clear stored credentials because local restoration temporarily failed.
     }
