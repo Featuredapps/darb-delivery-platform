@@ -64,6 +64,7 @@ class AppLocalizations {
   }
 
   static const Map<String, String> _sourceValues = {
+    "كل طريق يبدأ بخطوة": "Every journey starts with a step|Her yolculuk bir adımla başlar",
     "طلبات المتاجر": "Store orders|Mağaza siparişleri",
     "طلبات السائقين": "Driver applications|Kurye başvuruları",
     "رسوم التوصيل": "Delivery fees|Teslimat ücretleri",
