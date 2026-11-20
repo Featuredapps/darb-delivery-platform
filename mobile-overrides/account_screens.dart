@@ -729,7 +729,7 @@ class _AccountPageState extends State<AccountPage> {
           duration: DarbMotion.expressive,
           curve: DarbMotion.enter,
           builder: (context, value, child) => Opacity(
-            opacity: value.clamp(0, 1),
+            opacity: value.clamp(0, 1).toDouble(),
             child: Transform.scale(scale: value, child: child),
           ),
           child: _profileHero(),
