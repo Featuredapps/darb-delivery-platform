@@ -13,20 +13,20 @@ Widget _orderCard(dynamic row){
   final destination=(row['address'] is Map)?row['address']['details']?.toString():null;
   final actions=<Widget>[];
   if(widget.path=='/orders/vendor'){
-    if(status=='PENDING')actions.add(_action(id,'قبول','ACCEPTED'));
-    if(status=='ACCEPTED')actions.add(_action(id,'بدء التحضير','PREPARING'));
-    if(status=='PREPARING')actions.add(_action(id,'جاهز للاستلام','READY'));
+    if(status=='PENDING')actions.add(_action(id,dt('قبول'),'ACCEPTED'));
+    if(status=='ACCEPTED')actions.add(_action(id,dt('بدء التحضير'),'PREPARING'));
+    if(status=='PREPARING')actions.add(_action(id,dt('جاهز للاستلام'),'READY'));
   }
   if(widget.path=='/orders/driver/available'&&!peer)actions.add(TextButton(onPressed:()=>_claim(id),child:Text(dt('استلام الطلب'))));
   if(widget.path=='/orders/driver/available'&&peer)actions.add(_DriverOfferAction(orderId:id,onSent:_load));
   if(widget.path=='/orders/mine'&&(status=='ASSIGNED'||status=='PICKED_UP'))actions.add(TextButton.icon(onPressed:()=>_track(id),icon:Icon(Icons.location_on_outlined),label:Text(dt('موقع السائق'))));
   if(widget.path=='/orders/driver/mine'){
-    if(status=='ASSIGNED')actions.add(_action(id,'تم الاستلام','PICKED_UP'));
-    if(status=='PICKED_UP')actions.add(_action(id,'تم التسليم','DELIVERED'));
+    if(status=='ASSIGNED')actions.add(_action(id,dt('تم الاستلام'),'PICKED_UP'));
+    if(status=='PICKED_UP')actions.add(_action(id,dt('تم التسليم'),'DELIVERED'));
   }
   return Card(child:Padding(padding:const EdgeInsets.all(12),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
     ListTile(contentPadding:EdgeInsets.zero,title:Text(peer?'طلب توصيل مستقل':'طلب ${row['orderNumber']??id}'),subtitle:Text('رقم الطلب: ${row['orderNumber']??id} • الحالة: $status'),trailing:peer&&row['deliveryFee']==0?Text(dt('بانتظار العروض')):Text('${row['total']??''} ${row['currency']??''}')),
-    if(peer&&row['distanceKm']!=null)Padding(padding:const EdgeInsets.symmetric(horizontal:16),child:Text('مسافة التوصيل: ${(row['distanceKm'] as num).toStringAsFixed(1)} كم',style:TextStyle(fontWeight:FontWeight.w800))),
+    if(peer&&row['distanceKm']!=null)Padding(padding:const EdgeInsets.symmetric(horizontal:16),child:Text(dt('مسافة التوصيل: ${(row['distanceKm'] as num).toStringAsFixed(1)} كم'),style:TextStyle(fontWeight:FontWeight.w800))),
     if(peer&&pickup!=null)ListTile(dense:true,leading:Icon(Icons.trip_origin),title:Text(dt('الاستلام')),subtitle:Text(pickup)),
     if(peer&&destination!=null)ListTile(dense:true,leading:Icon(Icons.flag_outlined),title:Text(dt('التسليم')),subtitle:Text(destination)),
     if(peer&&widget.path=='/orders/mine'&&status=='PENDING')_CustomerDeliveryOffers(orderId:id,onSelected:_load),
@@ -87,7 +87,7 @@ class _CustomerDeliveryOffersState extends State<_CustomerDeliveryOffers>{
   }
   @override Widget build(BuildContext context){
     if(loading)return Padding(padding:EdgeInsets.all(12),child:Center(child:CircularProgressIndicator()));
-    if(error!=null)return TextButton(onPressed:(){setState(()=>loading=true);_load();},child:Text('تعذر تحميل العروض: $error'));
+    if(error!=null)return TextButton(onPressed:(){setState(()=>loading=true);_load();},child:Text(dt('تعذر تحميل العروض: $error')));
     if(offers.isEmpty)return Padding(padding:const EdgeInsets.all(12),child:Row(children:[
       Expanded(child:Text(dt('بانتظار عروض السائقين.'))),
       TextButton.icon(onPressed:(){setState(()=>loading=true);_load();},icon:Icon(Icons.refresh),label:Text(dt('تحديث'))),
@@ -99,8 +99,8 @@ class _CustomerDeliveryOffersState extends State<_CustomerDeliveryOffers>{
       ])),
       for(final offer in offers)ListTile(
         leading:CircleAvatar(child:Icon(Icons.delivery_dining)),
-        title:Text(offer['driver']?['user']?['name']?.toString()??'سائق'),
-        subtitle:Text(offer['driver']?['vehicleType']?.toString()??'سائق معتمد'),
+        title:Text(offer['driver']?['user']?['name']?.toString()??dt('سائق')),
+        subtitle:Text(offer['driver']?['vehicleType']?.toString()??dt('سائق معتمد')),
         trailing:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.end,children:[
           Text('${offer['amount']} ${offer['currency']}',style:TextStyle(fontWeight:FontWeight.w900)),
           TextButton(onPressed:selecting?null:()=>_select(offer),child:Text(dt('اختيار'))),
