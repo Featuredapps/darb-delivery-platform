@@ -79,6 +79,8 @@ jobs:
           cp backend-overrides/ai-role-assistant.module.ts extracted/darb-project/backend/src/modules/ai-role-assistant/ai-role-assistant.module.ts
           cp backend-overrides/ai-role-assistant.controller.ts extracted/darb-project/backend/src/modules/ai-role-assistant/ai-role-assistant.controller.ts
           cp backend-overrides/ai-role-assistant.service.ts extracted/darb-project/backend/src/modules/ai-role-assistant/ai-role-assistant.service.ts
+          cp backend-overrides/ai-text-provider.ts extracted/darb-project/backend/src/modules/ai-role-assistant/ai-text-provider.ts
+          cp backend-overrides/gemini-ai-text-provider.ts extracted/darb-project/backend/src/modules/ai-role-assistant/gemini-ai-text-provider.ts
           cp backend-overrides/ai-order-assistant.controller.ts extracted/darb-project/backend/src/modules/ai-order-assistant/ai-order-assistant.controller.ts
           cp backend-overrides/ai-order-assistant.service.ts extracted/darb-project/backend/src/modules/ai-order-assistant/ai-order-assistant.service.ts
           cp backend-overrides/orders.tracking.controller.ts extracted/darb-project/backend/src/modules/orders/orders.tracking.controller.ts
@@ -108,6 +110,7 @@ jobs:
           cp backend-overrides/orders.service.integration.spec.ts extracted/darb-project/backend/src/modules/orders/orders.service.integration.spec.ts
           cp backend-overrides/ai-order-assistant.service.spec.ts extracted/darb-project/backend/src/modules/ai-order-assistant/ai-order-assistant.service.spec.ts
           cp backend-overrides/ai-role-assistant.service.spec.ts extracted/darb-project/backend/src/modules/ai-role-assistant/ai-role-assistant.service.spec.ts
+          cp backend-overrides/gemini-ai-text-provider.spec.ts extracted/darb-project/backend/src/modules/ai-role-assistant/gemini-ai-text-provider.spec.ts
           cp backend-overrides/orders.tracking.service.spec.ts extracted/darb-project/backend/src/modules/orders/orders.tracking.service.spec.ts
           cp backend-overrides/driver-location.service.spec.ts extracted/darb-project/backend/src/modules/drivers/driver-location.service.spec.ts
           cp backend-overrides/notifications.service.spec.ts extracted/darb-project/backend/src/modules/notifications/notifications.service.spec.ts
