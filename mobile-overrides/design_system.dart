@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Shared visual language for DARB. Keep product screens on these tokens.
 abstract final class DarbColors {
@@ -206,7 +207,101 @@ abstract final class DarbElevation {
   ];
 }
 
+
 abstract final class DarbTheme {
+  static const _storage = FlutterSecureStorage();
+  static const _modeKey = 'darb_theme_mode';
+  static final ValueNotifier<ThemeMode> mode = ValueNotifier(ThemeMode.system);
+
+  static Future<void> restoreMode() async {
+    try {
+      final saved = await _storage.read(key: _modeKey);
+      mode.value = switch (saved) {
+        'light' => ThemeMode.light,
+        'dark' => ThemeMode.dark,
+        _ => ThemeMode.system,
+      };
+    } catch (_) {
+      mode.value = ThemeMode.system;
+    }
+  }
+
+  static Future<void> setMode(ThemeMode value) async {
+    mode.value = value;
+    try {
+      final saved = switch (value) {
+        ThemeMode.light => 'light',
+        ThemeMode.dark => 'dark',
+        ThemeMode.system => 'system',
+      };
+      await _storage.write(key: _modeKey, value: saved);
+    } catch (_) {
+      // Keep the in-memory selection active if secure storage is unavailable.
+    }
+  }
+
+  static ThemeData get dark {
+    const scheme = ColorScheme(
+      brightness: Brightness.dark,
+      primary: Color(0xFFB9E4D2),
+      onPrimary: Color(0xFF102B26),
+      secondary: Color(0xFFC8F169),
+      onSecondary: Color(0xFF102B26),
+      error: Color(0xFFE47777),
+      onError: Color(0xFF2A1010),
+      surface: Color(0xFF13221D),
+      onSurface: Color(0xFFF1F5F1),
+    );
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      colorScheme: scheme,
+      scaffoldBackgroundColor: const Color(0xFF0B1512),
+      canvasColor: const Color(0xFF13221D),
+      cardColor: const Color(0xFF13221D),
+      fontFamily: 'Arial',
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF102B26),
+        foregroundColor: Color(0xFFF1F5F1),
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+      ),
+      navigationBarTheme: const NavigationBarThemeData(
+        backgroundColor: Color(0xFF13221D),
+        indicatorColor: Color(0xFF29483B),
+        elevation: 0,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: const Color(0xFF1A2D26),
+        hintStyle: const TextStyle(color: Color(0xFFA4B2AA)),
+        labelStyle: const TextStyle(color: Color(0xFFA4B2AA)),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFF2A3B33)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFFB9E4D2), width: 1.5),
+        ),
+      ),
+      dialogTheme: const DialogThemeData(
+        backgroundColor: Color(0xFF13221D),
+        surfaceTintColor: Colors.transparent,
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: Color(0xFF13221D),
+        surfaceTintColor: Colors.transparent,
+      ),
+      dividerTheme: const DividerThemeData(color: Color(0xFF2A3B33)),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: Color(0xFFB9E4D2),
+        linearTrackColor: Color(0xFF2A3B33),
+        circularTrackColor: Color(0xFF2A3B33),
+      ),
+    );
+  }
+
   static ThemeData get light {
     const scheme = ColorScheme(
       brightness: Brightness.light,
