@@ -162,8 +162,9 @@ describe('OrdersService safety checks', () => {
       items: [{ productId: 'product-1', quantity: 3 }, { productId: 'product-2', quantity: 1 }],
     });
     const productUpdateMany = jest.fn().mockResolvedValue({ count: 1 });
+    const orderUpdateMany = jest.fn().mockResolvedValue({ count: 1 });
     const tx = {
-      order: { updateMany: jest.fn().mockResolvedValue({ count: 1 }), findUnique: jest.fn().mockResolvedValue({ id: 'order-1', status: 'CANCELLED' }) },
+      order: { updateMany: orderUpdateMany, findUnique: jest.fn().mockResolvedValue({ id: 'order-1', status: 'CANCELLED' }) },
       product: { updateMany: productUpdateMany },
       orderStatusHistory: { create: jest.fn() },
     };
@@ -171,6 +172,10 @@ describe('OrdersService safety checks', () => {
 
     await service.updateStatus('vendor-user-1', 'VENDOR', 'order-1', OrderStatus.CANCELLED);
 
+    expect(orderUpdateMany).toHaveBeenCalledWith({
+      where: { id: 'order-1', status: 'PENDING', vendorId: 'vendor-1' },
+      data: { status: OrderStatus.CANCELLED },
+    });
     expect(productUpdateMany).toHaveBeenNthCalledWith(1, {
       where: { id: 'product-1', stockQty: { not: null } },
       data: { stockQty: { increment: 3 } },
