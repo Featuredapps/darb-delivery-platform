@@ -69,10 +69,10 @@ class _DarbLaunchGateState extends State<DarbLaunchGate> {
     }
     try {
       await Api.instance.restore();
-      DarbUpdater.instance.checkForUpdate();
     } catch (_) {
       // Never clear stored credentials because local restoration temporarily failed.
     }
+    DarbUpdater.instance.checkForUpdate();
     await minimumDisplay;
     if (mounted) setState(() => _ready = true);
   }
