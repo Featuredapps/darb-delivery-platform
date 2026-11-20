@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger, NotFoundException, ServiceUnavailableException, TooManyRequestsException } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AiDraftIntent, AiDraftSource, AiDraftStatus, Locale } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -74,7 +74,7 @@ export class AiOrderAssistantService {
     const recentDrafts = await this.prisma.aiOrderDraft.count({
       where: { userId, createdAt: { gte: new Date(Date.now() - 60 * 60 * 1000) } },
     });
-    if (recentDrafts >= 10) throw new TooManyRequestsException('وصلت إلى الحد المؤقت لمساعد الطلبات، حاول بعد قليل');
+    if (recentDrafts >= 10) throw new HttpException('وصلت إلى الحد المؤقت لمساعد الطلبات، حاول بعد قليل', HttpStatus.TOO_MANY_REQUESTS);
     try {
       const created = await this.prisma.aiOrderDraft.create({
         data: {
