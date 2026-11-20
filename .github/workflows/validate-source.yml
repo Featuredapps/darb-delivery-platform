@@ -82,9 +82,14 @@ jobs:
           cp backend-overrides/orders.controller.ts extracted/darb-project/backend/src/modules/orders/orders.controller.ts
           mkdir -p extracted/darb-project/backend/src/modules/ai-order-assistant
           cp backend-overrides/ai-order-assistant.module.ts extracted/darb-project/backend/src/modules/ai-order-assistant/ai-order-assistant.module.ts
+          mkdir -p extracted/darb-project/backend/src/modules/ai-role-assistant
+          cp backend-overrides/ai-role-assistant.module.ts extracted/darb-project/backend/src/modules/ai-role-assistant/ai-role-assistant.module.ts
+          cp backend-overrides/ai-role-assistant.controller.ts extracted/darb-project/backend/src/modules/ai-role-assistant/ai-role-assistant.controller.ts
+          cp backend-overrides/ai-role-assistant.service.ts extracted/darb-project/backend/src/modules/ai-role-assistant/ai-role-assistant.service.ts
           cp backend-overrides/ai-order-assistant.controller.ts extracted/darb-project/backend/src/modules/ai-order-assistant/ai-order-assistant.controller.ts
           cp backend-overrides/ai-order-assistant.service.ts extracted/darb-project/backend/src/modules/ai-order-assistant/ai-order-assistant.service.ts
           cp backend-overrides/ai-order-assistant.service.spec.ts extracted/darb-project/backend/src/modules/ai-order-assistant/ai-order-assistant.service.spec.ts
+          cp backend-overrides/ai-role-assistant.service.spec.ts extracted/darb-project/backend/src/modules/ai-role-assistant/ai-role-assistant.service.spec.ts
           cp backend-overrides/app.module.ts extracted/darb-project/backend/src/app.module.ts
           mkdir -p extracted/darb-project/backend/prisma/migrations/20261117170000_firebase_devices
           cp backend-overrides/firebase-devices.migration.sql extracted/darb-project/backend/prisma/migrations/20261117170000_firebase_devices/migration.sql
