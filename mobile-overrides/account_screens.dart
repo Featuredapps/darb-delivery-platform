@@ -4,7 +4,7 @@ class AccountPage extends StatefulWidget {
   final Map<String, dynamic>? me;
   final VoidCallback onLogout;
 
-  const AccountPage({
+  AccountPage({
     super.key,
     required this.me,
     required this.onLogout,
@@ -27,13 +27,13 @@ class _AccountPageState extends State<AccountPage> {
   String get _roleLabel {
     switch (_role) {
       case 'ADMIN':
-        return 'إدارة دَرْب';
+        return dt('إدارة دَرْب');
       case 'DRIVER':
-        return 'حساب سائق';
+        return dt('حساب سائق');
       case 'VENDOR':
-        return 'حساب تاجر';
+        return dt('حساب تاجر');
       default:
-        return 'حساب عميل';
+        return dt('حساب عميل');
     }
   }
 
@@ -71,7 +71,7 @@ class _AccountPageState extends State<AccountPage> {
                   prefixIcon: Icon(Icons.person_outline_rounded),
                 ),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
               DropdownButtonFormField<String>(
                 value: locale,
                 decoration: InputDecoration(
@@ -132,7 +132,7 @@ class _AccountPageState extends State<AccountPage> {
     try {
       final response = await Api.instance.get('/cities');
       if (response is! List) {
-        throw const FormatException('تعذر قراءة قائمة المدن');
+        throw FormatException('تعذر قراءة قائمة المدن');
       }
       final cities = response;
       if (!mounted) return;
@@ -166,7 +166,7 @@ class _AccountPageState extends State<AccountPage> {
                         prefixIcon: Icon(Icons.storefront_outlined),
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    SizedBox(height: 10),
                     TextField(
                       controller: activity,
                       decoration: InputDecoration(
@@ -182,7 +182,7 @@ class _AccountPageState extends State<AccountPage> {
                         prefixIcon: Icon(Icons.two_wheeler_outlined),
                       ),
                     ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10),
                   DropdownButtonFormField<String>(
                     value: cityId,
                     isExpanded: true,
@@ -209,7 +209,7 @@ class _AccountPageState extends State<AccountPage> {
                     },
                   ),
                   if (vendor) ...[
-                    const SizedBox(height: 10),
+                    SizedBox(height: 10),
                     TextField(
                       controller: address,
                       decoration: InputDecoration(
@@ -217,7 +217,7 @@ class _AccountPageState extends State<AccountPage> {
                         prefixIcon: Icon(Icons.place_outlined),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     OutlinedButton.icon(
                       onPressed: () async {
                         try {
@@ -316,7 +316,7 @@ class _AccountPageState extends State<AccountPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        icon: const Icon(Icons.logout_rounded, color: DarbColors.danger),
+        icon: Icon(Icons.logout_rounded, color: DarbColors.danger),
         title: Text(dt('تسجيل الخروج؟')),
         content: Text(dt('ستحتاج إلى تسجيل الدخول مجدداً للوصول إلى حسابك.')),
         actions: [
@@ -385,7 +385,7 @@ class _AccountPageState extends State<AccountPage> {
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 color: DarbColors.ink,
                 fontSize: 17,
                 fontWeight: FontWeight.w900,
@@ -407,7 +407,7 @@ class _AccountPageState extends State<AccountPage> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.fromLTRB(22, 25, 22, 22),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topRight,
                 end: Alignment.bottomLeft,
@@ -433,14 +433,14 @@ class _AccountPageState extends State<AccountPage> {
                       ),
                       child: Text(
                         initial,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontSize: 29,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
                     ),
-                    const Spacer(),
+                    Spacer(),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
@@ -452,7 +452,7 @@ class _AccountPageState extends State<AccountPage> {
                       ),
                       child: Text(
                         _roleLabel,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: DarbColors.forest,
                           fontSize: 11,
                           fontWeight: FontWeight.w900,
@@ -461,18 +461,18 @@ class _AccountPageState extends State<AccountPage> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 22),
+                SizedBox(height: 22),
                 Text(
                   _name.isEmpty ? 'مرحباً بك في دَرْب' : _name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
                     fontSize: 23,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-                const SizedBox(height: 6),
+                SizedBox(height: 6),
                 Text(
                   _phone.isNotEmpty ? _phone : (_email.isNotEmpty ? _email : 'أكمل بيانات حسابك'),
                   maxLines: 1,
@@ -483,15 +483,15 @@ class _AccountPageState extends State<AccountPage> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
                 Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.verified_user_outlined,
                       color: DarbColors.lime,
                       size: 16,
                     ),
-                    const SizedBox(width: 7),
+                    SizedBox(width: 7),
                     Text(dt('حسابك ضمن شبكة دَرْب'),
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: .86),
@@ -547,7 +547,7 @@ class _AccountPageState extends State<AccountPage> {
           ),
           title: Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               color: DarbColors.muted,
               fontSize: 11,
               fontWeight: FontWeight.w600,
@@ -555,14 +555,14 @@ class _AccountPageState extends State<AccountPage> {
           ),
           subtitle: Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               color: DarbColors.ink,
               fontSize: 14,
               fontWeight: FontWeight.w700,
             ),
           ),
         ),
-        if (!last) const Divider(height: 1, indent: 72, endIndent: 16),
+        if (!last) Divider(height: 1, indent: 72, endIndent: 16),
       ],
     );
   }
@@ -599,23 +599,23 @@ class _AccountPageState extends State<AccountPage> {
                 ),
                 child: Icon(icon, color: DarbColors.forest, size: 25),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: DarbColors.ink,
                         fontSize: 15,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
                       description,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: DarbColors.muted,
                         fontSize: 11,
                         height: 1.4,
@@ -626,7 +626,7 @@ class _AccountPageState extends State<AccountPage> {
               ),
             ],
           ),
-          const SizedBox(height: 15),
+          SizedBox(height: 15),
           if (submitted)
             Container(
               width: double.infinity,
@@ -647,7 +647,7 @@ class _AccountPageState extends State<AccountPage> {
                     color: color,
                     size: 18,
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -660,14 +660,14 @@ class _AccountPageState extends State<AccountPage> {
                             fontWeight: FontWeight.w900,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: 4),
                         Text(
                           status == 'PENDING'
                               ? 'استلمنا طلبك. ستراجع الإدارة بياناتك قبل تفعيل الصلاحيات.'
                               : status == 'APPROVED'
                                   ? 'تم اعتماد طلبك. حدّث بيانات الحساب لتظهر صلاحياتك الجديدة.'
                                   : 'يمكنك التواصل مع الدعم لمعرفة تفاصيل القرار.',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: DarbColors.muted,
                             fontSize: 11,
                             height: 1.45,
@@ -684,7 +684,7 @@ class _AccountPageState extends State<AccountPage> {
               width: double.infinity,
               child: FilledButton.tonalIcon(
                 onPressed: applying ? null : onApply,
-                icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+                icon: Icon(Icons.arrow_forward_rounded, size: 18),
                 label: Text(dt('ابدأ طلب الانضمام')),
               ),
             ),
@@ -714,7 +714,7 @@ class _AccountPageState extends State<AccountPage> {
       ),
       title: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           color: DarbColors.ink,
           fontSize: 13,
           fontWeight: FontWeight.w800,
@@ -722,9 +722,9 @@ class _AccountPageState extends State<AccountPage> {
       ),
       subtitle: Text(
         subtitle,
-        style: const TextStyle(color: DarbColors.muted, fontSize: 11),
+        style: TextStyle(color: DarbColors.muted, fontSize: 11),
       ),
-      trailing: trailing ?? const Icon(
+      trailing: trailing ?? Icon(
         Icons.chevron_left_rounded,
         color: DarbColors.muted,
       ),
@@ -746,18 +746,18 @@ class _AccountPageState extends State<AccountPage> {
           ),
           child: _profileHero(),
         ),
-        const SizedBox(height: 28),
+        SizedBox(height: 28),
         _sectionTitle(
           'بيانات الحساب',
           action: TextButton.icon(
             onPressed: saving ? null : _edit,
             icon: saving
-                ? const SizedBox(
+                ? SizedBox(
                     width: 15,
                     height: 15,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Icon(Icons.edit_rounded, size: 16),
+                : Icon(Icons.edit_rounded, size: 16),
             label: Text(saving ? 'جارٍ الحفظ' : 'تعديل'),
           ),
         ),
@@ -792,9 +792,9 @@ class _AccountPageState extends State<AccountPage> {
           ),
         ),
         if (_role == 'CUSTOMER') ...[
-          const SizedBox(height: 30),
+          SizedBox(height: 30),
           _sectionTitle('وسّع دورك مع دَرْب'),
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(bottom: 14),
             child: Text(dt('انضم إلى شبكة التوصيل أو افتح متجرك على دَرْب. ستراجع الإدارة طلبك قبل تفعيل الصلاحيات.'),
               style: TextStyle(
@@ -811,7 +811,7 @@ class _AccountPageState extends State<AccountPage> {
             status: profile?['driverApplication'],
             onApply: () => _apply(false),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           _applicationCard(
             title: dt('انضم بمتجرك'),
             description: 'اعرض منتجات متجرك واستقبل طلبات العملاء',
@@ -820,7 +820,7 @@ class _AccountPageState extends State<AccountPage> {
             onApply: () => _apply(true),
           ),
         ],
-        const SizedBox(height: 30),
+        SizedBox(height: 30),
         _sectionTitle('التفضيلات والدعم'),
         Container(
           decoration: BoxDecoration(
@@ -840,13 +840,13 @@ class _AccountPageState extends State<AccountPage> {
                 },
                 onTap: saving ? null : _openLanguageSettings,
               ),
-              const Divider(height: 1, indent: 72, endIndent: 16),
+              Divider(height: 1, indent: 72, endIndent: 16),
               _settingsTile(
                 icon: Icons.support_agent_rounded,
                 title: dt('المساعدة والدعم'),
                 subtitle: dt('تواصل معنا عند الحاجة'),
                 onTap: null,
-                trailing: const Icon(
+                trailing: Icon(
                   Icons.info_outline_rounded,
                   color: DarbColors.muted,
                   size: 19,
@@ -855,10 +855,10 @@ class _AccountPageState extends State<AccountPage> {
             ],
           ),
         ),
-        const SizedBox(height: 22),
+        SizedBox(height: 22),
         OutlinedButton.icon(
           onPressed: _confirmLogout,
-          icon: const Icon(Icons.logout_rounded),
+          icon: Icon(Icons.logout_rounded),
           label: Text(dt('تسجيل الخروج')),
           style: OutlinedButton.styleFrom(
             foregroundColor: DarbColors.danger,
@@ -871,8 +871,8 @@ class _AccountPageState extends State<AccountPage> {
             ),
           ),
         ),
-        const SizedBox(height: 18),
-        const Center(
+        SizedBox(height: 18),
+        Center(
           child: Text(dt('دَرْب • طريقك الأسهل'),
             style: TextStyle(
               color: DarbColors.muted,
@@ -901,7 +901,7 @@ class _EmptyPanel extends StatelessWidget {
         child: Text(
           text,
           textAlign: TextAlign.center,
-          style: const TextStyle(color: Colors.black54),
+          style: TextStyle(color: Colors.black54),
         ),
       );
 }
@@ -910,7 +910,7 @@ class _ErrorPanel extends StatelessWidget {
   final String message;
   final Future<void> Function() retry;
 
-  const _ErrorPanel({
+  _ErrorPanel({
     required this.message,
     required this.retry,
   });
@@ -919,12 +919,12 @@ class _ErrorPanel extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFEEEE),
+          color: Color(0xFFFFEEEE),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
           children: [
-            Text(message, style: const TextStyle(color: Colors.red)),
+            Text(message, style: TextStyle(color: Colors.red)),
             TextButton(
               onPressed: retry,
               child: Text(dt('إعادة المحاولة')),
