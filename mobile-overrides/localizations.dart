@@ -323,7 +323,6 @@ class AppLocalizations {
     "تنزيل التحديث": "Download update|Güncellemeyi indir",
     "تثبيت التحديث": "Install update|Güncellemeyi yükle",
     "جارٍ تنزيل التحديث": "Downloading update|Güncelleme indiriliyor",
-    "إعادة المحاولة": "Retry|Tekrar dene",
     "لاحقاً": "Later|Daha sonra",
     "تعذر التحقق من التحديث": "Could not check for updates|Güncellemeler kontrol edilemedi",
     "تعذر تنزيل التحديث": "Could not download the update|Güncelleme indirilemedi",
