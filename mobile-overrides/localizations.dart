@@ -21,7 +21,8 @@ class AppLocalizations {
     return locale.languageCode == 'tr' ? parts.last : parts.first;
   }
 
-  static const Map<String, String> _sourceValues = {\n    "تعذر تحميل حسابك": "Could not load your account|Hesabınız yüklenemedi",
+  static const Map<String, String> _sourceValues = {
+    "تعذر تحميل حسابك": "Could not load your account|Hesabınız yüklenemedi",
     "إعادة المحاولة": "Try again|Tekrar dene",
     "حسابك محفوظ. لن يتم تسجيل خروجك بسبب تعذر الاتصال.": "Your account is safe. You will not be signed out because the connection failed.|Hesabınız güvende. Bağlantı hatası nedeniyle oturumunuz kapatılmadı.",
     "لا توجد مدينة مفعّلة لخدمة التوصيل حالياً": "No city currently has delivery service enabled|Şu anda teslimat hizmeti etkin olan şehir yok",
@@ -215,7 +216,8 @@ class AppLocalizations {
     "تعذر تحميل المناطق: $error": "Could not load zones: $error|Bölgeler yüklenemedi: $error",
     "لم تُضف رسوم توصيل بعد": "No delivery fees have been added yet|Henüz teslimat ücreti eklenmedi",
     "إعداد رسوم التوصيل": "Delivery fee settings|Teslimat ücreti ayarları",
-    "يُضبط رسم واحد لكل مدينة. احتساب رسم الكيلومتر يتطلب تحديد موقع المتجر وموقع عنوان العميل.": "One fee is configured per city. Per-kilometer pricing requires the store and customer address locations.|Her şehir için tek ücret ayarlanır. Kilometre başına ücret için mağaza ve müşteri adresinin konumu gerekir.",\n  };
+    "يُضبط رسم واحد لكل مدينة. احتساب رسم الكيلومتر يتطلب تحديد موقع المتجر وموقع عنوان العميل.": "One fee is configured per city. Per-kilometer pricing requires the store and customer address locations.|Her şehir için tek ücret ayarlanır. Kilometre başına ücret için mağaza ve müşteri adresinin konumu gerekir.",
+  };
   static const Map<String, Map<String, String>> _values = {
     'ar': {
       'welcomeTitle':'أهلاً بك في دَرْب','welcomeSubtitle':'طريقك الأسهل لاكتشاف المتاجر وطلب ما تحتاجه',
