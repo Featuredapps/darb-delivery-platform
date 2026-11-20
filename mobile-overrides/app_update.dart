@@ -45,6 +45,7 @@ class DarbUpdater {
   final downloadProgress = ValueNotifier<double?>(null);
   String? downloadedApkPath;
   bool _checking = false;
+  bool checkFailed = false;
 
   Future<void> checkForUpdate({bool force = false}) async {
     if (_checking) return;
@@ -87,8 +88,9 @@ class DarbUpdater {
       final package = await PackageInfo.fromPlatform();
       final installedBuild = int.tryParse(package.buildNumber) ?? 0;
       availableUpdate.value = info.versionCode > installedBuild ? info : null;
+      checkFailed = false;
     } catch (_) {
-      if (force) rethrow;
+      if (force) checkFailed = true;
     } finally {
       _checking = false;
     }
