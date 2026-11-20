@@ -87,7 +87,7 @@ jobs:
                   </intent-filter>
               </receiver>"""
           if "DarbUpdateDownloadReceiver" not in m:
-              m=m.replace("</application>", receiver+"\\n    </application>", 1)
+              m=m.replace("</application>", receiver+"\n    </application>", 1)
           if "androidx.core.content.FileProvider" not in m:
               m=m.replace("</application>", provider+"\n    </application>", 1)
           p.write_text(m)
