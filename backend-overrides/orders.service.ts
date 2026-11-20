@@ -109,18 +109,43 @@ export class OrdersService {
       orderBy: { createdAt: 'asc' },
       include: { items: true, vendor: { include: { location: true, translations: true } }, address: true },
     });
-    return Promise.all(orders.map(async order => {
-      if (order.type !== 'PEER_DELIVERY' || order.pickupLatitude == null || order.pickupLongitude == null) return order;
-      const rows = await this.prisma.$queryRaw<Array<{ distanceKm: number | null }>>`
-        SELECT CASE WHEN a."point" IS NULL THEN NULL ELSE
-          ST_Distance(
-            ST_SetSRID(ST_MakePoint(${order.pickupLongitude}, ${order.pickupLatitude}), 4326)::geography,
-            a."point"
-          ) / 1000.0 END AS "distanceKm"
-        FROM "Address" a WHERE a."id" = ${order.addressId}
-      `;
-      return { ...order, distanceKm: rows[0]?.distanceKm ?? null };
-    }));
+    if (!orders.length) return orders;
+
+    // Use only a fresh driver position. A stale/missing point falls back to
+    // chronological ordering rather than pretending an old position is current.
+    const distances = await this.prisma.$queryRaw<Array<{ orderId: string; distanceKm: number | null }>>`
+      SELECT o."id" AS "orderId",
+        CASE
+          WHEN dl."point" IS NULL OR dl."updatedAt" < NOW() - INTERVAL '2 minutes' THEN NULL
+          WHEN o."type" = 'PEER_DELIVERY'
+            AND o."pickupLatitude" IS NOT NULL AND o."pickupLongitude" IS NOT NULL
+            THEN ST_Distance(
+              dl."point",
+              ST_SetSRID(ST_MakePoint(o."pickupLongitude", o."pickupLatitude"), 4326)::geography
+            ) / 1000.0
+          WHEN o."type" = 'VENDOR_ORDER' AND vl."point" IS NOT NULL
+            THEN ST_Distance(dl."point", vl."point") / 1000.0
+          ELSE NULL
+        END AS "distanceKm"
+      FROM "Order" o
+      LEFT JOIN "DriverLocation" dl ON dl."driverId" = ${driver.id}
+      LEFT JOIN "VendorLocation" vl ON vl."vendorId" = o."vendorId"
+      WHERE o."cityId" = ${driver.cityId}
+        AND o."driverId" IS NULL
+        AND ((o."type" = 'VENDOR_ORDER' AND o."status" = 'READY')
+          OR (o."type" = 'PEER_DELIVERY' AND o."status" = 'PENDING'))
+    `;
+    const distanceByOrder = new Map(distances.map(row => [row.orderId, row.distanceKm]));
+    return orders
+      .map(order => ({ ...order, distanceKm: distanceByOrder.get(order.id) ?? null }))
+      .sort((a, b) => {
+        if (a.distanceKm == null && b.distanceKm == null) {
+          return a.createdAt.getTime() - b.createdAt.getTime();
+        }
+        if (a.distanceKm == null) return 1;
+        if (b.distanceKm == null) return -1;
+        return a.distanceKm - b.distanceKm || a.createdAt.getTime() - b.createdAt.getTime();
+      });
   }
   async submitDeliveryOffer(userId: string, orderId: string, amount: number) {
     if (!Number.isFinite(amount) || amount <= 0 || amount > 10000000) throw new BadRequestException('أدخل أجرة صحيحة أكبر من صفر');
