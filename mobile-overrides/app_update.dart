@@ -50,6 +50,7 @@ class DarbUpdater {
   Future<void> checkForUpdate({bool force = false}) async {
     if (_checking) return;
     _checking = true;
+    checkFailed = false;
     try {
       final response = await http.get(
         Uri.parse(_releaseApi),
