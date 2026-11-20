@@ -10,9 +10,12 @@ class Api {
   static const _storage = FlutterSecureStorage();
   String? _accessToken;
   Future<bool>? _refreshing;
+  bool _sessionInvalidated = false;
   String? get accessToken => _accessToken;
+  bool get sessionInvalidated => _sessionInvalidated;
 
   Future<void> restore() async {
+    _sessionInvalidated = false;
     _accessToken = await _storage.read(key: 'accessToken');
     if (_accessToken == null) await _refreshAccessToken();
   }
@@ -23,6 +26,7 @@ class Api {
     if (access == null || access.isEmpty || refresh == null || refresh.isEmpty) {
       throw const ApiException('استجابة الجلسة غير مكتملة. أعد المحاولة دون تسجيل الخروج.');
     }
+    _sessionInvalidated = false;
     // Persist the rotated refresh token first so an interrupted write cannot
     // leave the client holding a refresh token that the server already revoked.
     await _storage.write(key: 'refreshToken', value: refresh);
@@ -42,6 +46,7 @@ class Api {
       } catch (_) {}
     }
     _accessToken = null;
+    _sessionInvalidated = false;
     await _storage.deleteAll();
   }
 
@@ -59,7 +64,10 @@ class Api {
 
   Future<bool> _performRefresh() async {
     final refreshToken = await _storage.read(key: 'refreshToken');
-    if (refreshToken == null || refreshToken.isEmpty) return false;
+    if (refreshToken == null || refreshToken.isEmpty) {
+      _sessionInvalidated = true;
+      return false;
+    }
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/auth/refresh'),
@@ -70,6 +78,7 @@ class Api {
       // Only a definitive authentication rejection invalidates the saved
       // session. A sleeping server, timeout, or 5xx must never erase tokens.
       if (response.statusCode == 401 || response.statusCode == 403) {
+        _sessionInvalidated = true;
         _accessToken = null;
         await _storage.delete(key: 'accessToken');
         await _storage.delete(key: 'refreshToken');
