@@ -2,7 +2,7 @@ part of 'app_shell.dart';
 
 class AdminQueue extends StatefulWidget {
   final String kind;
-  const AdminQueue({super.key, required this.kind});
+  AdminQueue({super.key, required this.kind});
   @override State<AdminQueue> createState() => _AdminQueueState();
 }
 
@@ -11,7 +11,7 @@ class _AdminQueueState extends State<AdminQueue> {
   String? error;
   List rows = [];
   String get endpoint => widget.kind == 'vendors' ? '/admin/vendors/pending' : '/admin/drivers/pending';
-  String get heading => widget.kind == 'vendors' ? 'طلبات انضمام المتاجر' : 'طلبات انضمام السائقين';
+  String get heading => widget.kind == 'vendors' ? dt('طلبات انضمام المتاجر') : dt('طلبات انضمام السائقين');
   @override void initState() { super.initState(); _load(); }
   Future<void> _load() async {
     setState(() { loading = true; error = null; });
@@ -29,9 +29,9 @@ class _AdminQueueState extends State<AdminQueue> {
     } finally { if (mounted) setState(() => working = false); }
   }
   @override Widget build(BuildContext context) => RefreshIndicator(onRefresh: _load, child: ListView(padding: const EdgeInsets.all(18), children: [
-    Text(heading, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900)),
-    const SizedBox(height: 14),
-    if (loading) const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator())),
+    Text(heading, style: TextStyle(fontSize: 21, fontWeight: FontWeight.w900)),
+    SizedBox(height: 14),
+    if (loading) Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator())),
     if (error != null) _ErrorPanel(message: error!, retry: _load),
     if (!loading && error == null && rows.isEmpty) _EmptyPanel(text: dt('لا توجد طلبات معلّقة حالياً')),
     for (final row in rows) _requestCard(row),
@@ -47,10 +47,10 @@ class _AdminQueueState extends State<AdminQueue> {
     final detail = widget.kind == 'vendors' ? row['type']?.toString() ?? '' : row['vehicleType']?.toString() ?? '';
     final id = row['id'].toString();
     return Card(child: Padding(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
-      const SizedBox(height: 5), Text(user['phone']?.toString() ?? ''),
+      Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+      SizedBox(height: 5), Text(user['phone']?.toString() ?? ''),
       if (detail.isNotEmpty) Text(detail), if (city.isNotEmpty) Text(dt('رمز المدينة: $city')),
-      const SizedBox(height: 10), Wrap(spacing: 8, children: [
+      SizedBox(height: 10), Wrap(spacing: 8, children: [
         FilledButton(onPressed: working ? null : () => _setStatus(id, 'APPROVED'), child: Text(dt('اعتماد'))),
         OutlinedButton(onPressed: working ? null : () => _setStatus(id, widget.kind == 'vendors' ? 'REJECTED' : 'SUSPENDED'), child: Text(widget.kind == 'vendors' ? 'رفض' : 'تعليق')),
       ]),
@@ -59,7 +59,7 @@ class _AdminQueueState extends State<AdminQueue> {
 }
 
 class AdminDeliveryZones extends StatefulWidget {
-  const AdminDeliveryZones({super.key});
+  AdminDeliveryZones({super.key});
   @override State<AdminDeliveryZones> createState() => _AdminDeliveryZonesState();
 }
 class _AdminDeliveryZonesState extends State<AdminDeliveryZones> {
@@ -112,15 +112,15 @@ class _AdminDeliveryZonesState extends State<AdminDeliveryZones> {
     name.dispose();base.dispose();perKm.dispose();
   }
   @override Widget build(BuildContext context)=>Scaffold(
-    floatingActionButton:FloatingActionButton.extended(onPressed:working?null:()=>_edit(),icon:const Icon(Icons.add),label:Text(dt('إضافة رسوم لمدينة'))),
-    body:loading?const Center(child:CircularProgressIndicator()):error!=null?Center(child:TextButton(onPressed:_load,child:Text(dt('تعذر تحميل المناطق: $error')))):zones.isEmpty?const Center(child:_EmptyPanel(text: dt('لم تُضف رسوم توصيل بعد'))):RefreshIndicator(onRefresh:_load,child:ListView(padding:const EdgeInsets.all(16),children:[
+    floatingActionButton:FloatingActionButton.extended(onPressed:working?null:()=>_edit(),icon:Icon(Icons.add),label:Text(dt('إضافة رسوم لمدينة'))),
+    body:loading?Center(child:CircularProgressIndicator()):error!=null?Center(child:TextButton(onPressed:_load,child:Text(dt('تعذر تحميل المناطق: $error')))):zones.isEmpty?Center(child:_EmptyPanel(text: dt('لم تُضف رسوم توصيل بعد'))):RefreshIndicator(onRefresh:_load,child:ListView(padding:const EdgeInsets.all(16),children:[
       Text(dt('إعداد رسوم التوصيل'),style:TextStyle(fontSize:20,fontWeight:FontWeight.w900)),
-      const SizedBox(height:8),Text(dt('يُضبط رسم واحد لكل مدينة. احتساب رسم الكيلومتر يتطلب تحديد موقع المتجر وموقع عنوان العميل.'),style:TextStyle(color:Colors.black54)),
+      SizedBox(height:8),Text(dt('يُضبط رسم واحد لكل مدينة. احتساب رسم الكيلومتر يتطلب تحديد موقع المتجر وموقع عنوان العميل.'),style:TextStyle(color:Colors.black54)),
       for(final zone in zones)Card(child:ListTile(
-        leading:const Icon(Icons.payments_outlined,color:green),
+        leading:Icon(Icons.payments_outlined,color:green),
         title:Text(zone['name']?.toString()??'منطقة'),
         subtitle:Text('${_cityName(zone['city'] as Map)} • أساسي: ${zone['feeBase']} ل.س • لكل كم: ${zone['feePerKm']} ل.س'),
-        trailing:IconButton(onPressed:working?null:()=>_edit(zone as Map),icon:const Icon(Icons.edit_outlined)),
+        trailing:IconButton(onPressed:working?null:()=>_edit(zone as Map),icon:Icon(Icons.edit_outlined)),
       )),
     ])),
   );
