@@ -219,6 +219,7 @@ describe('Peer delivery offers', () => {
     prisma.driver.findUnique.mockResolvedValue({ id: 'driver-1', cityId: 'city-1', status: 'APPROVED', isOnline: true });
     const upsert = jest.fn().mockResolvedValue({ id: 'offer-1', amount: 75 });
     const tx: any = {
+      $queryRaw: jest.fn().mockResolvedValue([]),
       order: { findFirst: jest.fn().mockResolvedValue({ id: 'order-1', currency: 'SYP' }) },
       deliveryOffer: { upsert },
     };
@@ -244,6 +245,7 @@ describe('Peer delivery offers', () => {
     const offerUpdateMany = jest.fn();
     const historyCreate = jest.fn();
     const tx: any = {
+      $queryRaw: jest.fn().mockResolvedValue([]),
       order: { findFirst: jest.fn().mockResolvedValue({ id: 'order-1' }), updateMany: orderUpdateMany, findUnique: jest.fn().mockResolvedValue({ id: 'order-1', status: 'ASSIGNED' }) },
       deliveryOffer: {
         findFirst: jest.fn().mockResolvedValue({ id: 'offer-1', driverId: 'driver-1', amount: 75, currency: 'SYP' }),
@@ -270,6 +272,7 @@ describe('Peer delivery offers', () => {
 
   it('rejects a selection if another customer session already claimed the order', async () => {
     const tx: any = {
+      $queryRaw: jest.fn().mockResolvedValue([]),
       order: { findFirst: jest.fn().mockResolvedValue({ id: 'order-1' }), updateMany: jest.fn().mockResolvedValue({ count: 0 }) },
       deliveryOffer: { findFirst: jest.fn().mockResolvedValue({ id: 'offer-1', driverId: 'driver-1', amount: 75, currency: 'SYP' }) },
     };
