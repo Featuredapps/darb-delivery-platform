@@ -17,12 +17,16 @@ class _CustomerHomeState extends State<CustomerHome> {
   @override
   void initState() {
     super.initState();
+    darbLocale.addListener(_onLocaleChanged);
     search.addListener(() { if (mounted) setState(() {}); });
     _load();
   }
 
+  void _onLocaleChanged() => _load();
+
   @override
   void dispose() {
+    darbLocale.removeListener(_onLocaleChanged);
     search.dispose();
     super.dispose();
   }
