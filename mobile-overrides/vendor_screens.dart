@@ -41,7 +41,7 @@ Widget build(BuildContext context) {
         height:106,margin:const EdgeInsets.only(bottom:11),
         decoration:BoxDecoration(color:DarbColors.surface,borderRadius:BorderRadius.circular(DarbRadius.lg),border:Border.all(color:DarbColors.line)),
         child:const Center(child:LinearProgressIndicator(minHeight:2)),
-      ))
+      )))
       :error!=null
         ?_ErrorPanel(message:error!,retry:_load)
         :products.isEmpty
