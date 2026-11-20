@@ -311,7 +311,7 @@ abstract final class DarbTheme {
   }
 
   static ThemeData get light {
-    const scheme = ColorScheme(
+    scheme = ColorScheme(
       brightness: Brightness.light,
       primary: DarbColors.forest,
       onPrimary: Colors.white,
@@ -327,7 +327,7 @@ abstract final class DarbTheme {
       colorScheme: scheme,
       scaffoldBackgroundColor: DarbColors.canvas,
       fontFamily: 'Arial',
-      textTheme: const TextTheme(
+      textTheme: TextTheme(
         headlineLarge: TextStyle(color: DarbColors.ink, fontSize: 28, fontWeight: FontWeight.w900, height: 1.2),
         headlineMedium: TextStyle(color: DarbColors.ink, fontSize: 23, fontWeight: FontWeight.w900, height: 1.25),
         titleLarge: TextStyle(color: DarbColors.ink, fontSize: 19, fontWeight: FontWeight.w800),
@@ -336,7 +336,7 @@ abstract final class DarbTheme {
         bodyMedium: TextStyle(color: DarbColors.muted, fontSize: 13, height: 1.45),
         labelLarge: TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
       ),
-      pageTransitionsTheme: const PageTransitionsTheme(
+      pageTransitionsTheme: PageTransitionsTheme(
         builders: {
           TargetPlatform.android: ZoomPageTransitionsBuilder(),
           TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
@@ -347,7 +347,7 @@ abstract final class DarbTheme {
       ),
       splashFactory: InkSparkle.splashFactory,
       visualDensity: VisualDensity.standard,
-      progressIndicatorTheme: const ProgressIndicatorThemeData(
+      progressIndicatorTheme: ProgressIndicatorThemeData(
         color: DarbColors.forest,
         linearTrackColor: DarbColors.line,
         circularTrackColor: DarbColors.line,
@@ -358,7 +358,7 @@ abstract final class DarbTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(DarbRadius.xl)),
       ),
-      bottomSheetTheme: const BottomSheetThemeData(
+      bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: DarbColors.surface,
         surfaceTintColor: Colors.transparent,
         showDragHandle: true,
@@ -367,7 +367,7 @@ abstract final class DarbTheme {
           borderRadius: BorderRadius.vertical(top: Radius.circular(DarbRadius.xl)),
         ),
       ),
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: DarbColors.canvas,
         foregroundColor: DarbColors.ink,
         elevation: 0,
@@ -384,7 +384,7 @@ abstract final class DarbTheme {
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(22),
-          side: const BorderSide(color: DarbColors.line),
+          side: BorderSide(color: DarbColors.line),
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
@@ -402,45 +402,45 @@ abstract final class DarbTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: DarbColors.surface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 17),
-        hintStyle: const TextStyle(color: DarbColors.muted, fontSize: 14),
-        labelStyle: const TextStyle(color: DarbColors.muted),
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 17),
+        hintStyle: TextStyle(color: DarbColors.muted, fontSize: 14),
+        labelStyle: TextStyle(color: DarbColors.muted),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: DarbColors.line),
+          borderSide: BorderSide(color: DarbColors.line),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: DarbColors.line),
+          borderSide: BorderSide(color: DarbColors.line),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: DarbColors.forest, width: 1.5),
+          borderSide: BorderSide(color: DarbColors.forest, width: 1.5),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: DarbColors.forest,
           foregroundColor: Colors.white,
-          minimumSize: const Size(0, 52),
+          minimumSize: Size(0, 52),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+          textStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: DarbColors.forest,
-          minimumSize: const Size(0, 50),
-          side: const BorderSide(color: DarbColors.line),
+          minimumSize: Size(0, 50),
+          side: BorderSide(color: DarbColors.line),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+          textStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
         ),
       ),
-      dividerTheme: const DividerThemeData(color: DarbColors.line, thickness: 1),
+      dividerTheme: DividerThemeData(color: DarbColors.line, thickness: 1),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: DarbColors.forest,
-        contentTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        contentTextStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
     );
