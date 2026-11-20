@@ -311,7 +311,7 @@ abstract final class DarbTheme {
   }
 
   static ThemeData get light {
-    scheme = ColorScheme(
+    final scheme = ColorScheme(
       brightness: Brightness.light,
       primary: Color(0xFF102B26),
       onPrimary: Colors.white,
