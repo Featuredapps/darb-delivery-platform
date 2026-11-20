@@ -198,7 +198,7 @@ class _DarbSplashScreenState extends State<DarbSplashScreen>
                   ),
                   const SizedBox(height: 9),
                   Text(
-                    'كل طريق يبدأ بخطوة',
+                    dt('كل طريق يبدأ بخطوة'),
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: .72),
                       fontSize: 14,
