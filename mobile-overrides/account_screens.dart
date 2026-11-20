@@ -399,7 +399,7 @@ class _AccountPageState extends State<AccountPage> {
   }
 
   Widget _profileHero() {
-    final initial = _name.isNotEmpty ? _name.characters.first : 'د';
+    final initial = _name.isNotEmpty ? _name.characters.first : dt('د');
     return ClipRRect(
       borderRadius: BorderRadius.circular(DarbRadius.hero),
       child: Stack(
