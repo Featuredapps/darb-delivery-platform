@@ -128,7 +128,7 @@ class _DataListState extends State<_DataList>{bool loading=true;String? error;St
       Container(
         padding:const EdgeInsets.all(18),
         decoration:BoxDecoration(
-          gradient:const LinearGradient(
+          gradient:LinearGradient(
             begin:Alignment.topRight,
             end:Alignment.bottomLeft,
             colors:[DarbColors.forestSoft,DarbColors.forest],
@@ -234,9 +234,9 @@ Widget _orderCard(dynamic row){
             Expanded(child:Column(
               crossAxisAlignment:CrossAxisAlignment.start,
               children:[
-                Text(peer?dt('طلب توصيل مستقل'):'${dt('طلب')} ${row['orderNumber']??id}',style:const TextStyle(fontWeight:FontWeight.w900,fontSize:14,color:DarbColors.ink)),
+                Text(peer?dt('طلب توصيل مستقل'):'${dt('طلب')} ${row['orderNumber']??id}',style:TextStyle(fontWeight:FontWeight.w900,fontSize:14,color:DarbColors.ink)),
                 const SizedBox(height:3),
-                Text('${dt('رقم الطلب')}: ${row['orderNumber']??id}',style:const TextStyle(color:DarbColors.muted,fontSize:11)),
+                Text('${dt('رقم الطلب')}: ${row['orderNumber']??id}',style:TextStyle(color:DarbColors.muted,fontSize:11)),
               ],
             )),
             Container(
@@ -250,28 +250,28 @@ Widget _orderCard(dynamic row){
             padding:const EdgeInsets.symmetric(horizontal:12,vertical:10),
             decoration:BoxDecoration(color:DarbColors.canvas,borderRadius:BorderRadius.circular(13)),
             child:Row(children:[
-              Expanded(child:Text(peer&&row['deliveryFee']==0?dt('بانتظار عروض السائقين'):dt('قيمة الطلب'),style:const TextStyle(color:DarbColors.muted,fontSize:11))),
-              Text('${row['total']??''} ${row['currency']??''}',style:const TextStyle(color:DarbColors.forest,fontSize:14,fontWeight:FontWeight.w900)),
+              Expanded(child:Text(peer&&row['deliveryFee']==0?dt('بانتظار عروض السائقين'):dt('قيمة الطلب'),style:TextStyle(color:DarbColors.muted,fontSize:11))),
+              Text('${row['total']??''} ${row['currency']??''}',style:TextStyle(color:DarbColors.forest,fontSize:14,fontWeight:FontWeight.w900)),
             ]),
           ),
           if(peer&&row['distanceKm']!=null)Padding(
             padding:const EdgeInsets.only(top:10),
             child:Row(children:[
-              const Icon(Icons.route_rounded,size:16,color:DarbColors.muted),
+              Icon(Icons.route_rounded,size:16,color:DarbColors.muted),
               const SizedBox(width:6),
               Text(dt('مسافة التوصيل: ${(row['distanceKm'] as num).toStringAsFixed(1)} كم'),style:const TextStyle(fontWeight:FontWeight.w700,fontSize:12)),
             ]),
           ),
           if(peer&&pickup!=null)ListTile(
             dense:true,contentPadding:EdgeInsets.zero,
-            leading:const Icon(Icons.trip_origin_rounded,color:DarbColors.forest),
-            title:Text(dt('الاستلام'),style:const TextStyle(fontSize:11,color:DarbColors.muted)),
+            leading:Icon(Icons.trip_origin_rounded,color:DarbColors.forest),
+            title:Text(dt('الاستلام'),style:TextStyle(fontSize:11,color:DarbColors.muted)),
             subtitle:Text(pickup,style:const TextStyle(fontWeight:FontWeight.w700)),
           ),
           if(peer&&destination!=null)ListTile(
             dense:true,contentPadding:EdgeInsets.zero,
-            leading:const Icon(Icons.flag_rounded,color:DarbColors.success),
-            title:Text(dt('التسليم'),style:const TextStyle(fontSize:11,color:DarbColors.muted)),
+            leading:Icon(Icons.flag_rounded,color:DarbColors.success),
+            title:Text(dt('التسليم'),style:TextStyle(fontSize:11,color:DarbColors.muted)),
             subtitle:Text(destination,style:const TextStyle(fontWeight:FontWeight.w700)),
           ),
           if(peer&&widget.path=='/orders/mine'&&status=='PENDING')_CustomerDeliveryOffers(orderId:id,onSelected:_load),
