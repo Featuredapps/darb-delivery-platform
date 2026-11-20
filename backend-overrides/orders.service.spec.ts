@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { OrderStatus } from '@prisma/client';
 import { OrdersService } from './orders.service';
 
@@ -157,13 +157,14 @@ describe('OrdersService safety checks', () => {
 
   it('restores reserved finite stock exactly when a vendor cancellation succeeds', async () => {
     prisma.order.findUnique.mockResolvedValue({
-      id: 'order-1', status: 'PENDING',
-      vendor: { userId: 'vendor-user-1' }, driver: null,
+      id: 'order-1', status: 'PENDING', vendorId: 'vendor-1',
+      vendor: { id: 'vendor-1', userId: 'vendor-user-1' }, driver: null,
       items: [{ productId: 'product-1', quantity: 3 }, { productId: 'product-2', quantity: 1 }],
     });
     const productUpdateMany = jest.fn().mockResolvedValue({ count: 1 });
+    const orderUpdateMany = jest.fn().mockResolvedValue({ count: 1 });
     const tx = {
-      order: { updateMany: jest.fn().mockResolvedValue({ count: 1 }), findUnique: jest.fn().mockResolvedValue({ id: 'order-1', status: 'CANCELLED' }) },
+      order: { updateMany: orderUpdateMany, findUnique: jest.fn().mockResolvedValue({ id: 'order-1', status: 'CANCELLED' }) },
       product: { updateMany: productUpdateMany },
       orderStatusHistory: { create: jest.fn() },
     };
@@ -171,6 +172,10 @@ describe('OrdersService safety checks', () => {
 
     await service.updateStatus('vendor-user-1', 'VENDOR', 'order-1', OrderStatus.CANCELLED);
 
+    expect(orderUpdateMany).toHaveBeenCalledWith({
+      where: { id: 'order-1', status: 'PENDING', vendorId: 'vendor-1' },
+      data: { status: OrderStatus.CANCELLED },
+    });
     expect(productUpdateMany).toHaveBeenNthCalledWith(1, {
       where: { id: 'product-1', stockQty: { not: null } },
       data: { stockQty: { increment: 3 } },
@@ -204,6 +209,8 @@ describe('Peer delivery offers', () => {
   const prisma: any = {
     $transaction: jest.fn(),
     driver: { findUnique: jest.fn() },
+    order: { findFirst: jest.fn() },
+    deliveryOffer: { findMany: jest.fn() },
   };
   let service: OrdersService;
   beforeEach(() => { jest.clearAllMocks(); service = new OrdersService(prisma); });
@@ -212,6 +219,7 @@ describe('Peer delivery offers', () => {
     prisma.driver.findUnique.mockResolvedValue({ id: 'driver-1', cityId: 'city-1', status: 'APPROVED', isOnline: true });
     const upsert = jest.fn().mockResolvedValue({ id: 'offer-1', amount: 75 });
     const tx: any = {
+      $queryRaw: jest.fn().mockResolvedValue([]),
       order: { findFirst: jest.fn().mockResolvedValue({ id: 'order-1', currency: 'SYP' }) },
       deliveryOffer: { upsert },
     };
@@ -237,6 +245,7 @@ describe('Peer delivery offers', () => {
     const offerUpdateMany = jest.fn();
     const historyCreate = jest.fn();
     const tx: any = {
+      $queryRaw: jest.fn().mockResolvedValue([]),
       order: { findFirst: jest.fn().mockResolvedValue({ id: 'order-1' }), updateMany: orderUpdateMany, findUnique: jest.fn().mockResolvedValue({ id: 'order-1', status: 'ASSIGNED' }) },
       deliveryOffer: {
         findFirst: jest.fn().mockResolvedValue({ id: 'offer-1', driverId: 'driver-1', amount: 75, currency: 'SYP' }),
@@ -263,10 +272,93 @@ describe('Peer delivery offers', () => {
 
   it('rejects a selection if another customer session already claimed the order', async () => {
     const tx: any = {
+      $queryRaw: jest.fn().mockResolvedValue([]),
       order: { findFirst: jest.fn().mockResolvedValue({ id: 'order-1' }), updateMany: jest.fn().mockResolvedValue({ count: 0 }) },
       deliveryOffer: { findFirst: jest.fn().mockResolvedValue({ id: 'offer-1', driverId: 'driver-1', amount: 75, currency: 'SYP' }) },
     };
     prisma.$transaction.mockImplementation(async (callback: (tx: any) => unknown) => callback(tx));
     await expect(service.selectDeliveryOffer('customer-1', 'order-1', 'offer-1')).rejects.toBeInstanceOf(BadRequestException);
+  });
+  it('rejects offers from drivers who are not approved or online', async () => {
+    prisma.driver.findUnique.mockResolvedValue({ id: 'driver-1', cityId: 'city-1', status: 'PENDING', isOnline: true });
+    await expect(service.submitDeliveryOffer('driver-user-1', 'order-1', 75)).rejects.toBeInstanceOf(ForbiddenException);
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('rejects offers when the order is not pending or belongs to another city', async () => {
+    prisma.driver.findUnique.mockResolvedValue({ id: 'driver-1', cityId: 'city-2', status: 'APPROVED', isOnline: true });
+    const findFirst = jest.fn().mockResolvedValue(null);
+    prisma.$transaction.mockImplementation(async (callback: (tx: any) => unknown) => callback({
+      $queryRaw: jest.fn().mockResolvedValue([]),
+      order: { findFirst }, deliveryOffer: { upsert: jest.fn() },
+    }));
+    await expect(service.submitDeliveryOffer('driver-user-1', 'order-1', 75)).rejects.toBeInstanceOf(BadRequestException);
+    expect(findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'order-1', cityId: 'city-2', type: 'PEER_DELIVERY', status: 'PENDING', driverId: null },
+    }));
+  });
+
+  it('does not expose offers to a customer who does not own the peer order', async () => {
+    prisma.order.findFirst.mockResolvedValue(null);
+    await expect(service.deliveryOffersForCustomer('another-customer', 'order-1')).rejects.toBeInstanceOf(NotFoundException);
+    expect(prisma.order.findFirst).toHaveBeenCalledWith({
+      where: { id: 'order-1', customerId: 'another-customer', type: 'PEER_DELIVERY' },
+      select: { id: true, status: true },
+    });
+    expect(prisma.deliveryOffer.findMany).not.toHaveBeenCalled();
+  });
+
+  it('rejects selecting an offer when the customer does not own the order', async () => {
+    const orderFindFirst = jest.fn().mockResolvedValue(null);
+    const offerFindFirst = jest.fn();
+    prisma.$transaction.mockImplementation(async (callback: (tx: any) => unknown) => callback({
+      $queryRaw: jest.fn().mockResolvedValue([]),
+      order: { findFirst: orderFindFirst }, deliveryOffer: { findFirst: offerFindFirst },
+    }));
+    await expect(service.selectDeliveryOffer('another-customer', 'order-1', 'offer-1')).rejects.toBeInstanceOf(BadRequestException);
+    expect(offerFindFirst).not.toHaveBeenCalled();
+  });
+
+  it('rejects selecting an offer from a driver who is no longer approved and online', async () => {
+    const offerFindFirst = jest.fn().mockResolvedValue(null);
+    prisma.$transaction.mockImplementation(async (callback: (tx: any) => unknown) => callback({
+      $queryRaw: jest.fn().mockResolvedValue([]),
+      order: { findFirst: jest.fn().mockResolvedValue({ id: 'order-1' }) },
+      deliveryOffer: { findFirst: offerFindFirst },
+    }));
+    await expect(service.selectDeliveryOffer('customer-1', 'order-1', 'offer-1')).rejects.toBeInstanceOf(BadRequestException);
+    expect(offerFindFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'offer-1', orderId: 'order-1', status: 'PENDING', driver: { status: 'APPROVED', isOnline: true } },
+    }));
+  });
+
+  it('allows only one concurrent offer selection to win the conditional order claim', async () => {
+    const orderUpdateMany = jest.fn()
+      .mockResolvedValueOnce({ count: 1 })
+      .mockResolvedValueOnce({ count: 0 });
+    const tx: any = {
+      $queryRaw: jest.fn().mockResolvedValue([]),
+      order: {
+        findFirst: jest.fn().mockResolvedValue({ id: 'order-1' }),
+        updateMany: orderUpdateMany,
+        findUnique: jest.fn().mockResolvedValue({ id: 'order-1', status: 'ASSIGNED' }),
+      },
+      deliveryOffer: {
+        findFirst: jest.fn().mockImplementation(({ where }: any) => Promise.resolve({
+          id: where.id, driverId: where.id === 'offer-1' ? 'driver-1' : 'driver-2', amount: 75, currency: 'SYP',
+        })),
+        update: jest.fn(), updateMany: jest.fn(),
+      },
+      payment: { updateMany: jest.fn() },
+      orderStatusHistory: { create: jest.fn() },
+    };
+    prisma.$transaction.mockImplementation(async (callback: (tx: any) => unknown) => callback(tx));
+    const results = await Promise.allSettled([
+      service.selectDeliveryOffer('customer-1', 'order-1', 'offer-1'),
+      service.selectDeliveryOffer('customer-1', 'order-1', 'offer-2'),
+    ]);
+    expect(results.filter(result => result.status === 'fulfilled')).toHaveLength(1);
+    expect(results.filter(result => result.status === 'rejected')).toHaveLength(1);
+    expect(orderUpdateMany).toHaveBeenCalledTimes(2);
   });
 });

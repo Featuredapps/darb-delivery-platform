@@ -127,6 +127,10 @@ export class OrdersService {
     const driver = await this.prisma.driver.findUnique({ where: { userId } });
     if (!driver || driver.status !== 'APPROVED' || !driver.isOnline) throw new ForbiddenException('يجب أن يكون حساب السائق معتمداً ومتصلًا');
     return this.prisma.$transaction(async tx => {
+      // Serialize offer submission against customer selection for this order.
+      // Without the row lock, an offer can be inserted after selection rejects
+      // all pending offers, leaving a stale PENDING offer on an assigned order.
+      await tx.$queryRaw`SELECT "id" FROM "Order" WHERE "id" = ${orderId} FOR UPDATE`;
       const order = await tx.order.findFirst({ where: { id: orderId, cityId: driver.cityId, type: 'PEER_DELIVERY', status: 'PENDING', driverId: null }, select: { id: true, currency: true } });
       if (!order) throw new BadRequestException('الطلب لم يعد متاحاً لتقديم عرض');
       return tx.deliveryOffer.upsert({
@@ -149,6 +153,9 @@ export class OrdersService {
 
   async selectDeliveryOffer(userId: string, orderId: string, offerId: string) {
     return this.prisma.$transaction(async tx => {
+      // Use the same row lock as offer submission so no new offer can appear
+      // after this transaction closes the pending offers and assigns the order.
+      await tx.$queryRaw`SELECT "id" FROM "Order" WHERE "id" = ${orderId} FOR UPDATE`;
       const order = await tx.order.findFirst({ where: { id: orderId, customerId: userId, type: 'PEER_DELIVERY', status: 'PENDING', driverId: null }, select: { id: true } });
       if (!order) throw new BadRequestException('لا يمكن اختيار عرض لهذا الطلب');
       const offer = await tx.deliveryOffer.findFirst({
@@ -195,7 +202,12 @@ export class OrdersService {
     };
     if (!transitions[order.status]?.includes(status)) throw new BadRequestException('تسلسل حالة الطلب غير صحيح');
     return this.prisma.$transaction(async tx => {
-      const changed = await tx.order.updateMany({ where: { id: orderId, status: order.status }, data: { status } });
+      // Re-check the actor's assignment inside the atomic write to prevent a stale
+      // vendor/driver session from changing an order after ownership has changed.
+      const ownershipWhere: Record<string, unknown> = { id: orderId, status: order.status };
+      if (role === 'VENDOR') ownershipWhere.vendorId = order.vendorId;
+      if (role === 'DRIVER') ownershipWhere.driverId = order.driverId;
+      const changed = await tx.order.updateMany({ where: ownershipWhere, data: { status } });
       if (!changed.count) throw new BadRequestException('تم تحديث الطلب من مستخدم آخر؛ أعد تحميله');
       if (status === OrderStatus.CANCELLED) {
         // Restore only finite stock reserved when the order was created.

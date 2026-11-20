@@ -32,8 +32,12 @@ export class NotificationsService {
     return { success: true };
   }
   async notifyVendor(vendorId: string, title: string, body: string, data: Record<string,string>) {
-    const vendor = await this.prisma.vendor.findUnique({ where: { id: vendorId }, select: { userId: true } });
-    if (vendor) await this.notifyUser(vendor.userId, title, body, data);
+    try {
+      const vendor = await this.prisma.vendor.findUnique({ where: { id: vendorId }, select: { userId: true } });
+      if (vendor) await this.notifyUser(vendor.userId, title, body, data);
+    } catch (error) {
+      this.logger.error('Could not notify vendor; order processing will continue.');
+    }
   }
   async notifyDriversInCity(cityId: string, title: string, body: string, data: Record<string,string>) {
     try {
@@ -65,21 +69,19 @@ export class NotificationsService {
   }
   private async notifyUser(userId: string, title: string, body: string, data: Record<string,string>) {
     if (!this.messaging) return;
-    const devices = await this.prisma.userDevice.findMany({ where: { userId }, select: { token: true } });
-    if (!devices.length) return;
-    let result;
     try {
-      result = await this.messaging.sendEachForMulticast({
+      const devices = await this.prisma.userDevice.findMany({ where: { userId }, select: { token: true } });
+      if (!devices.length) return;
+      const result = await this.messaging.sendEachForMulticast({
         tokens: devices.map(x => x.token), notification: { title, body }, data,
         android: { priority: 'high' },
       });
+      const invalid = result.responses.flatMap((r, i) =>
+        !r.success && ['messaging/registration-token-not-registered','messaging/invalid-registration-token'].includes(r.error?.code ?? '')
+          ? [devices[i].token] : []);
+      if (invalid.length) await this.prisma.userDevice.deleteMany({ where: { token: { in: invalid } } });
     } catch (error) {
-      this.logger.error('Firebase push send failed; order processing will continue.');
-      return;
+      this.logger.error('Firebase push processing failed; order processing will continue.');
     }
-    const invalid = result.responses.flatMap((r, i) =>
-      !r.success && ['messaging/registration-token-not-registered','messaging/invalid-registration-token'].includes(r.error?.code ?? '')
-        ? [devices[i].token] : []);
-    if (invalid.length) await this.prisma.userDevice.deleteMany({ where: { token: { in: invalid } } });
   }
 }
