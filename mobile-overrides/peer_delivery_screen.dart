@@ -2,7 +2,7 @@ part of 'app_shell.dart';
 
 class PeerDeliveryScreen extends StatefulWidget {
   final String cityId;
-  PeerDeliveryScreen({super.key, required this.cityId});
+  const PeerDeliveryScreen({super.key, required this.cityId});
 
   @override
   State<PeerDeliveryScreen> createState() => _PeerDeliveryScreenState();
