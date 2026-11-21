@@ -109,7 +109,7 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
         decoration: BoxDecoration(
           color: active ? DarbColors.mint.withValues(alpha: .42) : DarbColors.surface,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: active ? DarbColors.forestSoft : DarbColors.line, width: active ? 1.6 : 1),
+          border: Border.all(color: active ? DarbColors.brandForeground : DarbColors.line, width: active ? 1.6 : 1),
           boxShadow: active ? DarbElevation.card : const [],
         ),
         child: Row(
@@ -128,7 +128,7 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
                 children: [
                   Text(title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: DarbColors.ink)),
                   const SizedBox(height: 3),
-                  Text(nativeTitle, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: DarbColors.forestSoft)),
+                  Text(nativeTitle, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: DarbColors.brandForeground)),
                   const SizedBox(height: 4),
                   Text(subtitle, style: TextStyle(fontSize: 11, color: DarbColors.muted)),
                 ],
@@ -140,10 +140,10 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
               height: 24,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: active ? DarbColors.forest : Colors.transparent,
-                border: Border.all(color: active ? DarbColors.forest : DarbColors.line, width: 1.5),
+                color: active ? DarbColors.brandForeground : Colors.transparent,
+                border: Border.all(color: active ? DarbColors.brandForeground : DarbColors.line, width: 1.5),
               ),
-              child: active ? const Icon(Icons.check_rounded, size: 16, color: Colors.white) : null,
+              child: active ? Icon(Icons.check_rounded, size: 16, color: DarbColors.onForest) : null,
             ),
           ],
         ),
