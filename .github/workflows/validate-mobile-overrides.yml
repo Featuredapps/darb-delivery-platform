@@ -67,11 +67,11 @@ jobs:
           permission='<uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />'
           notification_permission='<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />'
           if notification_permission not in m:
-              m=m.replace(permission, permission+"\n    "+notification_permission, 1)
+              m=m.replace(permission, permission+"\\n    "+notification_permission, 1)
           if permission not in m:
-              m=m.replace("<application", permission+"\n    <application", 1)
+              m=m.replace("<application", permission+"\\n    <application", 1)
           if notification_permission not in m:
-              m=m.replace(permission, permission+"\n    "+notification_permission, 1)
+              m=m.replace(permission, permission+"\\n    "+notification_permission, 1)
           provider="""    <provider
                   android:name="androidx.core.content.FileProvider"
                   android:authorities="${applicationId}.fileprovider"
@@ -87,9 +87,9 @@ jobs:
                   </intent-filter>
               </receiver>"""
           if "DarbUpdateDownloadReceiver" not in m:
-              m=m.replace("</application>", receiver+"\n    </application>", 1)
+              m=m.replace("</application>", receiver+"\\n    </application>", 1)
           if "androidx.core.content.FileProvider" not in m:
-              m=m.replace("</application>", provider+"\n    </application>", 1)
+              m=m.replace("</application>", provider+"\\n    </application>", 1)
           p.write_text(m)
           PY
           cd "$M"
@@ -104,15 +104,43 @@ jobs:
               if not any(line.strip().startswith(name + ":") for line in lines):
                   dep += 1
                   lines.insert(dep, f"  {name}: {version}")
-          p.write_text("\n".join(lines)+"\n")
+          p.write_text("\\n".join(lines)+"\\n")
           PY
           flutter pub get
+      - name: Give the theme test build an isolated Android package ID
+        working-directory: extracted/darb-project/mobile
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          candidates = [Path("android/app/build.gradle.kts"), Path("android/app/build.gradle")]
+          gradle = next((p for p in candidates if p.is_file()), None)
+          if gradle is None:
+              raise SystemExit("Android app Gradle file not found")
+          source = gradle.read_text()
+          if "applicationIdSuffix" in source:
+              raise SystemExit("Refusing to add a duplicate applicationIdSuffix")
+          match = re.search(r"(?m)^(\\s*)buildTypes\\s*\\{", source)
+          if not match:
+              raise SystemExit("Could not locate buildTypes block safely")
+          indent = match.group(1) + "    "
+          if gradle.suffix == ".kts":
+              block = indent + 'getByName("debug") {\\n' + indent + '    applicationIdSuffix = ".themetest"\\n' + indent + '}\\n'
+          else:
+              block = indent + 'debug {\\n' + indent + '    applicationIdSuffix ".themetest"\\n' + indent + '}\\n'
+          insert_at = match.end()
+          source = source[:insert_at] + "\\n" + block + source[insert_at:]
+          gradle.write_text(source)
+          print(f"Configured isolated test package in {gradle}")
+          PY
       - name: Analyze all mobile Dart sources
         working-directory: extracted/darb-project/mobile
         run: flutter analyze lib --no-pub --no-fatal-infos --no-fatal-warnings
       - name: Build Android debug APK
         working-directory: extracted/darb-project/mobile
-        run: flutter build apk --debug --no-pub
+        run: flutter build apk --debug --no-pub --build-number 32
       - name: Run Flutter tests
         working-directory: extracted/darb-project/mobile
         shell: bash
