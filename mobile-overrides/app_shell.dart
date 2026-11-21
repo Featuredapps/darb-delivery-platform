@@ -175,20 +175,31 @@ class _AppShellState extends State<AppShell> {
           ],
         ),
         actions: [
-          PopupMenuButton<ThemeMode>(
-            tooltip: dt('مظهر التطبيق'),
-            icon: Icon(
-              Theme.of(context).brightness == Brightness.dark
-                  ? Icons.dark_mode_rounded
-                  : Icons.light_mode_rounded,
-              color: Colors.white,
+          IconButton(
+            tooltip: Theme.of(context).brightness == Brightness.dark
+                ? dt('التبديل إلى الوضع النهاري')
+                : dt('التبديل إلى الوضع الليلي'),
+            onPressed: () {
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+              DarbTheme.setMode(isDark ? ThemeMode.light : ThemeMode.dark);
+            },
+            icon: AnimatedSwitcher(
+              duration: DarbMotion.expressive,
+              switchInCurve: DarbMotion.expressiveCurve,
+              switchOutCurve: DarbMotion.exit,
+              transitionBuilder: (child, animation) => RotationTransition(
+                turns: Tween<double>(begin: .72, end: 1).animate(animation),
+                child: ScaleTransition(scale: animation, child: child),
+              ),
+              child: Icon(
+                Theme.of(context).brightness == Brightness.dark
+                    ? Icons.dark_mode_rounded
+                    : Icons.light_mode_rounded,
+                key: ValueKey(Theme.of(context).brightness),
+                color: DarbColors.lime,
+                size: 25,
+              ),
             ),
-            onSelected: DarbTheme.setMode,
-            itemBuilder: (context) => [
-              PopupMenuItem(value: ThemeMode.system, child: Text(dt('حسب الجهاز'))),
-              PopupMenuItem(value: ThemeMode.light, child: Text(dt('نهاري'))),
-              PopupMenuItem(value: ThemeMode.dark, child: Text(dt('ليلي'))),
-            ],
           ),
           ValueListenableBuilder<DarbUpdateInfo?>(
             valueListenable: DarbUpdater.instance.availableUpdate,
