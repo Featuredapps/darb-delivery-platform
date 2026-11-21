@@ -34,7 +34,10 @@ class _AdminQueueState extends State<AdminQueue> {
     if (loading) Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator())),
     if (error != null) _ErrorPanel(message: error!, retry: _load),
     if (!loading && error == null && rows.isEmpty) _EmptyPanel(text: dt('لا توجد طلبات معلّقة حالياً')),
-    for (final row in rows) _requestCard(row),
+    for (var index = 0; index < rows.length; index++) DarbFadeSlide(
+      delay: DarbMotion.staggerDelay(index.clamp(0, 5).toInt()),
+      child: _requestCard(rows[index]),
+    ),
   ]));
   Widget _requestCard(dynamic row) {
     final user = row['user'] as Map? ?? {};
