@@ -220,9 +220,11 @@ jobs:
             echo "Flutter tests: skipped (no test files supplied)" >> "$GITHUB_STEP_SUMMARY"
           fi
           COMMIT_COUNT="$(git rev-list --count HEAD)"
-          BUILD_NUMBER=$((1000 + COMMIT_COUNT))
-          if [ "$BUILD_NUMBER" -le 32 ]; then BUILD_NUMBER=33; fi
+          # Installed customer baseline is versionCode 1300; every new build must be higher.
+          BUILD_NUMBER=$((1301 + COMMIT_COUNT))
           BUILD_NAME="1.0.$BUILD_NUMBER"
+          echo "- Android versionCode: $BUILD_NUMBER" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Android versionName: $BUILD_NAME" >> "$GITHUB_STEP_SUMMARY"
           flutter build apk "${args[@]}" --build-number "$BUILD_NUMBER" --build-name "$BUILD_NAME"
           APK="build/app/outputs/flutter-apk/app-release.apk"
           test -s "$APK"
