@@ -57,7 +57,7 @@ class _AdminQueueState extends State<AdminQueue> {
               Container(
                 width:48,height:48,
                 decoration:BoxDecoration(color:DarbColors.mint.withValues(alpha:.38),borderRadius:BorderRadius.circular(15)),
-                child:Icon(widget.kind=='vendors'?Icons.storefront_rounded:Icons.delivery_dining_rounded,color:DarbColors.forest,size:24),
+                child:Icon(widget.kind=='vendors'?Icons.storefront_rounded:Icons.delivery_dining_rounded,color:DarbColors.brandForeground,size:24),
               ),
               const SizedBox(width:12),
               Expanded(child:Column(
