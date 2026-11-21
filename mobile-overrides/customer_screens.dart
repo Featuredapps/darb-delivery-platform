@@ -537,7 +537,7 @@ class _AiOrderAssistantScreenState extends State<AiOrderAssistantScreen> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
+              gradient: LinearGradient(
                 begin: Alignment.topRight, end: Alignment.bottomLeft,
                 colors: [DarbColors.forestSoft, DarbColors.forest]),
               borderRadius: BorderRadius.circular(24)),
@@ -580,7 +580,7 @@ class _AiOrderAssistantScreenState extends State<AiOrderAssistantScreen> {
                   style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
                 const SizedBox(height: 6),
                 Text('الحالة: ${_draft?['status'] ?? 'غير محددة'}',
-                  style: const TextStyle(color: DarbColors.muted, fontSize: 12)),
+                  style: TextStyle(color: DarbColors.muted, fontSize: 12)),
                 if ((_draft?['transcript'] ?? '').toString().isNotEmpty) ...[
                   const Divider(height: 22), Text(_draft!['transcript'].toString())],
                 if (items.isNotEmpty) ...[
@@ -588,25 +588,25 @@ class _AiOrderAssistantScreenState extends State<AiOrderAssistantScreen> {
                   Text(dt('العناصر المستخرجة'), style: const TextStyle(fontWeight: FontWeight.w800)),
                   for (final item in items)
                     if (item is Map) ListTile(contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.inventory_2_outlined, color: DarbColors.forest),
+                      leading: Icon(Icons.inventory_2_outlined, color: DarbColors.forest),
                       title: Text(item['rawName']?.toString() ?? dt('عنصر')),
                       subtitle: Text('الكمية: ${item['quantity'] ?? 1} ${item['unit'] ?? ''}'),
                       trailing: item['productId'] == null
-                        ? const Icon(Icons.help_outline_rounded, color: DarbColors.warning)
-                        : const Icon(Icons.check_circle_rounded, color: DarbColors.success)),
+                        ? Icon(Icons.help_outline_rounded, color: DarbColors.warning)
+                        : Icon(Icons.check_circle_rounded, color: DarbColors.success)),
                 ],
                 if (warnings.isNotEmpty) ...[
                   const Divider(height: 22),
-                  Text(dt('يحتاج إلى مراجعتك'), style: const TextStyle(fontWeight: FontWeight.w800, color: DarbColors.warning)),
+                  Text(dt('يحتاج إلى مراجعتك'), style: TextStyle(fontWeight: FontWeight.w800, color: DarbColors.warning)),
                   for (final warning in warnings)
                     Padding(padding: const EdgeInsets.only(top: 7),
                       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        const Icon(Icons.info_outline_rounded, size: 17, color: DarbColors.warning),
+                        Icon(Icons.info_outline_rounded, size: 17, color: DarbColors.warning),
                         const SizedBox(width: 7), Expanded(child: Text(warning.toString(), style: const TextStyle(fontSize: 12)))])),
                 ],
                 const SizedBox(height: 12),
                 Text(dt('هذه مسودة فقط. لم يتم إنشاء طلب أو حجز منتجات أو تثبيت عنوان.'),
-                  style: const TextStyle(color: DarbColors.muted, fontSize: 11, height: 1.5)),
+                  style: TextStyle(color: DarbColors.muted, fontSize: 11, height: 1.5)),
               ]))),
           ],
         ],
