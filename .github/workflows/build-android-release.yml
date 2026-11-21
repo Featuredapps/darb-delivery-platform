@@ -64,6 +64,8 @@ jobs:
           cp "$ROOT/mobile-overrides/account_pages.dart" "$M/lib/screens/account_pages.dart"
           cp "$ROOT/mobile-overrides/notifications.dart" "$M/lib/notifications.dart"
           cp "$ROOT/mobile-overrides/app_update.dart" "$M/lib/app_update.dart"
+          mkdir -p "$M/test"
+          cp "$ROOT/mobile-overrides/design_system_test.dart" "$M/test/widget_test.dart"
           mkdir -p "$M/android/app/src/main/kotlin/com/darb/darb" "$M/android/app/src/main/res/xml"
           cp "$ROOT/mobile-overrides/MainActivity.kt" "$M/android/app/src/main/kotlin/com/darb/darb/MainActivity.kt"
           cp "$ROOT/mobile-overrides/DarbUpdateDownloadReceiver.kt" "$M/android/app/src/main/kotlin/com/darb/darb/DarbUpdateDownloadReceiver.kt"
@@ -214,7 +216,6 @@ jobs:
               }
           }
           GRADLE
-          rm -f test/widget_test.dart
           if find test -type f -name '*_test.dart' -print -quit 2>/dev/null | grep -q .; then
             flutter test --no-pub
           else
