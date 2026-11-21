@@ -6,7 +6,18 @@ on:
       - ".github/workflows/build-android-release.yml"
       - "DARB-source.zip"
       - "mobile-overrides/**"
+  pull_request:
+    paths:
+      - ".github/workflows/build-android-release.yml"
+      - "DARB-source.zip"
+      - "mobile-overrides/**"
   workflow_dispatch:
+    inputs:
+      publish_release:
+        description: "Publish this APK as the public latest release (leave disabled for testing)"
+        required: false
+        default: false
+        type: boolean
 permissions:
   contents: write
 jobs:
@@ -246,6 +257,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Publish signed APK as the latest public release
+        if: github.event_name == 'push' || inputs.publish_release == true
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
