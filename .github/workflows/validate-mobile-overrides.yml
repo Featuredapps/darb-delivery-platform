@@ -123,3 +123,11 @@ jobs:
           else
             echo "::notice::No Flutter test files supplied by the source archive."
           fi
+
+      - name: Upload Android debug APK for device testing
+        uses: actions/upload-artifact@v4
+        with:
+          name: darb-theme-test-apk
+          path: extracted/darb-project/mobile/build/app/outputs/flutter-apk/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
