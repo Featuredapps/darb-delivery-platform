@@ -5,6 +5,7 @@ import '../core/api.dart';
 import '../main.dart';
 import '../localizations.dart';
 import '../design_system.dart';
+import 'city_carousel.dart';
 import 'app_shell.dart';
 
 const _googleServerClientId = String.fromEnvironment('GOOGLE_SERVER_CLIENT_ID');
@@ -255,18 +256,15 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Widget _brandPanel(AppLocalizations l) => Container(
-    padding: const EdgeInsets.fromLTRB(22, 24, 22, 25),
     decoration: BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topRight,
-        end: Alignment.bottomLeft,
-        colors: [DarbColors.forestSoft, DarbColors.forest],
-      ),
+      color: DarbColors.forest,
       borderRadius: BorderRadius.circular(DarbRadius.hero),
       boxShadow: DarbElevation.floating,
     ),
+    clipBehavior: Clip.antiAlias,
     child: Stack(
       children: [
+        const Positioned.fill(child: DarbCityCarousel()),
         PositionedDirectional(
           top: -55,
           end: -48,
@@ -279,9 +277,11 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           ),
         ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(22, 24, 22, 25),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             Row(
               children: [
                 Container(
@@ -335,7 +335,7 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 48),
             Text(
               l.t('welcomeTitle'),
               style: const TextStyle(
@@ -364,7 +364,8 @@ class _LoginScreenState extends State<LoginScreen>
                 _featurePill(Icons.near_me_rounded, l.t('featureNearby')),
               ],
             ),
-          ],
+            ],
+          ),
         ),
       ],
     ),
