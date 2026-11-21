@@ -45,7 +45,7 @@ fi
 
 GRADLE_FILE="$MOBILE_DIR/android/app/build.gradle"
 [ -f "$GRADLE_FILE" ] || GRADLE_FILE="$MOBILE_DIR/android/app/build.gradle.kts"
-if ! grep -Eq "applicationId[[:space:]]*[=(][[:space:]]*['\"]com\\.darb\\.darb['\"]" "$GRADLE_FILE"; then
+if ! grep -Eq "applicationId[[:space:]]*(=[[:space:]]*)?['\"]com\\.darb\\.darb['\"]" "$GRADLE_FILE"; then
   echo "The existing Android applicationId is not confirmed as com.darb.darb. Refusing to change the installed app identity." >&2
   exit 1
 fi
