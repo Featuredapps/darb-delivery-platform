@@ -364,27 +364,33 @@ class _CustomerHomeState extends State<CustomerHome> {
           SizedBox(height: 22),
           _sectionTitle(dt('كيف تريد استخدام دَرْب؟'), dt('اختر المسار الذي يناسب احتياجك')),
           SizedBox(height: 12),
-          _serviceCard(
+          DarbFadeSlide(
+            delay: DarbMotion.staggerDelay(0),
+            child: _serviceCard(
             icon: Icons.inventory_2_outlined,
             title: dt('إرسال غرض مستقل'),
             subtitle: dt('أرسل طرداً أو غرضاً من أي عنوان إلى آخر'),
             onTap: _openPeerDelivery,
             primary: true,
-          ),
+          )),
           SizedBox(height: 9),
-          _serviceCard(
+          DarbFadeSlide(
+            delay: DarbMotion.staggerDelay(1),
+            child: _serviceCard(
             icon: Icons.auto_awesome_rounded,
             title: dt('اطلب بمساعدة الذكاء الاصطناعي'),
             subtitle: dt('اكتب طلبك باللهجة التي تستخدمها ودع دَرْب يحوله إلى مسودة للمراجعة'),
             onTap: _openAiOrderAssistant,
-          ),
+          )),
           SizedBox(height: 9),
-          _serviceCard(
+          DarbFadeSlide(
+            delay: DarbMotion.staggerDelay(2),
+            child: _serviceCard(
             icon: Icons.storefront_outlined,
             title: dt('الطلب من المتاجر'),
             subtitle: dt('تصفح المتاجر والمنتجات واطلب إلى بابك'),
             onTap: _openStores,
-          ),
+          )),
           SizedBox(height: 25),
           Container(key: storesKey),
           _sectionTitle(dt('متاجر مدينتك'), dt('تصفح المتاجر المتاحة وابدأ طلبك')),
@@ -468,7 +474,10 @@ class _CustomerHomeState extends State<CustomerHome> {
               ]),
             )
           else
-            ...visibleVendors.map(_storeTile),
+            ...List.generate(visibleVendors.length, (index) => DarbFadeSlide(
+              delay: DarbMotion.staggerDelay(index.clamp(0, 5).toInt()),
+              child: _storeTile(visibleVendors[index]),
+            )),
         ],
       ),
     );
