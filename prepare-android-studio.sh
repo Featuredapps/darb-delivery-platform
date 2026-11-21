@@ -15,7 +15,21 @@ for required in \
   "$OVERRIDES/city_carousel.dart" \
   "$OVERRIDES/prepare_city_assets.sh" \
   "$OVERRIDES/MainActivity.kt" \
-  "$OVERRIDES/DarbUpdateDownloadReceiver.kt"; do
+  "$OVERRIDES/DarbUpdateDownloadReceiver.kt" \
+  "$OVERRIDES/account_pages.dart" \
+  "$OVERRIDES/account_screens.dart" \
+  "$OVERRIDES/admin_screens.dart" \
+  "$OVERRIDES/api.dart" \
+  "$OVERRIDES/app_shell.dart" \
+  "$OVERRIDES/app_update.dart" \
+  "$OVERRIDES/darb_file_paths.xml" \
+  "$OVERRIDES/design_system.dart" \
+  "$OVERRIDES/driver_screens.dart" \
+  "$OVERRIDES/ic_launcher.xml" \
+  "$OVERRIDES/localizations.dart" \
+  "$OVERRIDES/notifications.dart" \
+  "$OVERRIDES/peer_delivery_screen.dart" \
+  "$OVERRIDES/vendor_screens.dart"; do
   if [ ! -s "$required" ]; then
     echo "Required project input is missing: $required" >&2
     exit 1
@@ -129,7 +143,6 @@ for dependency in dependencies:
     elif existing is None:
         dep_index += 1
         lines.insert(dep_index, dependency)
-pubspec.write_text("\n".join(lines) + "\n")
 pubspec.write_text("\n".join(lines) + "\n")
 
 text = manifest.read_text()
