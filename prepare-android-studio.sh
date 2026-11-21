@@ -123,9 +123,13 @@ if dep_index is None:
     raise SystemExit("pubspec.yaml has no dependencies section")
 for dependency in dependencies:
     name = dependency.split(":")[0].strip()
-    if not any(line.strip().startswith(name + ":") for line in lines[dep_index + 1:]):
+    existing = next((i for i, line in enumerate(lines) if line.strip().startswith(name + ":")), None)
+    if name == "intl" and existing is not None:
+        lines[existing] = dependency
+    elif existing is None:
         dep_index += 1
         lines.insert(dep_index, dependency)
+pubspec.write_text("\n".join(lines) + "\n")
 pubspec.write_text("\n".join(lines) + "\n")
 
 text = manifest.read_text()
