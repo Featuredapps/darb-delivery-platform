@@ -128,6 +128,7 @@ Reusable building blocks:
 - `DarbFadeSlide` for staggered content entrances; use `DarbMotion.staggerDelay(index)` for list items.
 - `DarbPressScale` for tactile press feedback on custom interactive surfaces.
 - `DarbMotion.effectiveDuration(context, duration)` and `DarbMotion.reduceMotion(context)` to honor the operating-system accessibility preference.
+- `DarbPageTransitionsBuilder` supplies the same short fade/slide/scale route transition in light and dark themes.
 
 Use motion for screen transitions, selected navigation, expanding details, order progression, and confirmation feedback. Stagger only small groups; avoid animating every row in long lists. Never delay a critical action for decorative animation. All motion must become immediate when reduced motion is enabled.
 
