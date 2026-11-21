@@ -47,8 +47,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p test
-          cp mobile-overrides/design_system_test.dart test/design_system_test.dart
           flutter pub get
           flutter analyze lib test --no-fatal-infos --no-fatal-warnings
           flutter test
