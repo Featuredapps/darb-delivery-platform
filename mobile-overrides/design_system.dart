@@ -24,7 +24,7 @@ abstract final class DarbColors {
   static Color get success => _dark ? const Color(0xFF75C99A) : const Color(0xFF287A50);
   static Color get warning => _dark ? const Color(0xFFE5B968) : const Color(0xFFB7791F);
   static Color get info => _dark ? const Color(0xFF83B8E0) : const Color(0xFF356D9A);
-  static Color get borderStrong => _dark ? const Color(0xFF40534A) : const Color(0xFFCBD5CE);
+  static Color get borderStrong => _dark ? const Color(0xFF40564A) : const Color(0xFFCBD5CE);
   static Color get scrim => _dark ? const Color(0xB8000000) : const Color(0x990B1713);
 }
 
