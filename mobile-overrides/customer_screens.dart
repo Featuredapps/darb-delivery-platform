@@ -192,9 +192,7 @@ class _CustomerHomeState extends State<CustomerHome> {
               Container(
                 width: 54, height: 54,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFFE6F1E9), Color(0xFFF4F7E9)],
-                  ),
+                  color: DarbColors.surfaceAlt,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Icon(Icons.storefront_rounded, color: green, size: 25),
