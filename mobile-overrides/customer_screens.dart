@@ -125,7 +125,7 @@ class _CustomerHomeState extends State<CustomerHome> {
   }) {
     final foreground = primary ? Colors.white : ink;
     return Material(
-      color: primary ? DarbColors.forestSoft : Colors.white,
+      color: primary ? DarbColors.forestSoft : DarbColors.surface,
       borderRadius: BorderRadius.circular(21),
       child: InkWell(
         onTap: onTap,
@@ -140,10 +140,10 @@ class _CustomerHomeState extends State<CustomerHome> {
             Container(
               width: 48, height: 48,
               decoration: BoxDecoration(
-                color: primary ? Colors.white.withValues(alpha: .12) : Color(0xFFEAF2EC),
+                color: primary ? Colors.white.withValues(alpha: .12) : DarbColors.surfaceAlt,
                 borderRadius: BorderRadius.circular(15),
               ),
-              child: Icon(icon, color: primary ? Color(0xFFC8F169) : green, size: 23),
+              child: Icon(icon, color: primary ? DarbColors.lime : DarbColors.brandForeground, size: 23),
             ),
             SizedBox(width: 12),
             Expanded(child: Column(
@@ -397,7 +397,7 @@ class _CustomerHomeState extends State<CustomerHome> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(color: DarbColors.forest, width: 1.4),
+                borderSide: BorderSide(color: DarbColors.brandForeground, width: 1.4),
               ),
             ),
           ),
