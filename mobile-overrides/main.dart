@@ -40,6 +40,8 @@ class DarbApp extends StatelessWidget {
       theme: DarbTheme.light,
       darkTheme: DarbTheme.dark,
       themeMode: themeMode,
+      themeAnimationDuration: DarbMotion.expressive,
+      themeAnimationCurve: DarbMotion.enter,
       builder: (context, child) {
         DarbTheme.updateBrightness(Theme.of(context).brightness);
         return child ?? const SizedBox.shrink();
