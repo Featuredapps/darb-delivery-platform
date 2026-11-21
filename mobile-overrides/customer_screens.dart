@@ -507,8 +507,10 @@ class _AiOrderAssistantScreenState extends State<AiOrderAssistantScreen> {
       });
       if (result is! Map) throw const ApiException('استجابة المساعد غير صالحة');
       if (mounted) setState(() => _draft = Map<String, dynamic>.from(result));
-    } catch (e) {
-      if (mounted) setState(() => _error = e.toString());
+    } catch (_) {
+      if (mounted) {
+        setState(() => _error = dt('تعذر تحليل الطلب حالياً. تحقق من اتصال الإنترنت ثم أعد المحاولة.'));
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -555,7 +557,7 @@ class _AiOrderAssistantScreenState extends State<AiOrderAssistantScreen> {
             decoration: InputDecoration(
               labelText: dt('اكتب طلبك هنا'),
               hintText: dt('مثال: بدي كيلو موز وحليب، والتوصيل على عنواني...'),
-              alignLabelWithHint: true, filled: true, fillColor: Colors.white,
+              alignLabelWithHint: true, filled: true, fillColor: Theme.of(context).colorScheme.surface,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(18)))),
           const SizedBox(height: 10),
           SizedBox(height: 52, child: FilledButton.icon(
