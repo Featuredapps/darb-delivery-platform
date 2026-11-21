@@ -38,6 +38,8 @@ jobs:
           flutter create --platforms=android --org com.darb --project-name darb --no-pub .
           cd "$GITHUB_WORKSPACE"
           cp mobile-overrides/login_screen.dart "$M/lib/screens/login_screen.dart"
+          cp mobile-overrides/city_carousel.dart "$M/lib/screens/city_carousel.dart"
+          bash mobile-overrides/prepare_city_assets.sh "$M"
           cp mobile-overrides/main.dart "$M/lib/main.dart"
           cp mobile-overrides/design_system.dart "$M/lib/design_system.dart"
           cp mobile-overrides/localizations.dart "$M/lib/localizations.dart"

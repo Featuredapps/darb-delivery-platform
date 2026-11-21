@@ -48,6 +48,8 @@ jobs:
           D="$M/lib/screens/app_shell.dart"
           if grep -Fq "cityId:cityId))));}}" "$D"; then sed -i "s/cityId:cityId))));}}/cityId:cityId)))));}}/" "$D"; fi
           cp "$ROOT/mobile-overrides/login_screen.dart" "$M/lib/screens/login_screen.dart"
+          cp "$ROOT/mobile-overrides/city_carousel.dart" "$M/lib/screens/city_carousel.dart"
+          bash "$ROOT/mobile-overrides/prepare_city_assets.sh" "$M"
           cp "$ROOT/mobile-overrides/main.dart" "$M/lib/main.dart"
           cp "$ROOT/mobile-overrides/design_system.dart" "$M/lib/design_system.dart"
           cp "$ROOT/mobile-overrides/localizations.dart" "$M/lib/localizations.dart"
