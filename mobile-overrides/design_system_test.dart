@@ -11,6 +11,38 @@ void main() {
       expect(theme.scaffoldBackgroundColor, DarbColors.canvas);
     });
 
+    test('defines a dark Material 3 theme with semantic contrast', () {
+      final theme = DarbTheme.dark;
+      expect(theme.useMaterial3, isTrue);
+      expect(theme.brightness, Brightness.dark);
+      expect(theme.colorScheme.primary, const Color(0xFFB9E4D2));
+      expect(theme.scaffoldBackgroundColor, const Color(0xFF0B1512));
+    });
+
+    test('defaults theme selection to follow the device', () {
+      expect(DarbTheme.mode.value, ThemeMode.system);
+    });
+
+
+    test('semantic palette adapts when active brightness changes', () {
+      DarbTheme.updateBrightness(Brightness.light);
+      final lightCanvas = DarbColors.canvas;
+      final lightSurface = DarbColors.surface;
+      final lightInk = DarbColors.ink;
+
+      DarbTheme.updateBrightness(Brightness.dark);
+      expect(DarbColors.canvas, isNot(lightCanvas));
+      expect(DarbColors.surface, isNot(lightSurface));
+      expect(DarbColors.ink, isNot(lightInk));
+      expect(DarbColors.ink, const Color(0xFFF1F5F1));
+      expect(DarbColors.line, const Color(0xFF2A3B33));
+
+      DarbTheme.updateBrightness(Brightness.light);
+      expect(DarbColors.canvas, lightCanvas);
+      expect(DarbColors.surface, lightSurface);
+      expect(DarbColors.ink, lightInk);
+    });
+
     test('provides consistent spacing, radius and motion tokens', () {
       expect(DarbSpace.xs, 8);
       expect(DarbSpace.md, 16);

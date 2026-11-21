@@ -2,24 +2,31 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Shared visual language for DARB. Keep product screens on these tokens.
 abstract final class DarbColors {
-  static const forest = Color(0xFF102B26);
-  static const forestSoft = Color(0xFF1C443B);
-  static const mint = Color(0xFFB9E4D2);
-  static const lime = Color(0xFFC8F169);
-  static const canvas = Color(0xFFF5F6F2);
-  static const surface = Color(0xFFFFFFFF);
-  static const ink = Color(0xFF17231F);
-  static const muted = Color(0xFF77837D);
-  static const line = Color(0xFFE4E9E3);
-  static const danger = Color(0xFFB94747);
-  static const success = Color(0xFF287A50);
-  static const warning = Color(0xFFB7791F);
-  static const info = Color(0xFF356D9A);
-  static const borderStrong = Color(0xFFCBD5CE);
-  static const scrim = Color(0x990B1713);
+  static bool get _dark => DarbTheme.brightness.value == Brightness.dark;
+
+  // Brand anchors remain stable; semantic surfaces and foregrounds adapt.
+  static Color get forest => const Color(0xFF102B26);
+  static Color get forestSoft => const Color(0xFF1C443B);
+  static Color get mint => const Color(0xFFB9E4D2);
+  static Color get lime => const Color(0xFFC8F169);
+  static Color get canvas => _dark ? const Color(0xFF0B1512) : const Color(0xFFF5F6F2);
+  static Color get surface => _dark ? const Color(0xFF13221D) : const Color(0xFFFFFFFF);
+  static Color get surfaceAlt => _dark ? const Color(0xFF1A2D26) : const Color(0xFFEAF2EC);
+  static Color get onForest => const Color(0xFFFFFFFF);
+  static Color get brandForeground => _dark ? mint : forest;
+  static Color get ink => _dark ? const Color(0xFFF1F5F1) : const Color(0xFF17231F);
+  static Color get muted => _dark ? const Color(0xFFA4B2AA) : const Color(0xFF77837D);
+  static Color get line => _dark ? const Color(0xFF2A3B33) : const Color(0xFFE4E9E3);
+  static Color get danger => _dark ? const Color(0xFFE47777) : const Color(0xFFB94747);
+  static Color get success => _dark ? const Color(0xFF75C99A) : const Color(0xFF287A50);
+  static Color get warning => _dark ? const Color(0xFFE5B968) : const Color(0xFFB7791F);
+  static Color get info => _dark ? const Color(0xFF83B8E0) : const Color(0xFF356D9A);
+  static Color get borderStrong => _dark ? const Color(0xFF40564A) : const Color(0xFFCBD5CE);
+  static Color get scrim => _dark ? const Color(0xB8000000) : const Color(0x990B1713);
 }
 
 abstract final class DarbSpace {
@@ -206,34 +213,133 @@ abstract final class DarbElevation {
   ];
 }
 
+
 abstract final class DarbTheme {
-  static ThemeData get light {
+  static const _storage = FlutterSecureStorage();
+  static const _modeKey = 'darb_theme_mode';
+  static final ValueNotifier<ThemeMode> mode = ValueNotifier(ThemeMode.system);
+  static final ValueNotifier<Brightness> brightness = ValueNotifier(Brightness.light);
+
+  static void updateBrightness(Brightness value) {
+    if (brightness.value != value) brightness.value = value;
+  }
+
+  static Future<void> restoreMode() async {
+    try {
+      final saved = await _storage.read(key: _modeKey);
+      mode.value = switch (saved) {
+        'light' => ThemeMode.light,
+        'dark' => ThemeMode.dark,
+        _ => ThemeMode.system,
+      };
+    } catch (_) {
+      mode.value = ThemeMode.system;
+    }
+  }
+
+  static Future<void> setMode(ThemeMode value) async {
+    mode.value = value;
+    try {
+      final saved = switch (value) {
+        ThemeMode.light => 'light',
+        ThemeMode.dark => 'dark',
+        ThemeMode.system => 'system',
+      };
+      await _storage.write(key: _modeKey, value: saved);
+    } catch (_) {
+      // Keep the in-memory selection active if secure storage is unavailable.
+    }
+  }
+
+  static ThemeData get dark {
     const scheme = ColorScheme(
+      brightness: Brightness.dark,
+      primary: Color(0xFFB9E4D2),
+      onPrimary: Color(0xFF102B26),
+      secondary: Color(0xFFC8F169),
+      onSecondary: Color(0xFF102B26),
+      error: Color(0xFFE47777),
+      onError: Color(0xFF2A1010),
+      surface: Color(0xFF13221D),
+      onSurface: Color(0xFFF1F5F1),
+    );
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      colorScheme: scheme,
+      scaffoldBackgroundColor: const Color(0xFF0B1512),
+      canvasColor: const Color(0xFF13221D),
+      cardColor: const Color(0xFF13221D),
+      fontFamily: 'Arial',
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF102B26),
+        foregroundColor: Color(0xFFF1F5F1),
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+      ),
+      navigationBarTheme: const NavigationBarThemeData(
+        backgroundColor: Color(0xFF13221D),
+        indicatorColor: Color(0xFF29483B),
+        elevation: 0,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: const Color(0xFF1A2D26),
+        hintStyle: const TextStyle(color: Color(0xFFA4B2AA)),
+        labelStyle: const TextStyle(color: Color(0xFFA4B2AA)),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFF2A3B33)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFFB9E4D2), width: 1.5),
+        ),
+      ),
+      dialogTheme: const DialogThemeData(
+        backgroundColor: Color(0xFF13221D),
+        surfaceTintColor: Colors.transparent,
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: Color(0xFF13221D),
+        surfaceTintColor: Colors.transparent,
+      ),
+      dividerTheme: const DividerThemeData(color: Color(0xFF2A3B33)),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: Color(0xFFB9E4D2),
+        linearTrackColor: Color(0xFF2A3B33),
+        circularTrackColor: Color(0xFF2A3B33),
+      ),
+    );
+  }
+
+  static ThemeData get light {
+    final scheme = ColorScheme(
       brightness: Brightness.light,
-      primary: DarbColors.forest,
+      primary: Color(0xFF102B26),
       onPrimary: Colors.white,
-      secondary: DarbColors.lime,
-      onSecondary: DarbColors.forest,
-      error: DarbColors.danger,
+      secondary: Color(0xFFC8F169),
+      onSecondary: Color(0xFF102B26),
+      error: Color(0xFFB94747),
       onError: Colors.white,
-      surface: DarbColors.surface,
-      onSurface: DarbColors.ink,
+      surface: Color(0xFFFFFFFF),
+      onSurface: Color(0xFF17231F),
     );
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
-      scaffoldBackgroundColor: DarbColors.canvas,
+      scaffoldBackgroundColor: Color(0xFFF5F6F2),
       fontFamily: 'Arial',
-      textTheme: const TextTheme(
-        headlineLarge: TextStyle(color: DarbColors.ink, fontSize: 28, fontWeight: FontWeight.w900, height: 1.2),
-        headlineMedium: TextStyle(color: DarbColors.ink, fontSize: 23, fontWeight: FontWeight.w900, height: 1.25),
-        titleLarge: TextStyle(color: DarbColors.ink, fontSize: 19, fontWeight: FontWeight.w800),
-        titleMedium: TextStyle(color: DarbColors.ink, fontSize: 15, fontWeight: FontWeight.w700),
-        bodyLarge: TextStyle(color: DarbColors.ink, fontSize: 15, height: 1.5),
-        bodyMedium: TextStyle(color: DarbColors.muted, fontSize: 13, height: 1.45),
+      textTheme: TextTheme(
+        headlineLarge: TextStyle(color: Color(0xFF17231F), fontSize: 28, fontWeight: FontWeight.w900, height: 1.2),
+        headlineMedium: TextStyle(color: Color(0xFF17231F), fontSize: 23, fontWeight: FontWeight.w900, height: 1.25),
+        titleLarge: TextStyle(color: Color(0xFF17231F), fontSize: 19, fontWeight: FontWeight.w800),
+        titleMedium: TextStyle(color: Color(0xFF17231F), fontSize: 15, fontWeight: FontWeight.w700),
+        bodyLarge: TextStyle(color: Color(0xFF17231F), fontSize: 15, height: 1.5),
+        bodyMedium: TextStyle(color: Color(0xFF77837D), fontSize: 13, height: 1.45),
         labelLarge: TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
       ),
-      pageTransitionsTheme: const PageTransitionsTheme(
+      pageTransitionsTheme: PageTransitionsTheme(
         builders: {
           TargetPlatform.android: ZoomPageTransitionsBuilder(),
           TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
@@ -244,49 +350,49 @@ abstract final class DarbTheme {
       ),
       splashFactory: InkSparkle.splashFactory,
       visualDensity: VisualDensity.standard,
-      progressIndicatorTheme: const ProgressIndicatorThemeData(
-        color: DarbColors.forest,
-        linearTrackColor: DarbColors.line,
-        circularTrackColor: DarbColors.line,
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: Color(0xFF102B26),
+        linearTrackColor: Color(0xFFE4E9E3),
+        circularTrackColor: Color(0xFFE4E9E3),
       ),
       dialogTheme: DialogThemeData(
-        backgroundColor: DarbColors.surface,
+        backgroundColor: Color(0xFFFFFFFF),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(DarbRadius.xl)),
       ),
-      bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: DarbColors.surface,
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: Color(0xFFFFFFFF),
         surfaceTintColor: Colors.transparent,
         showDragHandle: true,
-        dragHandleColor: DarbColors.borderStrong,
+        dragHandleColor: Color(0xFFCBD5CE),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(DarbRadius.xl)),
         ),
       ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: DarbColors.canvas,
-        foregroundColor: DarbColors.ink,
+      appBarTheme: AppBarTheme(
+        backgroundColor: Color(0xFFF5F6F2),
+        foregroundColor: Color(0xFF17231F),
         elevation: 0,
         centerTitle: false,
         titleTextStyle: TextStyle(
-          color: DarbColors.ink,
+          color: Color(0xFF17231F),
           fontSize: 19,
           fontWeight: FontWeight.w800,
         ),
       ),
       cardTheme: CardThemeData(
-        color: DarbColors.surface,
+        color: Color(0xFFFFFFFF),
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(22),
-          side: const BorderSide(color: DarbColors.line),
+          side: BorderSide(color: Color(0xFFE4E9E3)),
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: DarbColors.surface,
-        indicatorColor: DarbColors.mint.withValues(alpha: .55),
+        backgroundColor: Color(0xFFFFFFFF),
+        indicatorColor: Color(0xFFB9E4D2).withValues(alpha: .55),
         labelTextStyle: WidgetStateProperty.resolveWith((states) =>
           TextStyle(
             fontSize: 11,
@@ -298,46 +404,46 @@ abstract final class DarbTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: DarbColors.surface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 17),
-        hintStyle: const TextStyle(color: DarbColors.muted, fontSize: 14),
-        labelStyle: const TextStyle(color: DarbColors.muted),
+        fillColor: Color(0xFFFFFFFF),
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 17),
+        hintStyle: TextStyle(color: Color(0xFF77837D), fontSize: 14),
+        labelStyle: TextStyle(color: Color(0xFF77837D)),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: DarbColors.line),
+          borderSide: BorderSide(color: Color(0xFFE4E9E3)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: DarbColors.line),
+          borderSide: BorderSide(color: Color(0xFFE4E9E3)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: DarbColors.forest, width: 1.5),
+          borderSide: BorderSide(color: Color(0xFF102B26), width: 1.5),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: DarbColors.forest,
+          backgroundColor: Color(0xFF102B26),
           foregroundColor: Colors.white,
-          minimumSize: const Size(0, 52),
+          minimumSize: Size(0, 52),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+          textStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: DarbColors.forest,
-          minimumSize: const Size(0, 50),
-          side: const BorderSide(color: DarbColors.line),
+          foregroundColor: Color(0xFF102B26),
+          minimumSize: Size(0, 50),
+          side: BorderSide(color: Color(0xFFE4E9E3)),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+          textStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
         ),
       ),
-      dividerTheme: const DividerThemeData(color: DarbColors.line, thickness: 1),
+      dividerTheme: DividerThemeData(color: Color(0xFFE4E9E3), thickness: 1),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        backgroundColor: DarbColors.forest,
-        contentTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        backgroundColor: Color(0xFF102B26),
+        contentTextStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
     );

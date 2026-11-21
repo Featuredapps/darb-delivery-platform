@@ -125,7 +125,7 @@ class _CustomerHomeState extends State<CustomerHome> {
   }) {
     final foreground = primary ? Colors.white : ink;
     return Material(
-      color: primary ? DarbColors.forestSoft : Colors.white,
+      color: primary ? DarbColors.forestSoft : DarbColors.surface,
       borderRadius: BorderRadius.circular(21),
       child: InkWell(
         onTap: onTap,
@@ -140,10 +140,10 @@ class _CustomerHomeState extends State<CustomerHome> {
             Container(
               width: 48, height: 48,
               decoration: BoxDecoration(
-                color: primary ? Colors.white.withValues(alpha: .12) : Color(0xFFEAF2EC),
+                color: primary ? Colors.white.withValues(alpha: .12) : DarbColors.surfaceAlt,
                 borderRadius: BorderRadius.circular(15),
               ),
-              child: Icon(icon, color: primary ? Color(0xFFC8F169) : green, size: 23),
+              child: Icon(icon, color: primary ? DarbColors.lime : DarbColors.brandForeground, size: 23),
             ),
             SizedBox(width: 12),
             Expanded(child: Column(
@@ -171,7 +171,7 @@ class _CustomerHomeState extends State<CustomerHome> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Material(
-        color: Colors.white,
+        color: DarbColors.surface,
         borderRadius: BorderRadius.circular(19),
         child: InkWell(
           borderRadius: BorderRadius.circular(19),
@@ -192,9 +192,7 @@ class _CustomerHomeState extends State<CustomerHome> {
               Container(
                 width: 54, height: 54,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFFE6F1E9), Color(0xFFF4F7E9)],
-                  ),
+                  color: DarbColors.surfaceAlt,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Icon(Icons.storefront_rounded, color: green, size: 25),
@@ -236,7 +234,7 @@ class _CustomerHomeState extends State<CustomerHome> {
             Container(
               width: 38, height: 38,
               decoration: BoxDecoration(
-                color: Color(0xFFE8F0EA),
+                color: DarbColors.surfaceAlt,
                 borderRadius: BorderRadius.circular(13),
               ),
               child: Icon(Icons.location_on_rounded, color: green, size: 20),
@@ -315,13 +313,13 @@ class _CustomerHomeState extends State<CustomerHome> {
                       Icon(Icons.route_rounded, color: Color(0xFFC8F169), size: 14),
                       SizedBox(width: 6),
                       Text(dt('خدمة التوصيل المستقل'),
-                        style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800)),
+                        style: TextStyle(color: DarbColors.onForest, fontSize: 10, fontWeight: FontWeight.w800)),
                     ]),
                   ),
                   SizedBox(height: 17),
                   Text(dt('من بابك إلى وجهتك،\\nدَرْب يتولى الطريق.'),
                     style: TextStyle(
-                      color: Colors.white, fontSize: 27, height: 1.22,
+                      color: DarbColors.onForest, fontSize: 27, height: 1.22,
                       fontWeight: FontWeight.w900, letterSpacing: -.35,
                     )),
                   SizedBox(height: 8),
@@ -388,7 +386,7 @@ class _CustomerHomeState extends State<CustomerHome> {
                 icon: Icon(Icons.close_rounded),
               ),
               filled: true,
-              fillColor: Colors.white,
+              fillColor: DarbColors.surface,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide.none,
@@ -399,7 +397,7 @@ class _CustomerHomeState extends State<CustomerHome> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(color: DarbColors.forest, width: 1.4),
+                borderSide: BorderSide(color: DarbColors.brandForeground, width: 1.4),
               ),
             ),
           ),
@@ -410,7 +408,7 @@ class _CustomerHomeState extends State<CustomerHome> {
               child: Container(
                 height: 78,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: DarbColors.surface,
                   borderRadius: BorderRadius.circular(19),
                   border: Border.all(color: DarbColors.line),
                 ),
@@ -423,7 +421,7 @@ class _CustomerHomeState extends State<CustomerHome> {
             Container(
               padding: const EdgeInsets.fromLTRB(20, 24, 20, 22),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: DarbColors.surface,
                 borderRadius: BorderRadius.circular(21),
                 border: Border.all(color: DarbColors.line),
               ),
@@ -431,7 +429,7 @@ class _CustomerHomeState extends State<CustomerHome> {
                 Container(
                   width: 55, height: 55,
                   decoration: BoxDecoration(
-                    color: Color(0xFFEAF2EC),
+                    color: DarbColors.surfaceAlt,
                     borderRadius: BorderRadius.circular(17),
                   ),
                   child: Icon(Icons.storefront_outlined, color: green, size: 27),

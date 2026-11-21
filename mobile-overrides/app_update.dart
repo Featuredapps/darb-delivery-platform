@@ -348,7 +348,7 @@ class _DarbUpdateDialogState extends State<DarbUpdateDialog> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Padding(padding: EdgeInsets.only(top: 5), child: Icon(Icons.check_circle, size: 15, color: DarbColors.forest)),
+                    Padding(padding: EdgeInsets.only(top: 5), child: Icon(Icons.check_circle, size: 15, color: DarbColors.forest)),
                     const SizedBox(width: 8),
                     Expanded(child: Text(note, style: TextStyle(color: DarbColors.muted, height: 1.4))),
                   ],
@@ -372,7 +372,7 @@ class _DarbUpdateDialogState extends State<DarbUpdateDialog> {
           ),
           if (_error != null) ...[
             const SizedBox(height: 10),
-            Text(_error!, style: const TextStyle(color: DarbColors.danger, fontSize: 12)),
+            Text(_error!, style: TextStyle(color: DarbColors.danger, fontSize: 12)),
           ],
         ],
       ),

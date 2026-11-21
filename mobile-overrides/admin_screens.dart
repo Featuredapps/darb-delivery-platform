@@ -57,21 +57,21 @@ class _AdminQueueState extends State<AdminQueue> {
               Container(
                 width:48,height:48,
                 decoration:BoxDecoration(color:DarbColors.mint.withValues(alpha:.38),borderRadius:BorderRadius.circular(15)),
-                child:Icon(widget.kind=='vendors'?Icons.storefront_rounded:Icons.delivery_dining_rounded,color:DarbColors.forest,size:24),
+                child:Icon(widget.kind=='vendors'?Icons.storefront_rounded:Icons.delivery_dining_rounded,color:DarbColors.brandForeground,size:24),
               ),
               const SizedBox(width:12),
               Expanded(child:Column(
                 crossAxisAlignment:CrossAxisAlignment.start,
                 children:[
-                  Text(title,style:const TextStyle(fontSize:15,fontWeight:FontWeight.w900,color:DarbColors.ink)),
+                  Text(title,style:TextStyle(fontSize:15,fontWeight:FontWeight.w900,color:DarbColors.ink)),
                   const SizedBox(height:4),
-                  Text(user['phone']?.toString()??'',style:const TextStyle(color:DarbColors.muted,fontSize:12)),
+                  Text(user['phone']?.toString()??'',style:TextStyle(color:DarbColors.muted,fontSize:12)),
                 ],
               )),
               Container(
                 padding:const EdgeInsets.symmetric(horizontal:9,vertical:6),
                 decoration:BoxDecoration(color:DarbColors.warning.withValues(alpha:.10),borderRadius:BorderRadius.circular(DarbRadius.pill)),
-                child:Text(dt('قيد المراجعة'),style:const TextStyle(color:DarbColors.warning,fontSize:10,fontWeight:FontWeight.w800)),
+                child:Text(dt('قيد المراجعة'),style:TextStyle(color:DarbColors.warning,fontSize:10,fontWeight:FontWeight.w800)),
               ),
             ]),
             if(detail.isNotEmpty||city.isNotEmpty)...[
@@ -90,7 +90,7 @@ class _AdminQueueState extends State<AdminQueue> {
               const SizedBox(width:9),
               OutlinedButton(
                 onPressed:working?null:()=>_setStatus(id,widget.kind=='vendors'?'REJECTED':'SUSPENDED'),
-                style:OutlinedButton.styleFrom(foregroundColor:DarbColors.danger,side:const BorderSide(color:DarbColors.danger)),
+                style:OutlinedButton.styleFrom(foregroundColor:DarbColors.danger,side:BorderSide(color:DarbColors.danger)),
                 child:Text(widget.kind=='vendors'?dt('رفض'):dt('تعليق')),
               ),
             ]),
@@ -158,7 +158,7 @@ class _AdminDeliveryZonesState extends State<AdminDeliveryZones> {
     floatingActionButton:FloatingActionButton.extended(onPressed:working?null:()=>_edit(),icon:Icon(Icons.add),label:Text(dt('إضافة رسوم لمدينة'))),
     body:loading?Center(child:CircularProgressIndicator()):error!=null?Center(child:TextButton(onPressed:_load,child:Text(dt('تعذر تحميل المناطق: $error')))):zones.isEmpty?Center(child:_EmptyPanel(text: dt('لم تُضف رسوم توصيل بعد'))):RefreshIndicator(onRefresh:_load,child:ListView(padding:const EdgeInsets.all(16),children:[
       Text(dt('إعداد رسوم التوصيل'),style:TextStyle(fontSize:20,fontWeight:FontWeight.w900)),
-      SizedBox(height:8),Text(dt('يُضبط رسم واحد لكل مدينة. احتساب رسم الكيلومتر يتطلب تحديد موقع المتجر وموقع عنوان العميل.'),style:TextStyle(color:Colors.black54)),
+      SizedBox(height:8),Text(dt('يُضبط رسم واحد لكل مدينة. احتساب رسم الكيلومتر يتطلب تحديد موقع المتجر وموقع عنوان العميل.'),style:TextStyle(color:DarbColors.muted)),
       for(final zone in zones)Card(child:ListTile(
         leading:Icon(Icons.payments_outlined,color:green),
         title:Text(zone['name']?.toString()??dt('منطقة')),

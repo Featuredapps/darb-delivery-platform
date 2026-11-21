@@ -543,7 +543,7 @@ class _AccountPageState extends State<AccountPage> {
               color: DarbColors.mint.withValues(alpha: .38),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(icon, color: DarbColors.forest, size: 20),
+            child: Icon(icon, color: DarbColors.brandForeground, size: 20),
           ),
           title: Text(
             label,
@@ -597,7 +597,7 @@ class _AccountPageState extends State<AccountPage> {
                   color: DarbColors.mint.withValues(alpha: .4),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(icon, color: DarbColors.forest, size: 25),
+                child: Icon(icon, color: DarbColors.brandForeground, size: 25),
               ),
               SizedBox(width: 12),
               Expanded(
@@ -710,7 +710,7 @@ class _AccountPageState extends State<AccountPage> {
           color: DarbColors.mint.withValues(alpha: .38),
           borderRadius: BorderRadius.circular(14),
         ),
-        child: Icon(icon, color: DarbColors.forest, size: 20),
+        child: Icon(icon, color: DarbColors.brandForeground, size: 20),
       ),
       title: Text(
         title,
@@ -895,13 +895,13 @@ class _EmptyPanel extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: DarbColors.surface,
           borderRadius: BorderRadius.circular(18),
         ),
         child: Text(
           text,
           textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.black54),
+          style: TextStyle(color: DarbColors.muted),
         ),
       );
 }
@@ -919,12 +919,12 @@ class _ErrorPanel extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: Color(0xFFFFEEEE),
+          color: DarbColors.danger.withValues(alpha: .12),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
           children: [
-            Text(message, style: TextStyle(color: Colors.red)),
+            Text(message, style: TextStyle(color: DarbColors.danger)),
             TextButton(
               onPressed: retry,
               child: Text(dt('إعادة المحاولة')),

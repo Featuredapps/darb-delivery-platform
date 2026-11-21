@@ -217,8 +217,23 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Widget _languageBar() => Row(
-    mainAxisAlignment: MainAxisAlignment.end,
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
+      PopupMenuButton<ThemeMode>(
+        tooltip: dt('مظهر التطبيق'),
+        icon: Icon(
+          Theme.of(context).brightness == Brightness.dark
+              ? Icons.dark_mode_rounded
+              : Icons.light_mode_rounded,
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
+        onSelected: DarbTheme.setMode,
+        itemBuilder: (context) => [
+          PopupMenuItem(value: ThemeMode.system, child: Text(dt('حسب الجهاز'))),
+          PopupMenuItem(value: ThemeMode.light, child: Text(dt('نهاري'))),
+          PopupMenuItem(value: ThemeMode.dark, child: Text(dt('ليلي'))),
+        ],
+      ),
       _languageChip('AR', const Locale('ar')),
       const SizedBox(width: 6),
       _languageChip('EN', const Locale('en')),
@@ -230,7 +245,7 @@ class _LoginScreenState extends State<LoginScreen>
   Widget _brandPanel(AppLocalizations l) => Container(
     padding: const EdgeInsets.fromLTRB(22, 24, 22, 25),
     decoration: BoxDecoration(
-      gradient: const LinearGradient(
+      gradient: LinearGradient(
         begin: Alignment.topRight,
         end: Alignment.bottomLeft,
         colors: [DarbColors.forestSoft, DarbColors.forest],
@@ -272,7 +287,7 @@ class _LoginScreenState extends State<LoginScreen>
                     ],
                   ),
                   alignment: Alignment.center,
-                  child: const Text(
+                  child: Text(
                     'د',
                     style: TextStyle(
                       color: DarbColors.forest,
@@ -290,7 +305,7 @@ class _LoginScreenState extends State<LoginScreen>
                     borderRadius: BorderRadius.circular(DarbRadius.pill),
                     border: Border.all(color: Colors.white.withValues(alpha: .12)),
                   ),
-                  child: const Row(
+                  child: Row(
                     children: [
                       Icon(Icons.route_rounded, color: DarbColors.lime, size: 15),
                       SizedBox(width: 6),
@@ -381,7 +396,7 @@ class _LoginScreenState extends State<LoginScreen>
         Text(
           sent ? l.t('otpTitle') : l.t('phoneTitle'),
           textAlign: isRtl ? TextAlign.right : TextAlign.left,
-          style: const TextStyle(
+          style: TextStyle(
             color: DarbColors.ink,
             fontSize: 19,
             fontWeight: FontWeight.w900,
@@ -391,7 +406,7 @@ class _LoginScreenState extends State<LoginScreen>
         Text(
           sent ? l.t('otpSubtitle') : l.t('phoneSubtitle'),
           textAlign: isRtl ? TextAlign.right : TextAlign.left,
-          style: const TextStyle(
+          style: TextStyle(
             color: DarbColors.muted,
             fontSize: 12,
             height: 1.5,
@@ -401,7 +416,7 @@ class _LoginScreenState extends State<LoginScreen>
         if (!sent) ...[
           Text(
             l.t('phoneLabel'),
-            style: const TextStyle(
+            style: TextStyle(
               color: DarbColors.ink,
               fontSize: 12,
               fontWeight: FontWeight.w800,
@@ -420,7 +435,7 @@ class _LoginScreenState extends State<LoginScreen>
               FilteringTextInputFormatter.digitsOnly,
               LengthLimitingTextInputFormatter(6),
             ],
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 23,
               letterSpacing: 9,
               fontWeight: FontWeight.w800,
@@ -466,7 +481,7 @@ class _LoginScreenState extends State<LoginScreen>
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.error_outline_rounded,
                           color: DarbColors.danger,
                           size: 19,
@@ -475,7 +490,7 @@ class _LoginScreenState extends State<LoginScreen>
                         Expanded(
                           child: Text(
                             error!,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: DarbColors.danger,
                               fontSize: 12,
                               height: 1.45,
@@ -536,7 +551,7 @@ class _LoginScreenState extends State<LoginScreen>
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Text(
                   l.t('or'),
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: DarbColors.muted,
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
@@ -554,13 +569,13 @@ class _LoginScreenState extends State<LoginScreen>
               style: OutlinedButton.styleFrom(
                 backgroundColor: Colors.white,
                 foregroundColor: DarbColors.ink,
-                side: const BorderSide(color: DarbColors.line),
+                side: BorderSide(color: DarbColors.line),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(DarbRadius.md),
                 ),
               ),
               child: googleLoading
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
@@ -592,7 +607,7 @@ class _LoginScreenState extends State<LoginScreen>
   Widget _securityNote(AppLocalizations l) => Row(
     mainAxisAlignment: MainAxisAlignment.center,
     children: [
-      const Icon(
+      Icon(
         Icons.verified_user_outlined,
         size: 15,
         color: DarbColors.muted,
@@ -602,7 +617,7 @@ class _LoginScreenState extends State<LoginScreen>
         child: Text(
           l.t('secure'),
           textAlign: TextAlign.center,
-          style: const TextStyle(
+          style: TextStyle(
             color: DarbColors.muted,
             fontSize: 10,
             height: 1.45,
@@ -657,10 +672,10 @@ class _LoginScreenState extends State<LoginScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             height: double.infinity,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               border: Border(right: BorderSide(color: DarbColors.line)),
             ),
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text('🇸🇾', style: TextStyle(fontSize: 19)),
@@ -684,7 +699,7 @@ class _LoginScreenState extends State<LoginScreen>
               textAlign: TextAlign.left,
               enabled: !authenticating,
               inputFormatters: [SyrianPhoneFormatter()],
-              style: const TextStyle(
+              style: TextStyle(
                 color: DarbColors.ink,
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -699,7 +714,7 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           ),
           if (validPhone)
-            const Padding(
+            Padding(
               padding: EdgeInsetsDirectional.only(end: 12),
               child: Icon(
                 Icons.check_circle_rounded,
@@ -718,15 +733,15 @@ class _LoginScreenState extends State<LoginScreen>
     fillColor: DarbColors.surface,
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(DarbRadius.md),
-      borderSide: const BorderSide(color: DarbColors.line),
+      borderSide: BorderSide(color: DarbColors.line),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(DarbRadius.md),
-      borderSide: const BorderSide(color: DarbColors.line),
+      borderSide: BorderSide(color: DarbColors.line),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(DarbRadius.md),
-      borderSide: const BorderSide(color: DarbColors.forest, width: 1.5),
+      borderSide: BorderSide(color: DarbColors.forest, width: 1.5),
     ),
   );
 

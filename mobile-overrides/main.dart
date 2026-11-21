@@ -8,12 +8,13 @@ import 'notifications.dart';
 import 'app_update.dart';
 import 'design_system.dart';
 
-const ink = DarbColors.forest;
-const green = DarbColors.forestSoft;
-const paper = DarbColors.canvas;
+Color get ink => DarbColors.ink;
+Color get green => DarbColors.forestSoft;
+Color get paper => DarbColors.canvas;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await DarbTheme.restoreMode();
   runApp(const DarbApp());
 }
 
@@ -23,7 +24,9 @@ class DarbApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ValueListenableBuilder<Locale>(
     valueListenable: darbLocale,
-    builder: (context, locale, _) => MaterialApp(
+    builder: (context, locale, _) => ValueListenableBuilder<ThemeMode>(
+      valueListenable: DarbTheme.mode,
+      builder: (context, themeMode, _) => MaterialApp(
       title: 'دَرْب',
       debugShowCheckedModeBanner: false,
       locale: locale,
@@ -35,7 +38,16 @@ class DarbApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       theme: DarbTheme.light,
+      darkTheme: DarbTheme.dark,
+      themeMode: themeMode,
+      themeAnimationDuration: DarbMotion.expressive,
+      themeAnimationCurve: DarbMotion.enter,
+      builder: (context, child) {
+        DarbTheme.updateBrightness(Theme.of(context).brightness);
+        return child ?? const SizedBox.shrink();
+      },
       home: DarbLaunchGate(locale: locale),
+    ),
     ),
   );
 }
@@ -173,7 +185,7 @@ class _DarbSplashScreenState extends State<DarbSplashScreen>
                               ),
                             ],
                           ),
-                          child: const Center(
+                          child: Center(
                             child: Text(
                               'د',
                               style: TextStyle(
@@ -213,7 +225,7 @@ class _DarbSplashScreenState extends State<DarbSplashScreen>
                     width: 116,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(20),
-                      child: const LinearProgressIndicator(
+                      child: LinearProgressIndicator(
                         minHeight: 3,
                         backgroundColor: Color(0x334FFFFF),
                         valueColor: AlwaysStoppedAnimation(DarbColors.lime),
@@ -231,7 +243,7 @@ class _DarbSplashScreenState extends State<DarbSplashScreen>
                     ),
                   ),
                   const SizedBox(height: 6),
-                  const Text(
+                  Text(
                     'anasgdxj',
                     style: TextStyle(
                       color: DarbColors.lime,
