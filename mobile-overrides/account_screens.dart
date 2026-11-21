@@ -543,7 +543,7 @@ class _AccountPageState extends State<AccountPage> {
               color: DarbColors.mint.withValues(alpha: .38),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(icon, color: DarbColors.forest, size: 20),
+            child: Icon(icon, color: DarbColors.brandForeground, size: 20),
           ),
           title: Text(
             label,
@@ -597,7 +597,7 @@ class _AccountPageState extends State<AccountPage> {
                   color: DarbColors.mint.withValues(alpha: .4),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(icon, color: DarbColors.forest, size: 25),
+                child: Icon(icon, color: DarbColors.brandForeground, size: 25),
               ),
               SizedBox(width: 12),
               Expanded(
@@ -710,7 +710,7 @@ class _AccountPageState extends State<AccountPage> {
           color: DarbColors.mint.withValues(alpha: .38),
           borderRadius: BorderRadius.circular(14),
         ),
-        child: Icon(icon, color: DarbColors.forest, size: 20),
+        child: Icon(icon, color: DarbColors.brandForeground, size: 20),
       ),
       title: Text(
         title,
