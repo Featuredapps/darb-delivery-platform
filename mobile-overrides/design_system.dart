@@ -310,6 +310,7 @@ abstract final class DarbTheme {
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
           TargetPlatform.android: DarbPageTransitionsBuilder(),
+          TargetPlatform.fuchsia: DarbPageTransitionsBuilder(),
           TargetPlatform.iOS: DarbPageTransitionsBuilder(),
           TargetPlatform.linux: DarbPageTransitionsBuilder(),
           TargetPlatform.macOS: DarbPageTransitionsBuilder(),
@@ -387,6 +388,7 @@ abstract final class DarbTheme {
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
           TargetPlatform.android: DarbPageTransitionsBuilder(),
+          TargetPlatform.fuchsia: DarbPageTransitionsBuilder(),
           TargetPlatform.iOS: DarbPageTransitionsBuilder(),
           TargetPlatform.linux: DarbPageTransitionsBuilder(),
           TargetPlatform.macOS: DarbPageTransitionsBuilder(),
