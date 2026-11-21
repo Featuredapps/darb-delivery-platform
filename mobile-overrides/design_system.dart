@@ -16,6 +16,7 @@ abstract final class DarbColors {
   static Color get canvas => _dark ? const Color(0xFF0B1512) : const Color(0xFFF5F6F2);
   static Color get surface => _dark ? const Color(0xFF13221D) : const Color(0xFFFFFFFF);
   static Color get surfaceAlt => _dark ? const Color(0xFF1A2D26) : const Color(0xFFEAF2EC);
+  static Color get onForest => const Color(0xFFFFFFFF);
   static Color get ink => _dark ? const Color(0xFFF1F5F1) : const Color(0xFF17231F);
   static Color get muted => _dark ? const Color(0xFFA4B2AA) : const Color(0xFF77837D);
   static Color get line => _dark ? const Color(0xFF2A3B33) : const Color(0xFFE4E9E3);
