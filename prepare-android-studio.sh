@@ -185,6 +185,8 @@ PY
 
 mkdir -p "$OUT_DIR"
 cp -a "$MOBILE_DIR/." "$OUT_DIR/"
+mkdir -p "$OUT_DIR/test"
+cp "$OVERRIDES/design_system_test.dart" "$OUT_DIR/test/design_system_test.dart"
 
 cat > "$OUT_DIR/ANDROID-STUDIO-SETUP.txt" <<'SETUP'
 DARB — Flutter Android Studio package
