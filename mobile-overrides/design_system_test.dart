@@ -19,6 +19,17 @@ void main() {
       expect(theme.scaffoldBackgroundColor, const Color(0xFF0B1512));
     });
 
+    test('uses the same DARB route transition in light and dark themes', () {
+      for (final theme in [DarbTheme.light, DarbTheme.dark]) {
+        for (final platform in TargetPlatform.values) {
+          expect(
+            theme.pageTransitionsTheme.builders[platform],
+            isA<DarbPageTransitionsBuilder>(),
+          );
+        }
+      }
+    });
+
     test('defaults theme selection to follow the device', () {
       expect(DarbTheme.mode.value, ThemeMode.system);
     });

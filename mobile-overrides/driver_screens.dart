@@ -166,7 +166,10 @@ class _DataListState extends State<_DataList>{bool loading=true;String? error;St
       )),
       if(error!=null)_ErrorPanel(message:error!,retry:_load),
       if(!loading&&error==null&&rows.isEmpty)_EmptyPanel(text:widget.empty),
-      if(!loading&&error==null)for(final row in rows)_orderCard(row),
+      if(!loading&&error==null)for(var index=0;index<rows.length;index++)DarbFadeSlide(
+        delay:DarbMotion.staggerDelay(index.clamp(0,5).toInt()),
+        child:_orderCard(rows[index]),
+      ),
     ],
   ),
 );
