@@ -216,31 +216,49 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  Widget _languageBar() => Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      PopupMenuButton<ThemeMode>(
-        tooltip: dt('مظهر التطبيق'),
-        icon: Icon(
-          Theme.of(context).brightness == Brightness.dark
-              ? Icons.dark_mode_rounded
-              : Icons.light_mode_rounded,
-          color: Theme.of(context).colorScheme.onSurface,
+  Widget _languageBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Tooltip(
+          message: isDark ? dt('التبديل إلى الوضع النهاري') : dt('التبديل إلى الوضع الليلي'),
+          child: IconButton(
+            onPressed: authenticating
+                ? null
+                : () => DarbTheme.setMode(
+                      isDark ? ThemeMode.light : ThemeMode.dark,
+                    ),
+            style: IconButton.styleFrom(
+              backgroundColor: DarbColors.surface,
+              foregroundColor: DarbColors.brandForeground,
+              side: BorderSide(color: DarbColors.line),
+              shape: const CircleBorder(),
+              fixedSize: const Size(44, 44),
+            ),
+            icon: AnimatedSwitcher(
+              duration: DarbMotion.standard,
+              switchInCurve: DarbMotion.enter,
+              switchOutCurve: DarbMotion.exit,
+              transitionBuilder: (child, animation) => RotationTransition(
+                turns: Tween<double>(begin: -.18, end: 0).animate(animation),
+                child: FadeTransition(opacity: animation, child: child),
+              ),
+              child: Icon(
+                isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                key: ValueKey(isDark),
+              ),
+            ),
+          ),
         ),
-        onSelected: DarbTheme.setMode,
-        itemBuilder: (context) => [
-          PopupMenuItem(value: ThemeMode.system, child: Text(dt('حسب الجهاز'))),
-          PopupMenuItem(value: ThemeMode.light, child: Text(dt('نهاري'))),
-          PopupMenuItem(value: ThemeMode.dark, child: Text(dt('ليلي'))),
-        ],
-      ),
-      _languageChip('AR', const Locale('ar')),
-      const SizedBox(width: 6),
-      _languageChip('EN', const Locale('en')),
-      const SizedBox(width: 6),
-      _languageChip('TR', const Locale('tr')),
-    ],
-  );
+        _languageChip('AR', const Locale('ar')),
+        const SizedBox(width: 6),
+        _languageChip('EN', const Locale('en')),
+        const SizedBox(width: 6),
+        _languageChip('TR', const Locale('tr')),
+      ],
+    );
+  }
 
   Widget _brandPanel(AppLocalizations l) => Container(
     padding: const EdgeInsets.fromLTRB(22, 24, 22, 25),
