@@ -901,7 +901,7 @@ class _EmptyPanel extends StatelessWidget {
         child: Text(
           text,
           textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.black54),
+          style: TextStyle(color: DarbColors.muted),
         ),
       );
 }
@@ -924,7 +924,7 @@ class _ErrorPanel extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Text(message, style: TextStyle(color: Colors.red)),
+            Text(message, style: TextStyle(color: DarbColors.danger)),
             TextButton(
               onPressed: retry,
               child: Text(dt('إعادة المحاولة')),
