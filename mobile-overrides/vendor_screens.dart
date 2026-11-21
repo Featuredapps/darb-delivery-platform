@@ -28,9 +28,9 @@ Widget build(BuildContext context) {
             padding:const EdgeInsets.symmetric(horizontal:11,vertical:7),
             decoration:BoxDecoration(color:DarbColors.mint.withValues(alpha:.45),borderRadius:BorderRadius.circular(DarbRadius.pill)),
             child:Row(mainAxisSize:MainAxisSize.min,children:[
-              Icon(Icons.shopping_bag_outlined,size:17,color:DarbColors.forest),
+              Icon(Icons.shopping_bag_outlined,size:17,color:DarbColors.brandForeground),
               const SizedBox(width:6),
-              Text('$quantity',style:TextStyle(fontWeight:FontWeight.w900,color:DarbColors.forest)),
+              Text('$quantity',style:TextStyle(fontWeight:FontWeight.w900,color:DarbColors.brandForeground)),
             ]),
           )),
         ),
@@ -63,7 +63,7 @@ Widget build(BuildContext context) {
                 ]),
               ),
               const SizedBox(height:15),
-              TextField(controller:search,textInputAction:TextInputAction.search,decoration:InputDecoration(hintText:dt('ابحث عن منتج...'),prefixIcon:Icon(Icons.search_rounded,color:DarbColors.forest),suffixIcon:search.text.isEmpty?null:IconButton(onPressed:search.clear,icon:const Icon(Icons.close_rounded)))),
+              TextField(controller:search,textInputAction:TextInputAction.search,decoration:InputDecoration(hintText:dt('ابحث عن منتج...'),prefixIcon:Icon(Icons.search_rounded,color:DarbColors.brandForeground),suffixIcon:search.text.isEmpty?null:IconButton(onPressed:search.clear,icon:const Icon(Icons.close_rounded)))),
               const SizedBox(height:13),
               if(visibleProducts.isEmpty)_EmptyPanel(text:query.isEmpty?dt('لا توجد منتجات متاحة'):dt('لم نعثر على منتجات مطابقة')),
               for(final product in visibleProducts)Card(
@@ -74,7 +74,7 @@ Widget build(BuildContext context) {
                     Container(
                       width:58,height:58,
                       decoration:BoxDecoration(color:DarbColors.canvas,borderRadius:BorderRadius.circular(16)),
-                      child:Icon(Icons.inventory_2_outlined,color:DarbColors.forest,size:26),
+                      child:Icon(Icons.inventory_2_outlined,color:DarbColors.brandForeground,size:26),
                     ),
                     const SizedBox(width:12),
                     Expanded(child:Column(
@@ -82,10 +82,10 @@ Widget build(BuildContext context) {
                       children:[
                         Text(_productName(product),style:TextStyle(fontWeight:FontWeight.w900,fontSize:14,color:DarbColors.ink)),
                         const SizedBox(height:6),
-                        Text('${product['basePrice']} ${product['currency']}',style:TextStyle(color:DarbColors.forest,fontWeight:FontWeight.w900,fontSize:13)),
+                        Text('${product['basePrice']} ${product['currency']}',style:TextStyle(color:DarbColors.brandForeground,fontWeight:FontWeight.w900,fontSize:13)),
                       ],
                     )),
-                    Builder(builder:(context){final selected=cart[product['id'].toString()]?['quantity'] as int? ?? 0;return selected==0?IconButton.filledTonal(tooltip:dt('إضافة إلى السلة'),onPressed:()=>_add(product),icon:const Icon(Icons.add_rounded),style:IconButton.styleFrom(backgroundColor:DarbColors.mint.withValues(alpha:.55),foregroundColor:DarbColors.forest)):Container(padding:const EdgeInsets.symmetric(horizontal:3,vertical:4),decoration:BoxDecoration(color:DarbColors.canvas,borderRadius:BorderRadius.circular(DarbRadius.pill),border:Border.all(color:DarbColors.line)),child:Row(mainAxisSize:MainAxisSize.min,children:[IconButton(onPressed:()=>_changeQuantity(product,-1),icon:const Icon(Icons.remove_rounded),iconSize:17,constraints:const BoxConstraints.tightFor(width:30,height:30),padding:EdgeInsets.zero),Text('$selected',style:TextStyle(fontWeight:FontWeight.w900,color:DarbColors.forest)),IconButton(onPressed:()=>_changeQuantity(product,1),icon:const Icon(Icons.add_rounded),iconSize:17,constraints:const BoxConstraints.tightFor(width:30,height:30),padding:EdgeInsets.zero)]));}),
+                    Builder(builder:(context){final selected=cart[product['id'].toString()]?['quantity'] as int? ?? 0;return selected==0?IconButton.filledTonal(tooltip:dt('إضافة إلى السلة'),onPressed:()=>_add(product),icon:const Icon(Icons.add_rounded),style:IconButton.styleFrom(backgroundColor:DarbColors.mint.withValues(alpha:.55),foregroundColor:DarbColors.forest)):Container(padding:const EdgeInsets.symmetric(horizontal:3,vertical:4),decoration:BoxDecoration(color:DarbColors.canvas,borderRadius:BorderRadius.circular(DarbRadius.pill),border:Border.all(color:DarbColors.line)),child:Row(mainAxisSize:MainAxisSize.min,children:[IconButton(onPressed:()=>_changeQuantity(product,-1),icon:const Icon(Icons.remove_rounded),iconSize:17,constraints:const BoxConstraints.tightFor(width:30,height:30),padding:EdgeInsets.zero),Text('$selected',style:TextStyle(fontWeight:FontWeight.w900,color:DarbColors.brandForeground)),IconButton(onPressed:()=>_changeQuantity(product,1),icon:const Icon(Icons.add_rounded),iconSize:17,constraints:const BoxConstraints.tightFor(width:30,height:30),padding:EdgeInsets.zero)]));}),
                   ]),
                 ),
               ),
@@ -374,20 +374,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     for (var index = 0; index < widget.items.length; index++) ...[
                       if (index > 0) const Divider(height: 18),
                       Row(children: [
-                        Container(width: 42, height: 42, decoration: BoxDecoration(color: DarbColors.canvas, borderRadius: BorderRadius.circular(13)), child: Icon(Icons.inventory_2_outlined, color: DarbColors.forest)),
+                        Container(width: 42, height: 42, decoration: BoxDecoration(color: DarbColors.canvas, borderRadius: BorderRadius.circular(13)), child: Icon(Icons.inventory_2_outlined, color: DarbColors.brandForeground)),
                         const SizedBox(width: 10),
                         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                           Text(widget.items[index]['name'].toString(), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
                           const SizedBox(height: 3),
                           Text('${dt('الكمية')}: ${widget.items[index]['quantity']}', style: TextStyle(color: DarbColors.muted, fontSize: 11)),
                         ])),
-                        Text('${widget.items[index]['price']} ${widget.items[index]['currency']}', style: TextStyle(fontWeight: FontWeight.w900, color: DarbColors.forest)),
+                        Text('${widget.items[index]['price']} ${widget.items[index]['currency']}', style: TextStyle(fontWeight: FontWeight.w900, color: DarbColors.brandForeground)),
                       ]),
                     ],
                     const Divider(height: 24),
                     Row(children: [
                       Expanded(child: Text(dt('المجموع الفرعي التقريبي'), style: TextStyle(color: DarbColors.muted, fontWeight: FontWeight.w700))),
-                      Text('$subtotal $currency', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: DarbColors.forest)),
+                      Text('$subtotal $currency', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: DarbColors.brandForeground)),
                     ]),
                     const SizedBox(height: 7),
                     Align(alignment: AlignmentDirectional.centerStart, child: Text(dt('السعر النهائي ورسوم التوصيل يؤكدهما الخادم عند إنشاء الطلب'), style: TextStyle(color: DarbColors.muted, fontSize: 10))),
@@ -487,7 +487,7 @@ class OrderCreatedScreen extends StatelessWidget {
             child: Column(children: [
               Text(dt('رقم الطلب'), style: TextStyle(color: DarbColors.muted, fontSize: 12)),
               const SizedBox(height: 6),
-              SelectableText(orderNumber, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: DarbColors.forest)),
+              SelectableText(orderNumber, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: DarbColors.brandForeground)),
               const Divider(height: 28),
               if (deliveryFee != null) _confirmationValue(context, dt('رسوم التوصيل'), '$deliveryFee $currency'),
               _confirmationValue(context, dt('الإجمالي عند الاستلام'), '$total $currency'),
