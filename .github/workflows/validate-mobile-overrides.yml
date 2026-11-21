@@ -122,7 +122,7 @@ jobs:
           source = gradle.read_text()
           if "applicationIdSuffix" in source:
               raise SystemExit("Refusing to add a duplicate applicationIdSuffix")
-          match = re.search(r"(?m)^(\s*)buildTypes\s*\\{", source)
+          match = re.search(r"(?m)^(\s*)buildTypes\s*\{", source)
           if not match:
               raise SystemExit("Could not locate buildTypes block safely")
           indent = match.group(1) + "    "
