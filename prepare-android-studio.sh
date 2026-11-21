@@ -31,22 +31,45 @@ if [ ! -s "$MOBILE_DIR/pubspec.yaml" ] || [ ! -s "$MOBILE_DIR/lib/main.dart" ]; 
   exit 1
 fi
 
-# Keep the Android project already shipped with DARB. Regenerating it with
-# flutter create can overwrite Firebase, OAuth, signing, Gradle and package
-# configuration needed by the installed application and in-place updates.
-if [ ! -s "$MOBILE_DIR/android/app/src/main/AndroidManifest.xml" ]; then
-  echo "The source archive is missing its AndroidManifest.xml; refusing to generate a replacement." >&2
-  exit 1
+# Preserve every Android file already shipped with DARB. The source archive
+# currently contains the manifest and native integration files, but may omit
+# the generated Gradle scaffold. Generate only when Gradle files are absent,
+# then overlay the original Android directory so Firebase/OAuth resources,
+# manifests, signing files and custom native code remain intact.
+ANDROID_DIR="$MOBILE_DIR/android"
+GRADLE_FILE="$ANDROID_DIR/app/build.gradle"
+if [ ! -f "$GRADLE_FILE" ]; then
+  GRADLE_FILE="$ANDROID_DIR/app/build.gradle.kts"
 fi
-if [ ! -f "$MOBILE_DIR/android/app/build.gradle" ] && [ ! -f "$MOBILE_DIR/android/app/build.gradle.kts" ]; then
-  echo "The source archive is missing the Android app Gradle file." >&2
-  exit 1
+if [ ! -f "$GRADLE_FILE" ]; then
+  if [ ! -s "$ANDROID_DIR/app/src/main/AndroidManifest.xml" ]; then
+    echo "The source archive is missing its AndroidManifest.xml." >&2
+    exit 1
+  fi
+  ANDROID_BACKUP="$WORK_DIR/android-original"
+  mkdir -p "$ANDROID_BACKUP"
+  cp -a "$ANDROID_DIR/." "$ANDROID_BACKUP/"
+  (
+    cd "$MOBILE_DIR"
+    flutter create --platforms=android --org com.darb --project-name darb --no-pub .
+  )
+  cp -a "$ANDROID_BACKUP/." "$ANDROID_DIR/"
+  GRADLE_FILE="$ANDROID_DIR/app/build.gradle"
+  if [ ! -f "$GRADLE_FILE" ]; then
+    GRADLE_FILE="$ANDROID_DIR/app/build.gradle.kts"
+  fi
 fi
 
-GRADLE_FILE="$MOBILE_DIR/android/app/build.gradle"
-[ -f "$GRADLE_FILE" ] || GRADLE_FILE="$MOBILE_DIR/android/app/build.gradle.kts"
+if [ ! -s "$ANDROID_DIR/app/src/main/AndroidManifest.xml" ]; then
+  echo "The Android scaffold is missing AndroidManifest.xml." >&2
+  exit 1
+fi
+if [ ! -f "$GRADLE_FILE" ]; then
+  echo "Flutter did not generate the Android app Gradle file." >&2
+  exit 1
+fi
 if ! grep -Eq "applicationId[[:space:]]*(=[[:space:]]*)?['\"]com\\.darb\\.darb['\"]" "$GRADLE_FILE"; then
-  echo "The existing Android applicationId is not confirmed as com.darb.darb. Refusing to change the installed app identity." >&2
+  echo "The Android applicationId is not com.darb.darb. Refusing to package an incompatible app identity." >&2
   exit 1
 fi
 
