@@ -67,6 +67,42 @@ abstract final class DarbMotion {
   }
 }
 
+/// One route transition shared by light and dark themes.
+/// It remains short and never blocks navigation when reduced motion is enabled.
+class DarbPageTransitionsBuilder extends PageTransitionsBuilder {
+  const DarbPageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    if (DarbMotion.reduceMotion(context)) return child;
+
+    final progress = CurvedAnimation(
+      parent: animation,
+      curve: DarbMotion.enter,
+      reverseCurve: DarbMotion.exit,
+    );
+    return FadeTransition(
+      opacity: progress,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, .035),
+          end: Offset.zero,
+        ).animate(progress),
+        child: ScaleTransition(
+          scale: Tween<double>(begin: .985, end: 1).animate(progress),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
 /// Reusable entrance motion for content blocks and list items.
 /// The optional delay enables a controlled stagger without extra packages.
 class DarbFadeSlide extends StatefulWidget {
@@ -271,6 +307,15 @@ abstract final class DarbTheme {
       canvasColor: const Color(0xFF13221D),
       cardColor: const Color(0xFF13221D),
       fontFamily: 'Arial',
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: DarbPageTransitionsBuilder(),
+          TargetPlatform.iOS: DarbPageTransitionsBuilder(),
+          TargetPlatform.linux: DarbPageTransitionsBuilder(),
+          TargetPlatform.macOS: DarbPageTransitionsBuilder(),
+          TargetPlatform.windows: DarbPageTransitionsBuilder(),
+        },
+      ),
       appBarTheme: const AppBarTheme(
         backgroundColor: Color(0xFF102B26),
         foregroundColor: Color(0xFFF1F5F1),
@@ -339,13 +384,13 @@ abstract final class DarbTheme {
         bodyMedium: TextStyle(color: Color(0xFF77837D), fontSize: 13, height: 1.45),
         labelLarge: TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
       ),
-      pageTransitionsTheme: PageTransitionsTheme(
+      pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
-          TargetPlatform.android: ZoomPageTransitionsBuilder(),
-          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-          TargetPlatform.linux: FadeUpwardsPageTransitionsBuilder(),
-          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
-          TargetPlatform.windows: FadeUpwardsPageTransitionsBuilder(),
+          TargetPlatform.android: DarbPageTransitionsBuilder(),
+          TargetPlatform.iOS: DarbPageTransitionsBuilder(),
+          TargetPlatform.linux: DarbPageTransitionsBuilder(),
+          TargetPlatform.macOS: DarbPageTransitionsBuilder(),
+          TargetPlatform.windows: DarbPageTransitionsBuilder(),
         },
       ),
       splashFactory: InkSparkle.splashFactory,
