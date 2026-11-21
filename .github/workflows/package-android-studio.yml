@@ -42,13 +42,16 @@ jobs:
           cd "$RUNNER_TEMP"
           zip -qr DARB-Android-Studio.zip DARB-Android-Studio
 
-      - name: Resolve dependencies and analyze Flutter source
+      - name: Resolve dependencies, analyze, and test Flutter source
         working-directory: ${{ runner.temp }}/DARB-Android-Studio
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p test
+          cp mobile-overrides/design_system_test.dart test/design_system_test.dart
           flutter pub get
-          flutter analyze lib --no-fatal-infos --no-fatal-warnings
+          flutter analyze lib test --no-fatal-infos --no-fatal-warnings
+          flutter test
 
       - name: Build Android debug APK
         working-directory: ${{ runner.temp }}/DARB-Android-Studio
